@@ -13,14 +13,13 @@
 namespace HeavyLoad.Correlated
 {
     using MassTransit;
-    using MassTransit.Context;
 
-	internal class SimpleRequestService :
+    internal class SimpleRequestService :
         Consumes<SimpleRequestMessage>.All
     {
         public void Consume(SimpleRequestMessage message)
         {
-			ContextStorage.Context().Respond(new SimpleResponseMessage(message.CorrelationId));
+			CurrentMessage.Respond(new SimpleResponseMessage(message.CorrelationId));
         }
     }
 }

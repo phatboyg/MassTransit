@@ -37,7 +37,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\bin\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -46,7 +46,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\bin\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -81,7 +81,7 @@
     <Compile Include="GeneralMessage.cs" />
     <Compile Include="Load\ActiveMQLoadTest.cs" />
     <Compile Include="Load\LoopbackConsumerLoadTest.cs" />
-    <Compile Include="Load\RabbitMqHandlerLoadTest.cs" />
+    <Compile Include="Load\RabbitMQLoadTest.cs" />
     <Compile Include="Load\LocalLoadTest.cs" />
     <Compile Include="Load\LoopbackHandlerLoadTest.cs" />
     <Compile Include="Load\StructureMapConsumerLoadTest.cs" />
@@ -104,6 +104,10 @@
     <ProjectReference Include="..\..\..\Transports\MassTransit.Transports.Msmq\MassTransit.Transports.Msmq.csproj">
       <Project>{6F90867C-E092-4EDC-B3DE-600D39DF0335}</Project>
       <Name>MassTransit.Transports.Msmq</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Transports\MassTransit.Transports.Nms\MassTransit.Transports.Nms.csproj">
+      <Project>{1DBE5A67-C8C2-4AA9-82EF-1E730273993B}</Project>
+      <Name>MassTransit.Transports.Nms</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Transports\MassTransit.Transports.RabbitMq\MassTransit.Transports.RabbitMq.csproj">
       <Project>{6C7149D7-4D97-45DF-A05D-61EC7374491D}</Project>

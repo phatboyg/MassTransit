@@ -6,45 +6,47 @@ namespace HeavyLoad
 	using log4net;
 	using MassTransit.Transports.Msmq;
 
-	internal class Program
+    internal class Program
 	{
-		static readonly ILog _log = LogManager.GetLogger(typeof (Program));
+		private static readonly ILog _log = LogManager.GetLogger(typeof (Program));
 
-		static void Main(string[] args)
+		private static void Main(string[] args)
 		{
 			_log.Info("HeavyLoad - MassTransit Load Generator");
 
-			MsmqEndpointManagement.Manage(new MsmqEndpointAddress(new Uri("msmq://localhost/mt_client")), q =>
-				{
-					q.Create(false);
-					q.Purge();
-				});
+            MsmqEndpointManagement.Manage(new MsmqEndpointAddress(new Uri("msmq://localhost/mt_client")), q =>
+            {
+                q.Create(false);
+                q.Purge();
+            });
 
-			Console.WriteLine("HeavyLoad - MassTransit Load Generator");
-			Console.WriteLine();
+            Console.WriteLine("HeavyLoad - MassTransit Load Generator");
+            Console.WriteLine();
 
 			RunLoopbackHandlerLoadTest();
-//
-//			RunLoopbackConsumerLoadTest();
-//
-//			RunStructureMapLoadTest();
-//
-//			RunLocalMsmqLoadTest();
-//
-//			RunTransactionLoadTest();
-//
-//			RunCorrelatedMessageTest();
-//
-//			RunRabbitMqLoadTest();
+
+			RunLoopbackConsumerLoadTest();
+
+			RunStructureMapLoadTest();
+
+			RunLocalMsmqLoadTest();
+			
+			RunTransactionLoadTest();
+
+			RunCorrelatedMessageTest();
+
+//		    RunLocalRabbitMqLoadTest();
+
+
 
 			//RunLocalActiveMqLoadTest();
 
 			Console.WriteLine("End of line.");
 		}
 
-		static void RunLocalActiveMqLoadTest()
+		private static void RunLocalActiveMqLoadTest()
 		{
-			var stopWatch = new StopWatch();
+			StopWatch stopWatch = new StopWatch();
 
 			using (var test = new ActiveMQLoadTest())
 			{
@@ -52,51 +54,43 @@ namespace HeavyLoad
 			}
 
 			Console.WriteLine("ActiveMQ Load Test: ");
-			Console.WriteLine(stopWatch.ToString());
-			Console.WriteLine();
+            Console.WriteLine(stopWatch.ToString());
+            Console.WriteLine();
 		}
 
-		static void RunRabbitMqLoadTest()
+        private static void RunLocalRabbitMqLoadTest()
+        {
+            var stopWatch = new StopWatch();
+
+            using (var test = new RabbitMQLoadTest())
+            {
+                test.Run(stopWatch);
+            }
+
+            Console.WriteLine("RabbitMQ Load Test: ");
+            Console.WriteLine(stopWatch.ToString());
+            Console.WriteLine();
+        }
+
+		private static void RunLocalMsmqLoadTest()
 		{
-			try
-			{
-				var stopWatch = new StopWatch();
+            Console.WriteLine("Starting Local MSMQ Load Test");
+			StopWatch stopWatch = new StopWatch();
 
-				using (var test = new RabbitMqHandlerLoadTest())
-				{
-					test.Run(stopWatch);
-				}
-
-				Console.WriteLine("RabbitMQ Load Test: ");
-				Console.WriteLine(stopWatch.ToString());
-				Console.WriteLine();
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine("Unable to run RabbitMQ Load Test: " + ex);
-				Console.WriteLine("If RabbitMQ is not installed, this is normal");
-			}
-		}
-
-		static void RunLocalMsmqLoadTest()
-		{
-			Console.WriteLine("Starting Local MSMQ Load Test");
-			var stopWatch = new StopWatch();
-
-			using (var test = new LocalLoadTest())
+            using (var test = new LocalLoadTest())
 			{
 				test.Run(stopWatch);
 			}
 
 			Console.WriteLine("Local MSMQ Load Test: ");
-			Console.WriteLine(stopWatch.ToString());
-			Console.WriteLine();
+            Console.WriteLine(stopWatch.ToString());
+            Console.WriteLine();
 		}
 
-		static void RunStructureMapLoadTest()
-		{
-			Console.WriteLine("Starting StructureMap Load Test");
-			var stopWatch = new StopWatch();
+		private static void RunStructureMapLoadTest()
+        {
+            Console.WriteLine("Starting StructureMap Load Test");
+			StopWatch stopWatch = new StopWatch();
 
 			using (var test = new StructureMapConsumerLoadTest())
 			{
@@ -104,29 +98,29 @@ namespace HeavyLoad
 			}
 
 			Console.WriteLine("StructureMap Load Test: ");
-			Console.WriteLine(stopWatch.ToString());
-			Console.WriteLine();
+            Console.WriteLine(stopWatch.ToString());
+            Console.WriteLine();
 		}
 
-		static void RunTransactionLoadTest()
-		{
-			Console.WriteLine("Starting Local MSMQ Transactional Load Test");
-			var stopWatch = new StopWatch();
+		private static void RunTransactionLoadTest()
+        {
+            Console.WriteLine("Starting Local MSMQ Transactional Load Test");
+			StopWatch stopWatch = new StopWatch();
 
-			using (var test = new TransactionLoadTest())
+            using (var test = new TransactionLoadTest())
 			{
 				test.Run(stopWatch);
 			}
 
 			Console.WriteLine("Transaction Load Test: ");
-			Console.WriteLine(stopWatch.ToString());
-			Console.WriteLine();
+            Console.WriteLine(stopWatch.ToString());
+            Console.WriteLine();
 		}
 
-		static void RunLoopbackHandlerLoadTest()
-		{
-			Console.WriteLine("Starting Local Loopback Handler Load Test");
-			var stopWatch = new StopWatch();
+		private static void RunLoopbackHandlerLoadTest()
+        {
+            Console.WriteLine("Starting Local Loopback Handler Load Test");
+			StopWatch stopWatch = new StopWatch();
 
 			using (var test = new LoopbackHandlerLoadTest())
 			{
@@ -134,30 +128,30 @@ namespace HeavyLoad
 			}
 
 			Console.WriteLine("Loopback Load Handler Test: ");
-			Console.WriteLine(stopWatch.ToString());
-			Console.WriteLine();
+            Console.WriteLine(stopWatch.ToString());
+            Console.WriteLine();
 		}
 
-		static void RunLoopbackConsumerLoadTest()
-		{
-			Console.WriteLine("Starting Local Loopback Consumer Load Test");
-			var stopWatch = new StopWatch();
+		private static void RunLoopbackConsumerLoadTest()
+        {
+            Console.WriteLine("Starting Local Loopback Consumer Load Test");
+			StopWatch stopWatch = new StopWatch();
 
-			using (var test = new LoopbackConsumerLoadTest())
+			using (LoopbackConsumerLoadTest test = new LoopbackConsumerLoadTest())
 			{
 				test.Run(stopWatch);
 			}
 
 			Console.WriteLine("Loopback Load Consumer Test: ");
-			Console.WriteLine(stopWatch.ToString());
-			Console.WriteLine();
+            Console.WriteLine(stopWatch.ToString());
+            Console.WriteLine();
 		}
 
 
-		static void RunCorrelatedMessageTest()
-		{
-			Console.WriteLine("Starting Local MSMQ Correlated Load Test");
-			var stopWatch = new StopWatch();
+	    private static void RunCorrelatedMessageTest()
+        {
+            Console.WriteLine("Starting Local MSMQ Correlated Load Test");
+			StopWatch stopWatch = new StopWatch();
 
 			using (var test = new CorrelatedMessageTest())
 			{
@@ -165,8 +159,8 @@ namespace HeavyLoad
 			}
 
 			Console.WriteLine("Correlated Message Test: ");
-			Console.WriteLine(stopWatch.ToString());
-			Console.WriteLine();
+            Console.WriteLine(stopWatch.ToString());
+            Console.WriteLine();
 		}
 	}
 }
