@@ -18,11 +18,13 @@ namespace MassTransit.BusConfigurators
 	using Builders;
 	using Configurators;
 	using log4net;
+	using Util;
 
 	public class ControlBusConfiguratorImpl :
 		ControlBusConfigurator,
 		BusBuilderConfigurator
 	{
+		readonly ServiceBusConfigurator _configurator;
 		static readonly ILog _log = LogManager.GetLogger(typeof (ControlBusConfiguratorImpl));
 
 		readonly IList<BusBuilderConfigurator> _configurators;
@@ -30,6 +32,7 @@ namespace MassTransit.BusConfigurators
 
 		public ControlBusConfiguratorImpl(ServiceBusConfigurator configurator)
 		{
+			_configurator = configurator;
 			_configurators = new List<BusBuilderConfigurator>();
 		}
 
@@ -41,14 +44,17 @@ namespace MassTransit.BusConfigurators
 
 					settings.InputAddress = _uri ?? builder.Settings.InputAddress.AppendToPath("_control");
 
+					// the endpoint factory is already created, so we can't set the endpoint here
+					// we really need this to be part of another step, but i don't have a clue how yet.
+					//_configurator.ConfigureEndpoint(_uri, x => x.PurgeExistingMessages());
+
+
 					if (_log.IsDebugEnabled)
 						_log.DebugFormat("Configuring control bus for {0} at {1}", builder.Settings.InputAddress, settings.InputAddress);
 
 					settings.ConcurrentConsumerLimit = 1;
 					settings.ConcurrentReceiverLimit = 1;
 					settings.AutoStart = true;
-
-					// TODO need to ConfigureEndpoint to purge messages on startup!
 
 					BusBuilder controlBusBuilder = new ControlBusBuilderImpl(settings);
 

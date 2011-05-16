@@ -16,6 +16,7 @@ namespace MassTransit.Saga.Pipeline
 	using System.Linq.Expressions;
 	using log4net;
 	using Magnum.StateMachine;
+	using Util;
 
 	public class CorrelatedSagaStateMachineMessageSink<TSaga, TMessage> :
 		SagaMessageSinkBase<TSaga, TMessage>
@@ -28,11 +29,10 @@ namespace MassTransit.Saga.Pipeline
 		readonly DataEvent<TSaga, TMessage> _dataEvent;
 		readonly Expression<Func<TSaga, TMessage, bool>> _selector;
 
-		public CorrelatedSagaStateMachineMessageSink(IServiceBus bus,
-		                                             ISagaRepository<TSaga> repository,
+		public CorrelatedSagaStateMachineMessageSink(ISagaRepository<TSaga> repository,
 		                                             ISagaPolicy<TSaga, TMessage> policy,
 		                                             DataEvent<TSaga, TMessage> dataEvent)
-			: base(bus, repository, policy)
+			: base(repository, policy)
 		{
 			_dataEvent = dataEvent;
 

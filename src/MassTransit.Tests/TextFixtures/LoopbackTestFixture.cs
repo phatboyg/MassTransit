@@ -12,7 +12,9 @@
 // specific language governing permissions and limitations under the License.
 namespace MassTransit.Tests.TextFixtures
 {
+	using BusConfigurators;
 	using MassTransit.Transports;
+	using MassTransit.Transports.Loopback;
 	using NUnit.Framework;
 
 	[TestFixture]
@@ -25,7 +27,16 @@ namespace MassTransit.Tests.TextFixtures
 		{
 			base.EstablishContext();
 
-			LocalBus = ServiceBusFactory.New(x => x.ReceiveFrom("loopback://localhost/mt_client"));
+			LocalBus = ServiceBusFactory.New(x =>
+				{
+					x.ReceiveFrom("loopback://localhost/mt_client");
+
+					ConfigureLocalBus(x);
+				});
+		}
+
+		protected virtual void ConfigureLocalBus(ServiceBusConfigurator configurator)
+		{
 		}
 
 		protected override void TeardownContext()

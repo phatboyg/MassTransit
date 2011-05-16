@@ -17,6 +17,7 @@ namespace MassTransit.Builders
 	using EndpointConfigurators;
 	using Serialization;
 	using Transports;
+	using Transports.Loopback;
 
 	public class EndpointFactoryBuilderImpl :
 		EndpointFactoryBuilder
@@ -31,14 +32,8 @@ namespace MassTransit.Builders
 			_transportFactories = new Dictionary<string, ITransportFactory>();
 
 			AddTransportFactory(new LoopbackTransportFactory());
-			AddTransportFactory(new MulticastUdpTransportFactory());
 
 			_defaults = new EndpointFactoryDefaultSettings(defaults);
-		}
-
-		public IEndpointFactoryDefaultSettings Defaults
-		{
-			get { return _defaults; }
 		}
 
 		public IEndpointFactory Build()

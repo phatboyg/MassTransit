@@ -80,12 +80,24 @@
     <Compile Include="..\..\SolutionVersion.cs">
       <Link>SolutionVersion.cs</Link>
     </Compile>
-    <Compile Include="RabbitMqAddress.cs" />
+    <Compile Include="InboundRabbitMqTransport.cs" />
+    <Compile Include="IRabbitMqEndpointAddress.cs" />
+    <Compile Include="Management\IRabbitMqEndpointManagement.cs" />
+    <Compile Include="Management\RabbitMQEndpointManagement.cs" />
+    <Compile Include="MessageName.cs" />
+    <Compile Include="OutboundRabbitMqTransport.cs" />
+    <Compile Include="PublishEndpointInterceptor.cs" />
+    <Compile Include="PublishEndpointSinkLocator.cs" />
+    <Compile Include="RabbitMqEndpointAddress.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RabbitMqReceiveContext.cs" />
-    <Compile Include="RabbitMqSendContext.cs" />
-    <Compile Include="RabbitMqTransport.cs" />
+    <Compile Include="RabbitMqAddressException.cs" />
+    <Compile Include="RabbitMqConfigurationExtensions.cs" />
+    <Compile Include="RabbitMqHelper.cs" />
+    <Compile Include="LoopbackRabbitMqTransport.cs" />
+    <Compile Include="RabbitMqSubscriptionBinder.cs" />
     <Compile Include="RabbitMqTransportFactory.cs" />
+    <Compile Include="Configuration\RabbitMqServiceBusExtensions.cs" />
+    <Compile Include="TransactionalBehavior.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\MassTransit\MassTransit.csproj">

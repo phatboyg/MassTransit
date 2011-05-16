@@ -15,8 +15,8 @@ namespace MassTransit.Services.Routing.Configuration
 	using System;
 	using System.Collections.Generic;
 	using BusServiceConfigurators;
-	using Configurators;
 	using Pipeline;
+	using Util;
 
 	public class RoutingConfigurator :
 		BusServiceConfigurator
@@ -54,7 +54,7 @@ namespace MassTransit.Services.Routing.Configuration
 				_boss._routes.Add(bus =>
 					{
 						IEndpoint endpoint = bus.GetEndpoint(address);
-						return bus.OutboundPipeline.Subscribe<TMessage>(endpoint);
+						return bus.OutboundPipeline.ConnectEndpoint<TMessage>(endpoint);
 					});
 			}
 

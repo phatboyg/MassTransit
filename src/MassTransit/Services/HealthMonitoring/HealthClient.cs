@@ -60,7 +60,7 @@ namespace MassTransit.Services.HealthMonitoring
 		{
 			var response = new PingEndpointResponse(SystemId, _controlUri, _dataUri, _heartbeatIntervalInSeconds);
 
-			CurrentMessage.Respond(response);
+			_bus.Context().Respond(response);
 		}
 
 		public void Dispose()
@@ -73,8 +73,8 @@ namespace MassTransit.Services.HealthMonitoring
 		{
 			_bus = bus;
 
-			_controlUri = _bus.ControlBus.Endpoint.Uri;
-			_dataUri = _bus.Endpoint.Uri;
+			_controlUri = _bus.ControlBus.Endpoint.Address.Uri;
+			_dataUri = _bus.Endpoint.Address.Uri;
 
 			_unsubscribe = _bus.ControlBus.SubscribeInstance(this);
 

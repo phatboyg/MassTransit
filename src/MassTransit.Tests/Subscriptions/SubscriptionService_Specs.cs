@@ -19,6 +19,7 @@ namespace MassTransit.Tests.Subscriptions
 	using MassTransit.Pipeline.Inspectors;
 	using MassTransit.Services.Subscriptions.Messages;
 	using MassTransit.Transports;
+	using MassTransit.Transports.Loopback;
 	using Messages;
 	using NUnit.Framework;
 	using TestConsumers;
@@ -55,7 +56,7 @@ namespace MassTransit.Tests.Subscriptions
 		{
 			Guid clientId = CombGuid.Generate();
 
-			var subscription = new SubscriptionInformation(clientId, 1, typeof (PingMessage), RemoteBus.Endpoint.Uri);
+			var subscription = new SubscriptionInformation(clientId, 1, typeof (PingMessage), RemoteBus.Endpoint.Address.Uri);
 
 			LocalControlBus.Endpoint.Send(new AddSubscription(subscription));
 			LocalBus.ShouldHaveRemoteSubscriptionFor<PingMessage>();

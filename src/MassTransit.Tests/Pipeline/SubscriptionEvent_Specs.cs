@@ -27,7 +27,7 @@ namespace MassTransit.Tests.Pipeline
 		public void Setup()
 		{
 			_endpoint = MockRepository.GenerateMock<IEndpoint>();
-			_endpoint.Stub(x => x.Uri).Return(_uri);
+			_endpoint.Stub(x => x.Address.Uri).Return(_uri);
 
 			_bus = MockRepository.GenerateMock<IServiceBus>();
 			_bus.Stub(x => x.Endpoint).Return(_endpoint);
@@ -35,7 +35,7 @@ namespace MassTransit.Tests.Pipeline
 			_unsubscribe = MockRepository.GenerateMock<UnsubscribeAction>();
 
 			_subscriptionEvent = MockRepository.GenerateMock<ISubscriptionEvent>();
-			_pipeline = MessagePipelineConfigurator.CreateDefault(_bus);
+			_pipeline = InboundPipelineConfigurator.CreateDefault(_bus);
 			_pipeline.Configure(x => x.Register(_subscriptionEvent));
 		}
 
@@ -43,7 +43,7 @@ namespace MassTransit.Tests.Pipeline
 
 		private readonly Uri _uri = new Uri("msmq://localhost/mt_client");
 		private IEndpoint _endpoint;
-		private MessagePipeline _pipeline;
+		private IInboundMessagePipeline _pipeline;
 		private ISubscriptionEvent _subscriptionEvent;
 		private UnsubscribeAction _unsubscribe;
 
@@ -56,7 +56,7 @@ namespace MassTransit.Tests.Pipeline
 					return true;
 				});
 
-			_pipeline.Subscribe<TestMessageConsumer<PingMessage>>();
+			_pipeline.ConnectConsumer<TestMessageConsumer<PingMessage>>();
 
 			_subscriptionEvent.VerifyAllExpectations();
 		}
@@ -73,7 +73,7 @@ namespace MassTransit.Tests.Pipeline
 				});
 
 			var consumer = new TestCorrelatedConsumer<PongMessage, Guid>(pongGuid);
-			_pipeline.Subscribe(consumer);
+			_pipeline.ConnectInstance(consumer);
 
 			_subscriptionEvent.VerifyAllExpectations();
 		}
@@ -88,7 +88,7 @@ namespace MassTransit.Tests.Pipeline
 				});
 
 			var consumer = new TestMessageConsumer<PingMessage>();
-			_pipeline.Subscribe(consumer);
+			_pipeline.ConnectInstance(consumer);
 
 			_subscriptionEvent.VerifyAllExpectations();
 		}
@@ -102,7 +102,7 @@ namespace MassTransit.Tests.Pipeline
 					return true;
 				});
 
-			_pipeline.Subscribe<TestSelectiveConsumer<PingMessage>>();
+			_pipeline.ConnectConsumer<TestSelectiveConsumer<PingMessage>>();
 
 			_subscriptionEvent.VerifyAllExpectations();
 		}
@@ -117,7 +117,7 @@ namespace MassTransit.Tests.Pipeline
 				});
 
 			var consumer = new TestSelectiveConsumer<PingMessage>();
-			_pipeline.Subscribe(consumer);
+			_pipeline.ConnectInstance(consumer);
 
 			_subscriptionEvent.VerifyAllExpectations();
 		}
@@ -130,7 +130,7 @@ namespace MassTransit.Tests.Pipeline
 		public void Setup()
 		{
 			_endpoint = MockRepository.GenerateMock<IEndpoint>();
-			_endpoint.Stub(x => x.Uri).Return(_uri);
+			_endpoint.Stub(x => x.Address.Uri).Return(_uri);
 
 			_unsubscribe = MockRepository.GenerateMock<UnsubscribeAction>();
 
@@ -138,7 +138,7 @@ namespace MassTransit.Tests.Pipeline
 			_bus.Stub(x => x.Endpoint).Return(_endpoint);
 
 			_subscriptionEvent = MockRepository.GenerateMock<ISubscriptionEvent>();
-			_pipeline = MessagePipelineConfigurator.CreateDefault(_bus);
+			_pipeline = InboundPipelineConfigurator.CreateDefault(_bus);
 			_pipeline.Configure(x => x.Register(_subscriptionEvent));
 		}
 
@@ -146,7 +146,7 @@ namespace MassTransit.Tests.Pipeline
 
 		private readonly Uri _uri = new Uri("msmq://localhost/mt_client");
 		private IEndpoint _endpoint;
-		private MessagePipeline _pipeline;
+		private IInboundMessagePipeline _pipeline;
 		private ISubscriptionEvent _subscriptionEvent;
 		private UnsubscribeAction _unsubscribe;
 
@@ -160,7 +160,7 @@ namespace MassTransit.Tests.Pipeline
 					return true;
 				});
 
-			var token = _pipeline.Subscribe<TestMessageConsumer<PingMessage>>();
+			var token = _pipeline.ConnectConsumer<TestMessageConsumer<PingMessage>>();
 
 			token();
 
@@ -180,7 +180,7 @@ namespace MassTransit.Tests.Pipeline
 				});
 
 			var consumer = new TestCorrelatedConsumer<PongMessage, Guid>(pongGuid);
-			var remove = _pipeline.Subscribe(consumer);
+			var remove = _pipeline.ConnectInstance(consumer);
 
 			remove();
 
@@ -201,8 +201,8 @@ namespace MassTransit.Tests.Pipeline
 
 			var consumer = new TestCorrelatedConsumer<PongMessage, Guid>(pongGuid);
 			var otherConsumer = new TestCorrelatedConsumer<PongMessage, Guid>(pongGuid);
-			var remove = _pipeline.Subscribe(consumer);
-			var removeOther = _pipeline.Subscribe(otherConsumer);
+			var remove = _pipeline.ConnectInstance(consumer);
+			var removeOther = _pipeline.ConnectInstance(otherConsumer);
 
 			remove();
 			_subscriptionEvent.VerifyAllExpectations();
@@ -226,7 +226,7 @@ namespace MassTransit.Tests.Pipeline
 				});
 
 			var consumer = new TestMessageConsumer<PingMessage>();
-			var token = _pipeline.Subscribe(consumer);
+			var token = _pipeline.ConnectInstance(consumer);
 
 			token();
 
@@ -243,7 +243,7 @@ namespace MassTransit.Tests.Pipeline
 					return true;
 				});
 
-			var token = _pipeline.Subscribe<TestSelectiveConsumer<PingMessage>>();
+			var token = _pipeline.ConnectConsumer<TestSelectiveConsumer<PingMessage>>();
 
 			token();
 
@@ -261,7 +261,7 @@ namespace MassTransit.Tests.Pipeline
 				});
 
 			var consumer = new TestSelectiveConsumer<PingMessage>();
-			var token = _pipeline.Subscribe(consumer);
+			var token = _pipeline.ConnectInstance(consumer);
 
 			token();
 

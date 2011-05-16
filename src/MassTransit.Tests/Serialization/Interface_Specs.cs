@@ -15,12 +15,12 @@ namespace MassTransit.Tests.Serialization
 	using System;
 	using System.IO;
 	using System.Text;
+	using Context;
 	using MassTransit.Pipeline;
 	using MassTransit.Pipeline.Configuration;
 	using MassTransit.Pipeline.Inspectors;
 	using MassTransit.Serialization;
 	using NUnit.Framework;
-	using Rhino.Mocks;
 	using TestConsumers;
 
 	
@@ -45,7 +45,7 @@ namespace MassTransit.Tests.Serialization
 			var serializer = new TSerializer();
 			using (var bodyStream = new MemoryStream(Encoding.UTF8.GetBytes(InterfaceBasedMessageXml)))
 			{
-				object obj = serializer.Deserialize(bodyStream);
+				object obj = serializer.Deserialize(new ConsumeContext(bodyStream));
 
 				Assert.IsNotNull(obj);
 			}
@@ -54,11 +54,11 @@ namespace MassTransit.Tests.Serialization
 		[Test]
 		public void Should_dispatch_an_interface_via_the_pipeline()
 		{
-			var pipeline = MessagePipelineConfigurator.CreateDefault(null);
+			var pipeline = InboundPipelineConfigurator.CreateDefault(null);
 
 			var consumer = new TestMessageConsumer<ComplaintAdded>();
 
-			var unsubscribeAction = pipeline.Subscribe(consumer);
+			var unsubscribeAction = pipeline.ConnectInstance(consumer);
 
 			var user = new UserImpl("Chris", "noone@nowhere.com");
 			ComplaintAdded complaint = new ComplaintAddedImpl(user, "No toilet paper", BusinessArea.Appearance)
@@ -68,7 +68,7 @@ namespace MassTransit.Tests.Serialization
 
 			pipeline.Dispatch(complaint);
 
-			PipelineViewer.Trace(pipeline);
+	//		PipelineViewer.Trace(pipeline);
 
 			consumer.ShouldHaveReceivedMessage(complaint);
 		}

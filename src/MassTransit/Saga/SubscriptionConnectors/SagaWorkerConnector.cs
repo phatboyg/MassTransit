@@ -26,8 +26,6 @@ namespace MassTransit.Saga.SubscriptionConnectors
 		InstanceConnector
 	{
 		Type SagaType { get; }
-
-		UnsubscribeAction Connect(IPipelineConfigurator configurator, object instance);
 	}
 
 	public class SagaWorkerConnector<T> :
@@ -67,7 +65,7 @@ namespace MassTransit.Saga.SubscriptionConnectors
 		}
 
 
-		public UnsubscribeAction Connect(IPipelineConfigurator configurator, object instance)
+		public UnsubscribeAction Connect(IInboundPipelineConfigurator configurator, object instance)
 		{
 			return _connectors.Select(x => x.Connect(configurator, instance))
 				.Aggregate<UnsubscribeAction, UnsubscribeAction>(() => true, (seed, x) => () => seed() && x());

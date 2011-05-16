@@ -15,23 +15,19 @@ namespace MassTransit.Builders
 	using System;
 	using System.Collections.Generic;
 	using BusServiceConfigurators;
+	using Configuration;
 	using Exceptions;
-	using log4net;
 	using Magnum;
+	using Magnum.Extensions;
 	using Pipeline.Configuration;
 	using Util;
-	using Magnum.Extensions;
 
 	public class ServiceBusBuilderImpl :
-		ServiceBusBuilder,
-		IDisposable
+		ServiceBusBuilder
 	{
-		static readonly ILog _log = LogManager.GetLogger(typeof (ServiceBusBuilderImpl));
-
 		readonly IList<BusServiceConfigurator> _busServiceConfigurators;
 		readonly IList<Action<ServiceBus>> _postCreateActions;
 		readonly BusSettings _settings;
-		bool _disposed;
 
 		public ServiceBusBuilderImpl(BusSettings settings)
 		{
@@ -43,12 +39,6 @@ namespace MassTransit.Builders
 
 			_postCreateActions = new List<Action<ServiceBus>>();
 			_busServiceConfigurators = new List<BusServiceConfigurator>();
-		}
-
-		public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
 		}
 
 		public BusSettings Settings
@@ -76,24 +66,6 @@ namespace MassTransit.Builders
 			return bus;
 		}
 
-		void RunBusServiceConfigurators(ServiceBus bus)
-		{
-			foreach (var busServiceConfigurator in _busServiceConfigurators)
-			{
-				try
-				{
-					IBusService busService = busServiceConfigurator.Create(bus);
-
-					bus.AddService(busServiceConfigurator.ServiceType, busService);
-				}
-				catch (Exception ex)
-				{
-					throw new ConfigurationException("Failed to create the bus service: " +
-					                                 busServiceConfigurator.ServiceType.ToShortTypeName(), ex);
-				}
-			}
-		}
-
 		public void UseControlBus(IControlBus controlBus)
 		{
 			_postCreateActions.Add(bus => bus.ControlBus = controlBus);
@@ -118,17 +90,22 @@ namespace MassTransit.Builders
 				callback(this as T);
 		}
 
-
-		protected virtual void Dispose(bool disposing)
+		void RunBusServiceConfigurators(ServiceBus bus)
 		{
-			if (_disposed)
-				return;
-
-			if (disposing)
+			foreach (BusServiceConfigurator busServiceConfigurator in _busServiceConfigurators)
 			{
-			}
+				try
+				{
+					IBusService busService = busServiceConfigurator.Create(bus);
 
-			_disposed = true;
+					bus.AddService(busServiceConfigurator.ServiceType, busService);
+				}
+				catch (Exception ex)
+				{
+					throw new ConfigurationException("Failed to create the bus service: " +
+					                                 busServiceConfigurator.ServiceType.ToShortTypeName(), ex);
+				}
+			}
 		}
 
 		void RunPostCreateActions(ServiceBus bus)
@@ -157,8 +134,6 @@ namespace MassTransit.Builders
 
 		void ConfigureBusSettings(ServiceBus bus)
 		{
-			// TODO validate these to ensure sane values are present
-
 			if (_settings.ConcurrentConsumerLimit > 0)
 				bus.MaximumConsumerThreads = _settings.ConcurrentConsumerLimit;
 
@@ -172,7 +147,11 @@ namespace MassTransit.Builders
 		{
 			if (_settings.BeforeConsume != null || _settings.AfterConsume != null)
 			{
-				MessageInterceptorConfigurator.For(bus.InboundPipeline).Create(_settings.BeforeConsume, _settings.AfterConsume);
+				var configurator = new InboundMessageInterceptorConfigurator(bus.InboundPipeline);
+
+				var interceptor = new DelegateMessageInterceptor(_settings.BeforeConsume, _settings.AfterConsume);
+
+				configurator.Create(interceptor);
 			}
 		}
 	}

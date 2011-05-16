@@ -1,4 +1,4 @@
-// Copyright 2007-2010 The Apache Software Foundation.
+// Copyright 2007-2011 Chris Patterson, Dru Sellers, Travis Smith, et. al.
 //  
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 // this file except in compliance with the License. You may obtain a copy of the 
@@ -12,14 +12,11 @@
 // specific language governing permissions and limitations under the License.
 namespace MassTransit.Tests
 {
-    using System;
-    using Magnum.Extensions;
-    using Magnum.TestFramework;
-    using Messages;
+	using Magnum.Extensions;
+	using Messages;
 	using NUnit.Framework;
-	using Rhino.Mocks;
+	using TestFramework;
 	using TextFixtures;
-    using TestFramework;
 
 	[TestFixture]
 	public class When_a_message_consumer_specifies_that_it_should_retry_a_message :
@@ -28,23 +25,23 @@ namespace MassTransit.Tests
 		[Test]
 		public void The_retry_count_should_be_set_on_the_message()
 		{
-			FutureMessage<PingMessage> future = new FutureMessage<PingMessage>();
+			var future = new FutureMessage<PingMessage>();
 
 			bool first = true;
 
 			LocalBus.SubscribeHandler<PingMessage>(message =>
 				{
-					if(first)
+					if (first)
 					{
-						Assert.AreEqual(0, CurrentMessage.Headers.RetryCount);
+						Assert.AreEqual(0, LocalBus.Context().RetryCount);
 
-						CurrentMessage.RetryLater();
+						LocalBus.Context().RetryLater();
 
 						first = false;
 					}
 					else
 					{
-						Assert.AreEqual(1, CurrentMessage.Headers.RetryCount);
+						Assert.AreEqual(1, LocalBus.Context().RetryCount);
 
 						future.Set(message);
 					}
@@ -54,30 +51,7 @@ namespace MassTransit.Tests
 
 			LocalBus.Publish(new PingMessage());
 
-			Assert.IsTrue(future.IsAvailable(15.Seconds()));
+			Assert.IsTrue(future.IsAvailable(20.Seconds()));
 		}
-
-	    [Test]
-	    public void Should_do_something_nicely()
-	    {
-	        var ding = new PingMessage();
-
-            var future = new FutureMessage<PingMessage>();
-
-	        var bus = MockRepository.GenerateMock<IServiceBus>();
-	        bus.Stub(x => x.Publish<PingMessage>(null)).Callback<PingMessage>(message =>
-	            {
-                    if(message != ding )
-                        Assert.Fail("Bugger me");
-
-	                future.Set(message);
-
-	                return true;
-	            });
-
-	        bus.Publish(ding);
-
-	        future.IsAvailable(TimeSpan.Zero).ShouldBeTrue();
-	    }
 	}
 }

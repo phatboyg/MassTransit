@@ -112,6 +112,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Environment_Specs.cs" />
+    <Compile Include="MessageUrnSpecs.cs" />
     <Compile Include="BddExtensions.cs" />
     <Compile Include="Configuration\ChannelConfigurator_Specs.cs" />
     <Compile Include="Configuration\ConsumerSubscription_Specs.cs" />
@@ -176,6 +178,7 @@
     <Compile Include="Performance\LoadedResponse.cs" />
     <None Include="app.config" />
     <None Include="Reactive\Samples\BasicExample.cs" />
+    <Compile Include="Pipeline\Interception_Specs.cs" />
     <Compile Include="ReflectionExploration.cs" />
     <Compile Include="Saga\CompleteSimpleSaga.cs" />
     <Compile Include="Saga\InitiateSimpleSaga.cs" />
@@ -195,7 +198,6 @@
     <Compile Include="Saga\StateMachine\SagaFault_Specs.cs" />
     <Compile Include="Saga\StateMachine\StateMachineSubscriberTestBase.cs" />
     <Compile Include="Saga\StateMachine\TestSaga_Specs.cs" />
-    <Compile Include="Serialization\Approach\Approach_Specs.cs" />
     <Compile Include="Serialization\ContextSerialization_Specs.cs" />
     <Compile Include="Internal\IdempotentHashtable_Specs.cs" />
     <Compile Include="LocalSubscriptionCache_Specs.cs" />
@@ -206,6 +208,7 @@
     <Compile Include="Serialization\GivenAComplexMessage.cs" />
     <Compile Include="Serialization\GivenASimpleMessage.cs" />
     <Compile Include="Serialization\Header_Specs.cs" />
+    <Compile Include="Serialization\InterfaceBinding_Specs.cs" />
     <Compile Include="Serialization\Interface_Specs.cs" />
     <Compile Include="Serialization\MoreSerialization_Specs.cs" />
     <Compile Include="Serialization\Performance_Specs.cs" />
@@ -223,9 +226,9 @@
     <Compile Include="Subscriptions\SubscriptionService_Specs.cs" />
     <Compile Include="Subscriptions\CorrelatedSubscription_Specs.cs" />
     <Compile Include="TestExtensions.cs" />
+    <Compile Include="TextFixtures\EndpointCacheProxy.cs" />
     <Compile Include="TextFixtures\SubscriptionServiceTestFixture.cs" />
     <Compile Include="Transports\LoopbackTransportContract.cs" />
-    <Compile Include="Transports\Multicast_Specs.cs" />
     <Compile Include="Saga\InitiateSaga_Specs.cs" />
     <Compile Include="Pipeline\MessageFilter_Specs.cs" />
     <Compile Include="Pipeline\OutboundEndpoint_Specs.cs" />
@@ -270,7 +273,6 @@
     <Compile Include="TextFixtures\EndpointTestFixture.cs" />
     <Compile Include="TextFixtures\LoopbackLocalAndRemoteTestFixture.cs" />
     <Compile Include="TextFixtures\LoopbackTestFixture.cs" />
-    <Compile Include="TextFixtures\MulticastUdpTestFixture.cs" />
     <Compile Include="Timeouts\TimeoutService_Specs.cs" />
     <Compile Include="Transports\TransactionalEndpointContract.cs" />
   </ItemGroup>

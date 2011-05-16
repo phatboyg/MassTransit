@@ -38,7 +38,7 @@ namespace MassTransit.Transports.Msmq.Tests.Serialization
 
 			RemoteBus.SubscribeHandler<PingMessage>(message =>
 				{
-					Assert.AreEqual(RemoteBus.Endpoint.Uri, CurrentMessage.Headers.DestinationAddress);
+					Assert.AreEqual(RemoteBus.Endpoint.Address.Uri, LocalBus.Context().DestinationAddress);
 
 					received.Set(message);
 				});
@@ -57,14 +57,14 @@ namespace MassTransit.Transports.Msmq.Tests.Serialization
 
 			RemoteBus.SubscribeHandler<PingMessage>(message =>
 				{
-					Assert.AreEqual(LocalBus.Endpoint.Uri, CurrentMessage.Headers.FaultAddress);
+					Assert.AreEqual(LocalBus.Endpoint.Address.Uri, LocalBus.Context().FaultAddress);
 
 					received.Set(message);
 				});
 
 //			LocalBus.ShouldHaveSubscriptionFor<PingMessage>();
 
-			LocalBus.Publish(ping, context => context.SendFaultTo(LocalBus.Endpoint.Uri));
+			LocalBus.Publish(ping, context => context.SendFaultTo(LocalBus.Endpoint.Address.Uri));
 
 			Assert.IsTrue(received.IsAvailable(10.Seconds()), "Timeout waiting for message");
 		}
@@ -78,7 +78,7 @@ namespace MassTransit.Transports.Msmq.Tests.Serialization
 
 			RemoteBus.SubscribeHandler<PingMessage>(message =>
 				{
-					Assert.AreEqual(typeof (PingMessage).ToMessageName(), CurrentMessage.Headers.MessageType);
+					Assert.AreEqual(typeof(PingMessage).ToMessageName(), LocalBus.Context().MessageType);
 
 					received.Set(message);
 				});
@@ -97,12 +97,12 @@ namespace MassTransit.Transports.Msmq.Tests.Serialization
 
 			RemoteBus.SubscribeHandler<PingMessage>(message =>
 				{
-					Assert.AreEqual(LocalBus.Endpoint.Uri, CurrentMessage.Headers.ResponseAddress);
+					Assert.AreEqual(LocalBus.Endpoint.Address.Uri, LocalBus.Context().ResponseAddress);
 
 					received.Set(message);
 				});
 
-			LocalBus.Publish(ping, context => context.SendResponseTo(LocalBus.Endpoint.Uri));
+			LocalBus.Publish(ping, context => context.SendResponseTo(LocalBus.Endpoint.Address.Uri));
 
 			Assert.IsTrue(received.IsAvailable(10.Seconds()), "Timeout waiting for message");
 		}
@@ -117,7 +117,7 @@ namespace MassTransit.Transports.Msmq.Tests.Serialization
 			int retryCount = 69;
 			RemoteBus.SubscribeHandler<PingMessage>(message =>
 				{
-					Assert.AreEqual(retryCount, CurrentMessage.Headers.RetryCount);
+					Assert.AreEqual(retryCount, LocalBus.Context().RetryCount);
 
 					received.Set(message);
 				});
@@ -136,7 +136,7 @@ namespace MassTransit.Transports.Msmq.Tests.Serialization
 
 			RemoteBus.SubscribeHandler<PingMessage>(message =>
 				{
-					Assert.AreEqual(LocalBus.Endpoint.Uri, CurrentMessage.Headers.SourceAddress);
+					Assert.AreEqual(LocalBus.Endpoint.Address.Uri, LocalBus.Context().SourceAddress);
 
 					received.Set(message);
 				});

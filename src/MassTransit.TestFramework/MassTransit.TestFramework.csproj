@@ -95,8 +95,10 @@
     <Compile Include="..\SolutionVersion.cs">
       <Link>SolutionVersion.cs</Link>
     </Compile>
+    <Compile Include="ATestException.cs" />
     <Compile Include="ExtensionMethodsForSubscriptions.cs" />
     <Compile Include="ExtensionsForTestingEndpoints.cs" />
+    <Compile Include="Fixtures\EndpointCacheProxy.cs" />
     <Compile Include="Fixtures\SagaTestFixture.cs" />
     <Compile Include="Future.cs" />
     <Compile Include="Helpers\CorrelatedMessageSinkLocator.cs" />

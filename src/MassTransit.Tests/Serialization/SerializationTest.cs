@@ -35,16 +35,16 @@ namespace MassTransit.Tests.Serialization
 
 			using (var output = new MemoryStream())
 			{
-				_serializer.Serialize(output, obj);
+				_serializer.Serialize(output, obj.ToSendContext());
 
 				serializedMessageData = output.ToArray();
 
-				Trace.WriteLine(Encoding.UTF8.GetString(serializedMessageData));
+		//		Trace.WriteLine(Encoding.UTF8.GetString(serializedMessageData));
 			}
 
 			using (var input = new MemoryStream(serializedMessageData))
 			{
-				var result = _serializer.Deserialize(input) as T;
+				var result = _serializer.Deserialize(input.ToReceiveContext()) as T;
 
 				return result;
 			}

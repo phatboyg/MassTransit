@@ -19,6 +19,7 @@ namespace MassTransit.Services.Subscriptions.Client
 	using System.Reflection;
 	using log4net;
 	using Magnum;
+	using Magnum.Extensions;
 	using Messages;
 	using Pipeline;
 	using Util;
@@ -37,7 +38,7 @@ namespace MassTransit.Services.Subscriptions.Client
 		static readonly ClientSubscriptionInfoMapper _mapper = new ClientSubscriptionInfoMapper();
 		readonly IServiceBus _bus;
 		readonly HashSet<string> _ignoredSubscriptions;
-		readonly EndpointList _localEndpoints;
+		readonly EndpointUriList _localEndpoints;
 		readonly string _network;
 		readonly IEndpoint _outboundEndpoint;
 		readonly SequenceNumberGenerator _sequence;
@@ -70,7 +71,7 @@ namespace MassTransit.Services.Subscriptions.Client
 					typeof (SubscriptionRefresh).ToMessageName(),
 					typeof (RemoveSubscriptionClient).ToMessageName(),
 				};
-			_localEndpoints = new EndpointList();
+			_localEndpoints = new EndpointUriList();
 			_services = new List<IBusService>();
 			_sequence = new SequenceNumberGenerator();
 			_subscriptions = new IdempotentHashtable<Guid, ClientSubscriptionInformation>();
@@ -162,7 +163,7 @@ namespace MassTransit.Services.Subscriptions.Client
 
 		public void Stop()
 		{
-			var message = new RemoveSubscriptionClient(_clientId, _bus.ControlBus.Endpoint.Uri, _bus.Endpoint.Uri);
+			var message = new RemoveSubscriptionClient(_clientId, _bus.ControlBus.Endpoint.Address.Uri, _bus.Endpoint.Address.Uri);
 			Send(message);
 
 			_unsubscribeAction();
@@ -224,15 +225,15 @@ namespace MassTransit.Services.Subscriptions.Client
 
 		bool ShouldIgnoreMessage<T>(T message)
 		{
-			if (CurrentMessage.Headers.SourceAddress == _bus.Endpoint.Address.Uri)
+			if (_bus.Context().SourceAddress == _bus.Endpoint.Address.Uri)
 			{
 			   _log.Debug("Ignoring subscription because its source address equals the busses address"); 
 				return true;
 			}
 
-			if (!string.Equals(CurrentMessage.Headers.Network, _network))
+			if (!string.Equals(_bus.Context().Network, _network))
 			{
-			   _log.DebugFormat("Ignoring subscription because the network '{0}' != ours '{1}1",CurrentMessage.Headers.Network, _network); 
+				_log.DebugFormat("Ignoring subscription because the network '{0}' != ours '{1}1", _bus.Context().Network, _network); 
 				return true;
 			}
 
@@ -251,7 +252,7 @@ namespace MassTransit.Services.Subscriptions.Client
 
 		void SendAddSubscriptionClient(IServiceBus bus)
 		{
-			var message = new AddSubscriptionClient(_clientId, bus.ControlBus.Endpoint.Uri, bus.Endpoint.Uri);
+			var message = new AddSubscriptionClient(_clientId, bus.ControlBus.Endpoint.Address.Uri, bus.Endpoint.Address.Uri);
 			Send(message);
 		}
 

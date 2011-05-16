@@ -26,6 +26,7 @@ namespace MassTransit.Tests.Serialization
 		[Test, Category("Integration")]
 		public void Just_how_fast_are_you()
 		{
+			Trace.WriteLine("Serializer: " + typeof(TSerializer).Name);
 			var message = new SerializationTestMessage
 				{
 					DecimalValue = 123.45m,
@@ -49,12 +50,12 @@ namespace MassTransit.Tests.Serialization
 				byte[] data;
 				using (var output = new MemoryStream())
 				{
-					serializer.Serialize(output, message);
+					serializer.Serialize(output, message.ToSendContext());
 					data = output.ToArray();
 				}
 				using (var input = new MemoryStream(data))
 				{
-					serializer.Deserialize(input);
+					serializer.Deserialize(input.ToReceiveContext());
 				}
 			}
 
@@ -66,7 +67,7 @@ namespace MassTransit.Tests.Serialization
 			{
 				using (var output = new MemoryStream())
 				{
-					serializer.Serialize(output, message);
+					serializer.Serialize(output, message.ToSendContext());
 				}
 			}
 
@@ -80,7 +81,7 @@ namespace MassTransit.Tests.Serialization
 			byte[] sample;
 			using (var output = new MemoryStream())
 			{
-				serializer.Serialize(output, message);
+				serializer.Serialize(output, message.ToSendContext());
 				sample = output.ToArray();
 			}
 
@@ -90,7 +91,7 @@ namespace MassTransit.Tests.Serialization
 			{
 				using (var input = new MemoryStream(sample))
 				{
-					serializer.Deserialize(input);
+					serializer.Deserialize(input.ToReceiveContext());
 				}
 			}
 

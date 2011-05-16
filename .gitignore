@@ -3,6 +3,8 @@ build_artifacts/*
 *.suo
 *.user
 
+NDependOut/*
+
 src/logs/*
 
 **/*.sln*
@@ -26,3 +28,4 @@ tests/*
 SolutionVersion.cs
 src/SolutionVersion.cs
 tests
+doc/build/*

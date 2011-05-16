@@ -95,8 +95,6 @@ namespace MassTransit.Services.Subscriptions.Server
 			_unsubscribeToken += _bus.SubscribeSaga<SubscriptionClientSaga>(_subscriptionClientSagas);
 			_unsubscribeToken += _bus.SubscribeSaga<SubscriptionSaga>(_subscriptionSagas);
 
-			// TODO may need to load/prime the subscription repository at this point?
-
 			_log.Info("Subscription Service Started");
 		}
 
@@ -143,7 +141,7 @@ namespace MassTransit.Services.Subscriptions.Server
 					{
 						IEndpoint endpoint = _bus.GetEndpoint(client.ControlUri);
 
-						endpoint.Send(message, x => x.SetSourceAddress(_bus.Endpoint.Uri));
+						endpoint.Send(message, x => x.SetSourceAddress(_bus.Endpoint.Address.Uri));
 					});
 		}
 
@@ -157,7 +155,7 @@ namespace MassTransit.Services.Subscriptions.Server
 
 			IEndpoint endpoint = _bus.GetEndpoint(uri);
 
-			endpoint.Send(response, x => x.SetSourceAddress(_bus.Endpoint.Uri));
+			endpoint.Send(response, x => x.SetSourceAddress(_bus.Endpoint.Address.Uri));
 		}
 
 		~SubscriptionService()

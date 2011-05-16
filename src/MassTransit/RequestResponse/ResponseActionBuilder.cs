@@ -1,4 +1,4 @@
-﻿// Copyright 2007-2008 The Apache Software Foundation.
+﻿// Copyright 2007-2011 Chris Patterson, Dru Sellers, Travis Smith, et. al.
 //  
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 // this file except in compliance with the License. You may obtain a copy of the 
@@ -12,33 +12,33 @@
 // specific language governing permissions and limitations under the License.
 namespace MassTransit.RequestResponse
 {
-	using System;
+    using System;
 
-	public class ResponseActionBuilder<T>
-		where T : class
-	{
-		private readonly RequestResponseScope _scope;
+    public class ResponseActionBuilder<TMessage>
+        where TMessage : class
+    {
+        readonly RequestResponseScope _scope;
 
-		public ResponseActionBuilder(RequestResponseScope scope)
-		{
-			_scope = scope;
-		}
+        public ResponseActionBuilder(RequestResponseScope scope)
+        {
+            _scope = scope;
+        }
 
-		public CorrelatedResponseActionBuilder<T, K> RelatedTo<K>(K correlationId)
-		{
-			return new CorrelatedResponseActionBuilder<T, K>(_scope, correlationId);
-		}
+        public CorrelatedResponseActionBuilder<TMessage, TKey> RelatedTo<TKey>(TKey correlationId)
+        {
+            return new CorrelatedResponseActionBuilder<TMessage, TKey>(_scope, correlationId);
+        }
 
-		public ConditionalResponseActionBuilder<T> And(Func<T, bool> accept)
-		{
-			return new ConditionalResponseActionBuilder<T>(_scope, accept);
-		}
+        public ConditionalResponseActionBuilder<TMessage> And(Func<TMessage, bool> accept)
+        {
+            return new ConditionalResponseActionBuilder<TMessage>(_scope, accept);
+        }
 
-		public RequestResponseScope IsReceived(Action<T> action)
-		{
-			_scope.AddResponseAction(new ResponseAction<T>(_scope, action));
+        public RequestResponseScope IsReceived(Action<TMessage> action)
+        {
+            _scope.AddResponseAction(new ResponseAction<TMessage>(_scope, action));
 
-			return _scope;
-		}
-	}
+            return _scope;
+        }
+    }
 }

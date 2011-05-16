@@ -42,7 +42,7 @@ namespace MassTransit.Tests
 				{
 					pong.Set(new PongMessage(message.CorrelationId));
 
-					CurrentMessage.Respond(pong.Message);
+					RemoteBus.Context().Respond(pong.Message);
 				});
 
 			LocalBus.Publish(ping);
@@ -70,7 +70,7 @@ namespace MassTransit.Tests
 				{
 					pong.Set(new PongMessage(message.CorrelationId));
 
-					CurrentMessage.Respond(pong.Message);
+					RemoteBus.Context().Respond(pong.Message);
 				});
 
 			RemoteBus.ShouldHaveRemoteSubscriptionFor<PongMessage>();
@@ -92,7 +92,7 @@ namespace MassTransit.Tests
 
 			LocalBus.SubscribeHandler<PingMessage>(message =>
 				{
-					Assert.AreEqual(LocalBus.Endpoint.Uri, CurrentMessage.Headers.DestinationAddress);
+					Assert.AreEqual(LocalBus.Endpoint.Address.Uri, LocalBus.Context().DestinationAddress);
 
 					received.Set(message);
 				});
@@ -109,7 +109,7 @@ namespace MassTransit.Tests
 
 			LocalBus.SubscribeHandler<PingMessage>(message =>
 				{
-					Assert.AreEqual(LocalBus.Endpoint.Uri, CurrentMessage.Headers.FaultAddress);
+					Assert.AreEqual(LocalBus.Endpoint.Address.Uri, LocalBus.Context().FaultAddress);
 
 					received.Set(message);
 				});
@@ -126,7 +126,7 @@ namespace MassTransit.Tests
 
 			LocalBus.SubscribeHandler<PingMessage>(message =>
 				{
-					Assert.AreEqual(LocalBus.Endpoint.Uri, CurrentMessage.Headers.ResponseAddress);
+					Assert.AreEqual(LocalBus.Endpoint.Address.Uri, LocalBus.Context().ResponseAddress);
 
 					received.Set(message);
 				});
@@ -143,7 +143,7 @@ namespace MassTransit.Tests
 
 			LocalBus.SubscribeHandler<PingMessage>(message =>
 				{
-					Assert.AreEqual(LocalBus.Endpoint.Uri, CurrentMessage.Headers.SourceAddress);
+					Assert.AreEqual(LocalBus.Endpoint.Address.Uri, LocalBus.Context().SourceAddress);
 
 					received.Set(message);
 				});
@@ -167,9 +167,8 @@ namespace MassTransit.Tests
 
 			LocalBus.Publish(ping, x =>
 				{
-					x.IfNoSubscribers<PingMessage>(message =>
+					x.IfNoSubscribers(message =>
 						{
-							Assert.IsInstanceOf<PingMessage>(message);
 							noConsumers = true;
 						});
 				});
@@ -184,7 +183,7 @@ namespace MassTransit.Tests
 
 			int hitCount = 0;
 
-			LocalBus.Publish(ping, x => x.IfNoSubscribers<PingMessage>(message => hitCount++));
+			LocalBus.Publish(ping, x => x.IfNoSubscribers(message => hitCount++));
 			LocalBus.Publish(ping);
 
 			Assert.AreEqual(1, hitCount, "There should have been no consumers");
@@ -204,10 +203,10 @@ namespace MassTransit.Tests
 
 			var consumers = new List<Uri>();
 
-			LocalBus.Publish(ping, x => { x.ForEachSubscriber<PingMessage>((message, endpoint) => consumers.Add(endpoint.Uri)); });
+			LocalBus.Publish(ping, x => { x.ForEachSubscriber((message, endpoint) => consumers.Add(endpoint.Address.Uri)); });
 
 			Assert.AreEqual(1, consumers.Count);
-			Assert.AreEqual(LocalBus.Endpoint.Uri, consumers[0]);
+			Assert.AreEqual(LocalBus.Endpoint.Address.Uri, consumers[0]);
 		}
 
 		[Test]
@@ -220,11 +219,11 @@ namespace MassTransit.Tests
 
 			var consumers = new List<Uri>();
 
-			LocalBus.Publish(ping, x => { x.ForEachSubscriber<PingMessage>((message, endpoint) => consumers.Add(endpoint.Uri)); });
+			LocalBus.Publish(ping, x => { x.ForEachSubscriber((message, endpoint) => consumers.Add(endpoint.Address.Uri)); });
 
 			Assert.AreEqual(2, consumers.Count);
-			Assert.IsTrue(consumers.Contains(LocalBus.Endpoint.Uri));
-			Assert.IsTrue(consumers.Contains(RemoteBus.Endpoint.Uri));
+			Assert.IsTrue(consumers.Contains(LocalBus.Endpoint.Address.Uri));
+			Assert.IsTrue(consumers.Contains(RemoteBus.Endpoint.Address.Uri));
 		}
 
 		[Test]
@@ -234,7 +233,7 @@ namespace MassTransit.Tests
 
 			var consumers = new List<Uri>();
 
-			LocalBus.Publish(ping, x => { x.ForEachSubscriber<PingMessage>((message, consumer) => consumers.Add(consumer.Uri)); });
+			LocalBus.Publish(ping, x => { x.ForEachSubscriber((message, consumer) => consumers.Add(consumer.Address.Uri)); });
 
 			Assert.AreEqual(0, consumers.Count);
 		}
@@ -246,7 +245,7 @@ namespace MassTransit.Tests
 
 			var consumers = new List<Uri>();
 
-			LocalBus.Publish(ping, x => { x.ForEachSubscriber<PingMessage>((message, endpoint) => consumers.Add(endpoint.Uri)); });
+			LocalBus.Publish(ping, x => { x.ForEachSubscriber((message, endpoint) => consumers.Add(endpoint.Address.Uri)); });
 
 			LocalBus.SubscribeHandler<PingMessage>(x => { });
 

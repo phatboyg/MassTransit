@@ -14,8 +14,10 @@ namespace MassTransit.SubscriptionConfigurators
 {
 	using System;
 	using System.Collections.Generic;
+	using Configuration;
 	using Configurators;
 	using SubscriptionBuilders;
+	using Util;
 
 	public class UntypedConsumerSubscriptionConfigurator<TConsumer> :
 		SubscriptionConfiguratorImpl<ConsumerSubscriptionConfigurator>,

@@ -15,13 +15,6 @@ namespace MassTransit.SubscriptionBuilders
 	public interface SubscriptionBusServiceBuilder
 	{
 		/// <summary>
-		/// Creates the SubscriptionBusService with all of the appropriate subscription
-		/// builders
-		/// </summary>
-		/// <returns></returns>
-		IBusService Build();
-
-		/// <summary>
 		/// Add a subscription builder to the service so that it is subscribed when
 		/// the bus is started.
 		/// </summary>

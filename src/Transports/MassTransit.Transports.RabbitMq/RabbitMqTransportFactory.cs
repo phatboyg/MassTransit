@@ -1,4 +1,4 @@
-﻿// Copyright 2007-2011 The Apache Software Foundation.
+﻿// Copyright 2007-2011 Chris Patterson, Dru Sellers, Travis Smith, et. al.
 //  
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 // this file except in compliance with the License. You may obtain a copy of the 
@@ -13,15 +13,31 @@
 namespace MassTransit.Transports.RabbitMq
 {
 	using System;
+	using System.Linq;
 	using Exceptions;
+	using log4net;
 	using Magnum.Extensions;
+	using Magnum.Threading;
 	using RabbitMQ.Client;
 
 	public class RabbitMqTransportFactory :
 		ITransportFactory
 	{
-		private static readonly ConnectionFactory _factory = new ConnectionFactory();
-		private static readonly IProtocol _protocol = Protocols.AMQP_0_8;
+		static readonly ILog _log = LogManager.GetLogger(typeof (RabbitMqTransportFactory));
+		readonly ReaderWriterLockedDictionary<Uri, IConnection> _connectionCache;
+
+		bool _disposed;
+
+		public RabbitMqTransportFactory()
+		{
+			_connectionCache = new ReaderWriterLockedDictionary<Uri, IConnection>();
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
 
 		public string Scheme
 		{
@@ -30,20 +46,28 @@ namespace MassTransit.Transports.RabbitMq
 
 		public IDuplexTransport BuildLoopback(ITransportSettings settings)
 		{
-			EnsureProtocolIsCorrect(settings.Address.Uri);
+			var address = RabbitMqEndpointAddress.Parse(settings.Address.Uri);
 
-			var transport = new RabbitMqTransport(settings.Address, GetConnection(settings.Address.Uri));
+			var transport = new LoopbackRabbitMqTransport(address, BuildInbound(settings), BuildOutbound(settings));
 			return transport;
 		}
 
 		public IInboundTransport BuildInbound(ITransportSettings settings)
 		{
-			return BuildLoopback(settings);
+			var address = RabbitMqEndpointAddress.Parse(settings.Address.Uri);
+
+			EnsureProtocolIsCorrect(address.Uri);
+
+			return new InboundRabbitMqTransport(address, GetConnection(address));
 		}
 
 		public IOutboundTransport BuildOutbound(ITransportSettings settings)
 		{
-			return BuildLoopback(settings);
+			var address = RabbitMqEndpointAddress.Parse(settings.Address.Uri);
+
+			EnsureProtocolIsCorrect(address.Uri);
+
+			return new OutboundRabbitMqTransport(address, GetConnection(address));
 		}
 
 		public IOutboundTransport BuildError(ITransportSettings settings)
@@ -51,24 +75,49 @@ namespace MassTransit.Transports.RabbitMq
 			return BuildOutbound(settings);
 		}
 
-		public static void Connect()
+		public int ConnectionCount()
 		{
-			_factory.UserName = "guest";
-			_factory.Password = "guest";
-			_factory.VirtualHost = @"/";
-			_factory.HostName = "";
+			return _connectionCache.Count();
 		}
 
-		private static IConnection GetConnection(Uri address)
+		void Dispose(bool disposing)
 		{
-			Uri rabbitMqAddress = new UriBuilder("amqp-{0}-{1}"
-				.FormatWith(_protocol.MajorVersion, _protocol.MinorVersion), address.Host, _protocol.DefaultPort).Uri;
+			if (_disposed) return;
+			if (disposing)
+			{
+				_connectionCache.Values.Each(x =>
+					{
+						try
+						{
+							if(x.IsOpen)
+								x.Close(200, "disposed");
+							x.Dispose();
+						}
+						catch (Exception ex)
+						{
+							_log.Warn("Failed to close RabbitMQ connection.", ex);
+						}
+					});
+				_connectionCache.Clear();
 
-			return _factory.CreateConnection();
+				_connectionCache.Dispose();
+			}
+
+			_disposed = true;
+		}
+
+		IConnection GetConnection(IRabbitMqEndpointAddress address)
+		{
+			return _connectionCache.Retrieve(address.Uri, () => address.ConnectionFactory.CreateConnection());
+		}
+
+		~RabbitMqTransportFactory()
+		{
+			Dispose(false);
 		}
 
 
-		private static void EnsureProtocolIsCorrect(Uri address)
+		static void EnsureProtocolIsCorrect(Uri address)
 		{
 			if (address.Scheme != "rabbitmq")
 				throw new EndpointException(address, "Address must start with 'rabbitmq' not '{0}'".FormatWith(address.Scheme));

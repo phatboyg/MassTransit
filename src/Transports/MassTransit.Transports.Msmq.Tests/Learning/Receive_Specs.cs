@@ -10,7 +10,7 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
-namespace MassTransit.Transports.Msmq.Tests
+namespace MassTransit.Transports.Msmq.Tests.Learning
 {
     using System;
     using System.Messaging;
@@ -18,7 +18,7 @@ namespace MassTransit.Transports.Msmq.Tests
     using Magnum.Extensions;
     using NUnit.Framework;
 
-    //TODO: Remove?
+    //TODO: Move to an Assumptions test section like we did for RabbitMQ
     [TestFixture, Category("Integration")]
     public class When_receiving_from_a_transactional_queue
     {

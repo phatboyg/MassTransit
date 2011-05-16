@@ -24,6 +24,7 @@ namespace MassTransit.TestFramework
 	using Pipeline.Inspectors;
 	using Saga;
 	using Saga.Pipeline;
+	using Util;
 
 	public static class ExtensionMethodsForSubscriptions
 	{
@@ -54,7 +55,7 @@ namespace MassTransit.TestFramework
 
 			PipelineViewer.Trace(bus.OutboundPipeline, text => _log.ErrorFormat("Pipeline Inspection Result: " + text));
 
-			Assert.Fail("A subscription for " + typeof (TMessage).ToFriendlyName() + " was not found on " + bus.Endpoint.Uri);
+			Assert.Fail("A subscription for " + typeof (TMessage).ToFriendlyName() + " was not found on " + bus.Endpoint.Address.Uri);
 		}
 
 		public static IEnumerable<IPipelineSink<TMessage>> ShouldHaveSubscriptionFor<TMessage>(this IServiceBus bus)
@@ -72,7 +73,29 @@ namespace MassTransit.TestFramework
 				.Where(sink => ((ISagaMessageSink<TSaga,TMessage>)sink).Policy.GetType().GetGenericTypeDefinition() == policyType);
 		}
 
-		public static IEnumerable<IPipelineSink<TMessage>> ShouldHaveSubscriptionFor<TMessage>(this IMessagePipeline pipeline) 
+		public static IEnumerable<IPipelineSink<TMessage>> ShouldHaveSubscriptionFor<TMessage>(this IOutboundMessagePipeline pipeline) 
+			where TMessage : class
+		{
+			DateTime giveUpAt = DateTime.Now + Timeout;
+
+			while (DateTime.Now < giveUpAt)
+			{
+				var inspector = new PipelineSinkLocator<TMessage>();
+
+				pipeline.Inspect(inspector);
+
+				if (inspector.Result.Count() > 0)
+					return inspector.Result;
+
+				Thread.Sleep(10);
+			}
+
+			Assert.Fail("A subscription for " + typeof (TMessage).ToFriendlyName() + " was not found on the pipeline");
+
+			return null;
+		}
+
+		public static IEnumerable<IPipelineSink<TMessage>> ShouldHaveSubscriptionFor<TMessage>(this IInboundMessagePipeline pipeline) 
 			where TMessage : class
 		{
 			DateTime giveUpAt = DateTime.Now + Timeout;
@@ -110,7 +133,7 @@ namespace MassTransit.TestFramework
 				Thread.Sleep(10);
 			}
 
-			Assert.Fail("A subscription for " + typeof (TMessage).ToFriendlyName() + " was found on " + bus.Endpoint.Uri);
+			Assert.Fail("A subscription for " + typeof (TMessage).ToFriendlyName() + " was found on " + bus.Endpoint.Address.Uri);
 		}
 
 		public static void ShouldHaveCorrelatedSubscriptionFor<TMessage, TKey>(this IServiceBus bus, string correlationId)
@@ -131,7 +154,7 @@ namespace MassTransit.TestFramework
 			}
 
 			var message = string.Format("A correlated subscription for {0}({1}) was not found on {2}", 
-				typeof(TMessage).ToShortTypeName(), correlationId, bus.Endpoint.Uri);
+				typeof(TMessage).ToShortTypeName(), correlationId, bus.Endpoint.Address.Uri);
 
 			Assert.Fail(message);
 		}

@@ -12,37 +12,106 @@
 // specific language governing permissions and limitations under the License.
 namespace MassTransit
 {
+	using System;
 	using BusConfigurators;
+	using EndpointConfigurators;
+	using Magnum.Reflection;
 	using Serialization;
 
 	public static class SerializerConfigurationExtensions
 	{
-		public static ServiceBusConfigurator UseDotNetXmlSerializer(this ServiceBusConfigurator configurator)
+		public static T UseDotNetXmlSerializer<T>(this T configurator)
+			where T : EndpointFactoryConfigurator
 		{
 			configurator.SetDefaultSerializer<DotNotXmlMessageSerializer>();
 
 			return configurator;
 		}
 
-		public static ServiceBusConfigurator UseJsonSerializer(this ServiceBusConfigurator configurator)
+		public static T UseJsonSerializer<T>(this T configurator)
+			where T : EndpointFactoryConfigurator
 		{
 			configurator.SetDefaultSerializer<JsonMessageSerializer>();
 
 			return configurator;
 		}
 
-		public static ServiceBusConfigurator UseXmlSerializer(this ServiceBusConfigurator configurator)
+		public static T UseXmlSerializer<T>(this T configurator)
+			where T : EndpointFactoryConfigurator
 		{
 			configurator.SetDefaultSerializer<XmlMessageSerializer>();
 
 			return configurator;
 		}
 
-		public static ServiceBusConfigurator UseBinarySerializer(this ServiceBusConfigurator configurator)
+		public static T UseBinarySerializer<T>(this T configurator)
+			where T : EndpointFactoryConfigurator
 		{
 			configurator.SetDefaultSerializer<BinaryMessageSerializer>();
 
 			return configurator;
+		}
+
+
+		public static T SetDefaultSerializer<T>(this T configurator, Func<IMessageSerializer> serializerFactory)
+			where T : EndpointFactoryConfigurator
+		{
+			var serializerConfigurator = new DefaultSerializerEndpointFactoryConfigurator(serializerFactory);
+
+			configurator.AddEndpointFactoryConfigurator(serializerConfigurator);
+
+			return configurator;
+		}
+
+		/// <summary>
+		/// Sets the default message serializer for endpoints
+		/// </summary>
+		/// <typeparam name="TSerializer"></typeparam>
+		/// <param name="configurator"></param>
+		/// <returns></returns>
+		public static EndpointFactoryConfigurator SetDefaultSerializer<TSerializer>(
+			this EndpointFactoryConfigurator configurator)
+			where TSerializer : IMessageSerializer, new()
+		{
+			return SetDefaultSerializer(configurator, () => new TSerializer());
+		}
+
+		/// <summary>
+		/// Sets the default message serializer for endpoints
+		/// </summary>
+		/// <typeparam name="TSerializer"></typeparam>
+		/// <param name="configurator"></param>
+		/// <returns></returns>
+		public static ServiceBusConfigurator SetDefaultSerializer<TSerializer>(this ServiceBusConfigurator configurator)
+			where TSerializer : IMessageSerializer, new()
+		{
+			return SetDefaultSerializer(configurator, () => new TSerializer());
+		}
+
+		/// <summary>
+		/// Sets the default message serializer for endpoints
+		/// </summary>
+		/// <param name="configurator"></param>
+		/// <param name="serializerType"></param>
+		/// <returns></returns>
+		public static T SetDefaultSerializer<T>(this T configurator,
+		                                        Type serializerType)
+			where T : EndpointFactoryConfigurator
+		{
+			return SetDefaultSerializer(configurator, () => (IMessageSerializer) FastActivator.Create(serializerType));
+		}
+
+		/// <summary>
+		/// Sets the default message serializer for endpoints
+		/// </summary>
+		/// <param name="configurator"></param>
+		/// <param name="serializer"></param>
+		/// <returns></returns>
+		public static T SetDefaultSerializer<T>(this T configurator,
+		                                        IMessageSerializer serializer)
+			where T : EndpointFactoryConfigurator
+		{
+			return SetDefaultSerializer(configurator, () => serializer);
 		}
 	}
 }

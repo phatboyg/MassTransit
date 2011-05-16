@@ -16,8 +16,8 @@ namespace MassTransit.Tests.Serialization
     using System.Diagnostics;
     using System.IO;
     using System.Text;
+    using Context;
     using MassTransit.Serialization;
-    using MessageHeaders;
     using NUnit.Framework;
 
     public class SerializationSpecificationBase<TSerializer> 
@@ -30,6 +30,7 @@ namespace MassTransit.Tests.Serialization
         int _retryCount;
 
         protected void TestSerialization<T>(T message)
+			where T : class
         {
             byte[] data;
             var serializer = new TSerializer();
@@ -40,38 +41,36 @@ namespace MassTransit.Tests.Serialization
             _destinationUri = new Uri("loopback://localhost/destination");
             _retryCount = 69;
 
-            OutboundMessage.Set(x =>
+            using (var output = new MemoryStream())
             {
-                x.SetSourceAddress(_sourceUri);
-                x.SendResponseTo(_responseUri);
-                x.SendFaultTo(_faultUri);
-                x.SetDestinationAddress(_destinationUri);
-                x.SetRetryCount(_retryCount);
-            });
+            	ISendContext<T> context = message.ToSendContext();
+				context.SetSourceAddress(_sourceUri);
+				context.SendResponseTo(_responseUri);
+				context.SendFaultTo(_faultUri);
+				context.SetDestinationAddress(_destinationUri);
+				context.SetRetryCount(_retryCount);
 
-            using (MemoryStream output = new MemoryStream())
-            {
-                serializer.Serialize(output, message);
+            	serializer.Serialize(output, context);
 
                 data = output.ToArray();
             }
 
-            Trace.WriteLine(OutboundMessage.Headers.MessageType);
-
-            Trace.WriteLine(Encoding.UTF8.GetString(data));
+   //         Trace.WriteLine(Encoding.UTF8.GetString(data));
 
             using (MemoryStream input = new MemoryStream(data))
             {
-                object receivedMessage = serializer.Deserialize(input);
+            	IReceiveContext context = input.ToReceiveContext();
+
+            	object receivedMessage = serializer.Deserialize(context);
 
                 Assert.AreEqual(message, receivedMessage);
                 Assert.AreNotSame(message, receivedMessage);
 
-                Assert.AreEqual(_retryCount, CurrentMessage.Headers.RetryCount);
-                Assert.AreEqual(_sourceUri, CurrentMessage.Headers.SourceAddress);
-                Assert.AreEqual(_responseUri, CurrentMessage.Headers.ResponseAddress);
-                Assert.AreEqual(_faultUri, CurrentMessage.Headers.FaultAddress);
-                Assert.AreEqual(_destinationUri, CurrentMessage.Headers.DestinationAddress);
+				Assert.AreEqual(_retryCount, context.RetryCount);
+				Assert.AreEqual(_sourceUri, context.SourceAddress);
+				Assert.AreEqual(_responseUri, context.ResponseAddress);
+				Assert.AreEqual(_faultUri, context.FaultAddress);
+				Assert.AreEqual(_destinationUri, context.DestinationAddress);
                 //			Assert.AreEqual(message.GetType().ToMessageName(), CurrentMessage.Headers.MessageType);
             }
         }
