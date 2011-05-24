@@ -90,6 +90,14 @@ namespace MassTransit.Transports.Msmq
 						context.SetMessageId(message.Id);
 						context.SetInputAddress(_address);
 
+						var extension = message.Extension;
+						if (extension.Length > 0)
+						{
+							var headers = TransportMessageHeaders.Create(extension);
+
+							context.SetContentType(headers["Content-Type"]);
+						}
+
 						using(ContextStorage.CreateContextScope(context))
 							{
 								receive = receiver(context);

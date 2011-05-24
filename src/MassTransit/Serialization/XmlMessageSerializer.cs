@@ -12,73 +12,161 @@
 // specific language governing permissions and limitations under the License.
 namespace MassTransit.Serialization
 {
-    using System;
-    using System.IO;
-    using System.Runtime.Serialization;
-    using Context;
-    using Custom;
+	using System;
+	using System.Collections.Generic;
+	using System.Globalization;
+	using System.IO;
+	using System.Text;
+	using System.Xml;
+	using System.Xml.Linq;
+	using Context;
+	using Custom;
+	using Newtonsoft.Json;
+	using Newtonsoft.Json.Converters;
+	using Newtonsoft.Json.Linq;
 
-    public class XmlMessageSerializer :
-        IMessageSerializer
-    {
-        static readonly IXmlSerializer _serializer = new CustomXmlSerializer();
+	public class XmlMessageSerializer :
+		IMessageSerializer
+	{
+		const string ContentTypeHeaderValue = "application/vnd.masstransit+xml";
 
-        public void Serialize<T>(Stream stream, ISendContext<T> context)
-            where T : class
-        {
-            try
-            {
-                var envelope = XmlMessageEnvelope.Create(context);
 
-                _serializer.Serialize(stream, envelope, (declaringType, propertyType, value) =>
-                    {
-                        if (declaringType == typeof (XmlMessageEnvelope) && propertyType == typeof (object))
-                            return typeof (T);
+		[ThreadStatic]
+		static JsonSerializer _deserializer;
 
-                        if (propertyType == typeof (object))
-                            return value.GetType();
+		[ThreadStatic]
+		static JsonSerializer _serializer;
 
-                        return propertyType;
-                    });
-            }
-            catch (SerializationException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                throw new SerializationException("Failed to serialize message", ex);
-            }
-        }
+		[ThreadStatic]
+		static JsonSerializer _xmlSerializer;
 
-        public object Deserialize(IReceiveContext context)
-        {
-            try
-            {
-                object message = _serializer.Deserialize(context.BodyStream);
+		public string ContentType
+		{
+			get { return ContentTypeHeaderValue; }
+		}
 
-                if (message == null)
-                    throw new SerializationException("Could not deserialize message.");
+		public void Serialize<T>(Stream output, ISendContext<T> context)
+			where T : class
+		{
+			context.SetContentType(ContentTypeHeaderValue);
 
-                if (message is XmlMessageEnvelope)
-                {
-                    var envelope = message as XmlMessageEnvelope;
+			Envelope envelope = Envelope.Create(context);
 
-                    context.SetUsingMessageEnvelope(envelope);
+			var json = new StringBuilder(1024);
 
-                    return envelope.Message;
-                }
+			using(var stringWriter = new StringWriter(json, CultureInfo.InvariantCulture))
+			using (var jsonWriter = new JsonTextWriter(stringWriter))
+			{
+				jsonWriter.Formatting = Newtonsoft.Json.Formatting.None;
 
-                return message;
-            }
-            catch (SerializationException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                throw new SerializationException("Failed to serialize message", ex);
-            }
-        }
-    }
+				Serializer.Serialize(jsonWriter, envelope);
+
+				jsonWriter.Flush();
+				stringWriter.Flush();
+			}
+
+			using(var stringReader = new StringReader(json.ToString()))
+			using (var jsonReader = new JsonTextReader(stringReader))
+			{
+				var document = (XDocument) XmlSerializer.Deserialize(jsonReader, typeof (XDocument));
+
+				using (var nonClosingStream = new NonClosingStream(output))
+				using (var streamWriter = new StreamWriter(nonClosingStream))
+				using (var xmlWriter = new XmlTextWriter(streamWriter))
+				{
+					document.WriteTo(xmlWriter);
+				}
+			}
+		}
+
+		public void Deserialize(IReceiveContext context)
+		{
+			XDocument document;
+			using (var nonClosingStream = new NonClosingStream(context.BodyStream))
+			using (var xmlReader = new XmlTextReader(nonClosingStream))
+				document = XDocument.Load(xmlReader);
+
+			var json = new StringBuilder(1024);
+
+			using(var stringWriter = new StringWriter(json, CultureInfo.InvariantCulture))
+			using (var jsonWriter = new JsonTextWriter(stringWriter))
+			{
+				jsonWriter.Formatting = Newtonsoft.Json.Formatting.None;
+
+				XmlSerializer.Serialize(jsonWriter, document.Root);
+			}
+
+			Envelope result;
+			using(var stringReader = new StringReader(json.ToString()))
+			using (var jsonReader = new JsonTextReader(stringReader))
+			{
+				result = Deserializer.Deserialize<Envelope>(jsonReader);
+			}
+
+			context.SetUsingEnvelope(result);
+			context.SetMessageTypeConverter(new JsonMessageTypeConverter(Deserializer, result.Message as JToken,
+				result.MessageType));
+		}
+
+		static JsonSerializer Serializer
+		{
+			get
+			{
+				return _serializer ?? (_serializer = JsonSerializer.Create(new JsonSerializerSettings
+				{
+					NullValueHandling = NullValueHandling.Ignore,
+					DefaultValueHandling = DefaultValueHandling.Ignore,
+					MissingMemberHandling = MissingMemberHandling.Ignore,
+					ObjectCreationHandling = ObjectCreationHandling.Auto,
+					ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+					ContractResolver = new JsonContractResolver(),
+				}));
+			}
+		}
+
+		static JsonSerializer XmlSerializer
+		{
+			get
+			{
+				return _xmlSerializer ?? (_xmlSerializer = JsonSerializer.Create(new JsonSerializerSettings
+					{
+						NullValueHandling = NullValueHandling.Ignore,
+						DefaultValueHandling = DefaultValueHandling.Ignore,
+						MissingMemberHandling = MissingMemberHandling.Ignore,
+						ObjectCreationHandling = ObjectCreationHandling.Auto,
+						ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+						Converters = new List<JsonConverter>(new[]
+							{
+								new XmlNodeConverter
+									{
+										DeserializeRootElementName = "envelope",
+										WriteArrayAttribute = false,
+										OmitRootObject = true,
+									}
+							})
+					}));
+			}
+		}
+
+		static JsonSerializer Deserializer
+		{
+			get
+			{
+				return _deserializer ?? (_deserializer = JsonSerializer.Create(new JsonSerializerSettings
+				{
+					NullValueHandling = NullValueHandling.Ignore,
+					DefaultValueHandling = DefaultValueHandling.Ignore,
+					MissingMemberHandling = MissingMemberHandling.Ignore,
+					ObjectCreationHandling = ObjectCreationHandling.Auto,
+					ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+					ContractResolver = new JsonContractResolver(),
+					Converters = new List<JsonConverter>(new JsonConverter[]
+							{
+								new ListJsonConverter(),
+								new InterfaceProxyConverter(),
+							})
+				}));
+			}
+		}
+	}
 }

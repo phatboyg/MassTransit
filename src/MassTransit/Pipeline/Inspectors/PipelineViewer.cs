@@ -40,6 +40,13 @@ namespace MassTransit.Pipeline.Inspectors
 			return true;
 		}
 
+		public bool Inspect(OutboundMessagePipeline pipeline)
+		{
+			Append("Pipeline");
+
+			return true;
+		}
+
 		public bool Inspect<TMessage>(MessageRouter<TMessage> router)
 			where TMessage : class
 		{
@@ -260,7 +267,7 @@ namespace MassTransit.Pipeline.Inspectors
 			_depth--;
 		}
 
-		string GetPolicy<TComponent, TMessage>(ISagaPolicy<TComponent, TMessage> policy)
+		static string GetPolicy<TComponent, TMessage>(ISagaPolicy<TComponent, TMessage> policy)
 			where TComponent : class, ISaga
 		{
 			string description;

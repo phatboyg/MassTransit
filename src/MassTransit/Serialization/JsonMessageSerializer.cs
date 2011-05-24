@@ -13,54 +13,99 @@
 namespace MassTransit.Serialization
 {
 	using System;
+	using System.Collections.Generic;
 	using System.IO;
-	using System.Text;
 	using Context;
-	using Magnum.Extensions;
+	using Custom;
 	using Newtonsoft.Json;
+	using Newtonsoft.Json.Linq;
 
 	public class JsonMessageSerializer :
 		IMessageSerializer
 	{
-		readonly JsonSerializerSettings _settings;
+		const string ContentTypeHeaderValue = "application/vnd.masstransit+json";
 
-		public JsonMessageSerializer()
+		[ThreadStatic]
+		static JsonSerializer _deserializer;
+
+		[ThreadStatic]
+		static JsonSerializer _serializer;
+
+		static JsonSerializer Deserializer
 		{
-			_settings = new JsonSerializerSettings
-				{
-					MissingMemberHandling = MissingMemberHandling.Ignore,
-					NullValueHandling = NullValueHandling.Ignore,
-					ObjectCreationHandling = ObjectCreationHandling.Auto,
-					DefaultValueHandling = DefaultValueHandling.Ignore
-				};
+			get
+			{
+				return _deserializer ?? (_deserializer = JsonSerializer.Create(new JsonSerializerSettings
+					{
+						NullValueHandling = NullValueHandling.Ignore,
+						DefaultValueHandling = DefaultValueHandling.Ignore,
+						MissingMemberHandling = MissingMemberHandling.Ignore,
+						ObjectCreationHandling = ObjectCreationHandling.Auto,
+						ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+						ContractResolver = new JsonContractResolver(),
+						Converters = new List<JsonConverter>(new JsonConverter[]
+							{
+								new ListJsonConverter(),
+								new InterfaceProxyConverter(),
+							})
+					}));
+			}
 		}
 
-		public void Serialize<T>(Stream output, ISendContext<T> context) 
+		static JsonSerializer Serializer
+		{
+			get
+			{
+				return _serializer ?? (_serializer = JsonSerializer.Create(new JsonSerializerSettings
+					{
+						NullValueHandling = NullValueHandling.Ignore,
+						DefaultValueHandling = DefaultValueHandling.Ignore,
+						MissingMemberHandling = MissingMemberHandling.Ignore,
+						ObjectCreationHandling = ObjectCreationHandling.Auto,
+						ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+						ContractResolver = new JsonContractResolver(),
+					}));
+			}
+		}
+
+		public string ContentType
+		{
+			get { return ContentTypeHeaderValue; }
+		}
+
+		public void Serialize<T>(Stream output, ISendContext<T> context)
 			where T : class
 		{
-			JsonMessageEnvelope envelope = JsonMessageEnvelope.Create(context);
+			context.SetContentType(ContentTypeHeaderValue);
 
-			string strOut = JsonConvert.SerializeObject(envelope, Formatting.Indented, _settings);
-			byte[] buff = Encoding.UTF8.GetBytes(strOut);
+			Envelope envelope = Envelope.Create(context);
 
-			output.Write(buff, 0, buff.Length);
+			using (var nonClosingStream = new NonClosingStream(output))
+			using (var writer = new StreamWriter(nonClosingStream))
+			using (var jsonWriter = new JsonTextWriter(writer))
+			{
+				jsonWriter.Formatting = Formatting.Indented;
+
+				Serializer.Serialize(jsonWriter, envelope);
+
+				jsonWriter.Flush();
+				writer.Flush();
+			}
 		}
 
-		public object Deserialize(IReceiveContext context)
+		public void Deserialize(IReceiveContext context)
 		{
-			string text = context.BodyStream.ReadToEndAsText();
+			Envelope result;
+			using (var nonClosingStream = new NonClosingStream(context.BodyStream))
+			using (var reader = new StreamReader(nonClosingStream))
+			using (var jsonReader = new JsonTextReader(reader))
+			{
+				result = Deserializer.Deserialize<Envelope>(jsonReader);
+			}
 
-			var envelope = JsonConvert.DeserializeObject<JsonMessageEnvelope>(text, _settings);
-
-			context.SetUsingMessageEnvelope(envelope);
-
-			Type messageType = Type.GetType(envelope.MessageType, false, true);
-			if (messageType == null)
-				return envelope.Message;
-
-			object obj = JsonConvert.DeserializeObject(envelope.Message.ToString(), messageType);
-			
-			return obj;
+			context.SetUsingEnvelope(result);
+			context.SetMessageTypeConverter(new JsonMessageTypeConverter(Deserializer, result.Message as JToken,
+				result.MessageType));
 		}
 	}
 }

@@ -28,6 +28,11 @@ namespace MassTransit.Context
 			get { throw CreateException(); }
 		}
 
+		public string ContentType
+		{
+			get { throw CreateException(); }
+		}
+
 		public Uri SourceAddress
 		{
 			get { throw CreateException(); }
@@ -64,6 +69,16 @@ namespace MassTransit.Context
 		}
 
 		public IServiceBus Bus
+		{
+			get { throw CreateException(); }
+		}
+
+		public IEndpoint Endpoint
+		{
+			get { throw CreateException(); }
+		}
+
+		public Uri InputAddress
 		{
 			get { throw CreateException(); }
 		}

@@ -13,12 +13,8 @@
 namespace MassTransit.Tests.Serialization
 {
 	using System;
-	using System.IO;
-	using System.Text;
-	using Context;
 	using MassTransit.Pipeline;
 	using MassTransit.Pipeline.Configuration;
-	using MassTransit.Pipeline.Inspectors;
 	using MassTransit.Serialization;
 	using NUnit.Framework;
 	using TestConsumers;
@@ -40,25 +36,13 @@ namespace MassTransit.Tests.Serialization
 		}
 
 		[Test]
-		public void Should_deserialize_into_the_proxy_object()
-		{
-			var serializer = new TSerializer();
-			using (var bodyStream = new MemoryStream(Encoding.UTF8.GetBytes(InterfaceBasedMessageXml)))
-			{
-				object obj = serializer.Deserialize(new ConsumeContext(bodyStream));
-
-				Assert.IsNotNull(obj);
-			}
-		}
-
-		[Test]
 		public void Should_dispatch_an_interface_via_the_pipeline()
 		{
 			var pipeline = InboundPipelineConfigurator.CreateDefault(null);
 
 			var consumer = new TestMessageConsumer<ComplaintAdded>();
 
-			var unsubscribeAction = pipeline.ConnectInstance(consumer);
+			pipeline.ConnectInstance(consumer);
 
 			var user = new UserImpl("Chris", "noone@nowhere.com");
 			ComplaintAdded complaint = new ComplaintAddedImpl(user, "No toilet paper", BusinessArea.Appearance)
@@ -68,12 +52,8 @@ namespace MassTransit.Tests.Serialization
 
 			pipeline.Dispatch(complaint);
 
-	//		PipelineViewer.Trace(pipeline);
-
 			consumer.ShouldHaveReceivedMessage(complaint);
 		}
-
-		private const string InterfaceBasedMessageXml = "<?xml version=\"1.0\" encoding=\"utf-8\"?><x:XmlMessageEnvelope xmlns:x=\"MassTransit.Serialization.XmlMessageEnvelope, MassTransit, Version=0.5.0.1991, Culture=neutral, PublicKeyToken=null\" xmlns:m=\"MassTransit.Tests.Serialization.ComplaintAdded, MassTransit.Tests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null\" xmlns:a=\"MassTransit.Tests.Serialization.User, MassTransit.Tests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null\" xmlns:s=\"System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\" xmlns:d=\"System.DateTime, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\" xmlns:b=\"MassTransit.Tests.Serialization.BusinessArea, MassTransit.Tests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null\" xmlns:i=\"System.Int32, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\"><m:Message><a:AddedBy><s:Name>Chris</s:Name><s:Email>noone@nowhere.com</s:Email></a:AddedBy><d:AddedAt>2009-09-15T20:12:34.3939205Z</d:AddedAt><s:Subject>No toilet paper</s:Subject><s:Body>There was no toilet paper in the stall, forcing me to use my treasured issue of .NET Developer magazine.</s:Body><b:Area>Appearance</b:Area></m:Message><s:SourceAddress>loopback://localhost/source</s:SourceAddress><s:DestinationAddress>loopback://localhost/destination</s:DestinationAddress><s:ResponseAddress>loopback://localhost/response</s:ResponseAddress><s:FaultAddress>loopback://localhost/fault</s:FaultAddress><i:RetryCount>69</i:RetryCount><s:MessageType>MassTransit.Tests.Serialization.ComplaintAdded, MassTransit.Tests</s:MessageType></x:XmlMessageEnvelope>";
 	}
 
     [TestFixture]
@@ -95,9 +75,16 @@ namespace MassTransit.Tests.Serialization
     {
     }
 
-    [TestFixture][Ignore("the current impl of json serilaization doesn't support this feature")]
+    [TestFixture]
     public class WhenUsingJson :
         Deserializing_an_interface<JsonMessageSerializer>
+    {
+        
+    }
+
+	[TestFixture]
+    public class WhenUsingBson :
+        Deserializing_an_interface<BsonMessageSerializer>
     {
         
     }
@@ -173,7 +160,9 @@ namespace MassTransit.Tests.Serialization
 	{
 		public ComplaintAddedImpl(User addedBy, string subject, BusinessArea area)
 		{
-			AddedAt = DateTime.UtcNow;
+			DateTime dateTime = DateTime.UtcNow;
+			AddedAt = new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute, dateTime.Second,
+				dateTime.Millisecond);
 
 			AddedBy = addedBy;
 			Subject = subject;

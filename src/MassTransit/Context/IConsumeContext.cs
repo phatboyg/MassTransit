@@ -18,6 +18,15 @@ namespace MassTransit.Context
 		IConsumeContext,
 		IMessageContext<T>
 	{
+		/// <summary>
+		/// Send the message to the end of the input queue so that it can be processed again later
+		/// </summary>
+		void RetryLater();
+
+		/// <summary>
+		/// Sends the message to either the fault address if specified or publishes the fault
+		/// </summary>
+		void GenerateFault(Exception ex);
 	}
 
 	/// <summary>
@@ -32,13 +41,24 @@ namespace MassTransit.Context
 		/// </summary>
 		IServiceBus Bus { get; }
 
-		bool TryGetContext<T>(out IConsumeContext<T> context)
-			where T : class;
+		/// <summary>
+		/// The endpoint from which the message was received
+		/// </summary>
+		IEndpoint Endpoint { get; }
 
 		/// <summary>
-		/// Send the message to the end of the input queue so that it can be processed again later
+		/// The input address on which the message was received
 		/// </summary>
-		void RetryLater();
+		Uri InputAddress { get; }
+
+		/// <summary>
+		/// Retrieves a specified message type from the consumer context, if available
+		/// </summary>
+		/// <typeparam name="T">The message type requested</typeparam>
+		/// <param name="context">The message context for the requested message type</param>
+		/// <returns>True if the message type is available, otherwise false.</returns>
+		bool TryGetContext<T>(out IConsumeContext<T> context)
+			where T : class;
 
 		/// <summary>
 		/// Respond to the current message, sending directly to the ResponseAddress if specified
@@ -49,10 +69,5 @@ namespace MassTransit.Context
 		/// <param name="contextCallback">The context action for specifying additional context information</param>
 		void Respond<T>(T message, Action<ISendContext<T>> contextCallback)
 			where T : class;
-
-		/// <summary>
-		/// Sends the message to either the fault address if specified or publishes the fault
-		/// </summary>
-		void GenerateFault(Exception ex);
 	}
 }

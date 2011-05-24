@@ -105,6 +105,12 @@ namespace MassTransit.Tests.Serialization
 	}
 
     [TestFixture]
+    public class WhenUsingVersionOneXmlInPerfTest:
+        Performance_Specs<VersionOneXmlMessageSerializer>
+    {
+    }
+
+    [TestFixture]
     public class WhenUsingCustomXmlInPerfTest:
         Performance_Specs<XmlMessageSerializer>
     {
@@ -125,6 +131,13 @@ namespace MassTransit.Tests.Serialization
     [TestFixture]
     public class WhenUsingJsonInPerfTest :
         Performance_Specs<JsonMessageSerializer>
+    {
+        
+    }
+
+	[TestFixture]
+    public class WhenUsingBsonInPerfTest :
+        Performance_Specs<BsonMessageSerializer>
     {
         
     }

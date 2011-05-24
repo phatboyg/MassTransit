@@ -20,6 +20,7 @@ OUTPUT_PATH = (BUILD_CONFIG_KEY == "NET40" ? 'net-4.0' : 'net-3.5')
 
 props = { 
   :src => File.expand_path("src"),
+  :lib => File.expand_path("lib"),
   :build_support => File.expand_path("build_support"),
   :stage => File.expand_path("build_output"),
   :output => File.join( File.expand_path("build_output"), OUTPUT_PATH ),
@@ -152,6 +153,11 @@ task :copy_services => [:compile] do
      	copyOutputFiles src, "Iesi.Collections.dll", targ	
      	copyOutputFiles src, "StructureMap.dll", targ	
      	copyOutputFiles src, "Topshelf.dll", targ	
+	copyOutputFiles File.join(props[:lib], 'SqlCe'), '*', targ
+	copyOutputFiles File.join(props[:lib], 'SqlCe', 'x86'), '*', targ
+	copyOutputFiles File.join(props[:lib], 'SqlCe', 'x86', 'Microsoft.VC90.CRT'), '*', targ
+	copyOutputFiles File.join(props[:lib], 'SqlCe', 'amd64'), '*', targ
+	copyOutputFiles File.join(props[:lib], 'SqlCe', 'amd64', 'Microsoft.VC90.CRT'), '*', targ
 
 	targ = File.join(props[:stage], 'Services', 'SystemView')
 	src = File.join(props[:src], "MassTransit.SystemView/bin/#{BUILD_CONFIG}")
@@ -177,7 +183,9 @@ task :copy_services => [:compile] do
 
 	copyOutputFiles props[:output], "MassTransit.dll", targ
 
-	copyOutputFiles File.join(src, "Starbucks.Cashier/bin/#{BUILD_CONFIG}"), "{log4net,Magnum,MassTransit.StructureMapIntegration,MassTransit.Transports.Msmq,StructureMap,Topshelf}.dll", targ
+	copyOutputFiles File.join(src, "Starbucks.Customer/bin/#{BUILD_CONFIG}"), "{log4net,Magnum,MassTransit.StructureMapIntegration,MassTransit.Transports.Msmq,StructureMap}.dll", targ
+	copyOutputFiles File.join(src, "Starbucks.Barista/bin/#{BUILD_CONFIG}"), "{MassTransit.WindsorIntegration,Castle.Windsor,Castle.Core,Topshelf}.dll", targ
+	copyOutputFiles File.join(src, "Starbucks.Cashier/bin/#{BUILD_CONFIG}"), "{MassTransit.NinjectIntegration,Ninject}.dll", targ
 	copyOutputFiles File.join(src, "Starbucks.Cashier/bin/#{BUILD_CONFIG}"), "Starbucks.Cashier.exe", targ
 	copyOutputFiles File.join(src, "Starbucks.Cashier/bin/#{BUILD_CONFIG}"), "cashier.log4net.xml", targ
 	copyOutputFiles File.join(src, "Starbucks.Barista/bin/#{BUILD_CONFIG}"), "Starbucks.Barista.exe", targ
@@ -299,6 +307,7 @@ task :nuget do
 	sh "lib/nuget.exe pack nugets/MassTransit.Unity.nuspec -o build_artifacts"
 	sh "lib/nuget.exe pack nugets/MassTransit.CastleWindsor.nuspec -o build_artifacts"
 	sh "lib/nuget.exe pack nugets/MassTransit.NHibernate.nuspec -o build_artifacts"
+	sh "lib/nuget.exe pack nugets/MassTransit.RabbitMQ.nuspec -o build_artifacts"
 end
 
 def project_outputs(props)

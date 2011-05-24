@@ -14,7 +14,6 @@ namespace MassTransit.Transports.Msmq
 {
 	using System;
 	using System.Messaging;
-	using System.Net;
 	using Exceptions;
 
 	public class MessageQueueConnection :
@@ -102,6 +101,10 @@ namespace MassTransit.Transports.Msmq
 			{
 				_queue.MulticastAddress = _multicastAddress;
 			}
+
+			var filter = new MessagePropertyFilter();
+			filter.SetAll();
+			_queue.MessageReadPropertyFilter = filter;
 
 			_needReconnect = false;
 		}
