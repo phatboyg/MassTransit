@@ -107,7 +107,7 @@ namespace MassTransit.Transports.RabbitMq
 			var connectionFactory = new ConnectionFactory
 				{
 					HostName = address.Host,
-					RequestedHeartbeat = 60
+					RequestedHeartbeat = 10
 				};
 
 			if (address.IsDefaultPort)
