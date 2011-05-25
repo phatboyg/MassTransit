@@ -15,26 +15,24 @@ namespace MassTransit.Util
 	using log4net;
 
 	public class SpecialLoggers
-    {
-        private readonly static ILog _diagnostics = LogManager.GetLogger("MassTransit.Diagnostics");
-        private readonly static ILog _messages = LogManager.GetLogger("MassTransit.Messages");
-        private readonly static ILog _ironLogger = LogManager.GetLogger("MassTransit.Iron");
+	{
+		private readonly static ILog _diagnostics = LogManager.GetLogger("MassTransit.Diagnostics");
+		private readonly static ILog _messages = LogManager.GetLogger("MassTransit.Messages");
+		private readonly static ILog _ironLogger = LogManager.GetLogger("MassTransit.Iron");
 
-        public static ILog Messages
-        {
-            get { return _messages; }
-        }
+		public static ILog Messages
+		{
+			get { return _messages; }
+		}
 
-        public static ILog Diagnostics
-        {
-            get { return _diagnostics; }
-        }
+		public static ILog Diagnostics
+		{
+			get { return _diagnostics; }
+		}
 
-        public static ILog Iron
-        {
-            get { return _ironLogger;  }
-        }
-
-
-    }
+		public static ILog Iron
+		{
+			get { return _ironLogger; }
+		}
+	}
 }
