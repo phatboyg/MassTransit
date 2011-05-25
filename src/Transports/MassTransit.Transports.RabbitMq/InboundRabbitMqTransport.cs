@@ -118,8 +118,7 @@
 
 			if (_channel != null)
 			{
-				if (_channel.IsOpen)
-					_channel.Close(200, "end");
+				_channel.Close(Constants.ReplySuccess, "end");
 				_channel.Dispose();
 				_channel = null;
 			}
@@ -148,7 +147,7 @@
 
 			using (var management = new RabbitMqEndpointManagement(_address, _connection))
 			{
-				management.BindQueue(_address.Name, _address.Name, ExchangeType.Fanout, "");
+				management.BindQueue(_address.Name, _address.Name, ExchangeType.Fanout, /* routing key */ string.Empty);
 			}
 
 			_declared = true;
