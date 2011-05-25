@@ -8,6 +8,7 @@
 	using Management;
 	using RabbitMQ.Client;
 	using RabbitMQ.Client.Events;
+	using RabbitMQ.Client.Framing.v0_9_1;
 	using Util;
 
 	public class InboundRabbitMqTransport :
@@ -73,6 +74,9 @@
 			}
 			catch (EndOfStreamException)
 			{
+				_channel.Close(Constants.ChannelError, "EndOfStreamException thrown");
+				_channel.Dispose();
+				_channel = null;
 				return;
 			}
 			catch (Exception ex)
