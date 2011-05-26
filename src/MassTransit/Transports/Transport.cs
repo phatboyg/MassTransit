@@ -47,12 +47,12 @@ namespace MassTransit.Transports
 			_outbound.Send(context);
 		}
 
-		public void Receive(Func<IReceiveContext, Action<IReceiveContext>> callback, TimeSpan timeout)
+		public void Receive(Func<IReceiveContext, Action<IReceiveContext>> getConsumers, TimeSpan dequeueTimeout)
 		{
 			if (_disposed)
 				throw new ObjectDisposedException("The transport has already been disposed: " + Address);
 
-			_inbound.Receive(callback, timeout);
+			_inbound.Receive(getConsumers, dequeueTimeout);
 		}
 
 		public IOutboundTransport OutboundTransport

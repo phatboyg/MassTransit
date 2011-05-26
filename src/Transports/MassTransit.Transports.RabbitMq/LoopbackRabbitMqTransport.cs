@@ -36,9 +36,9 @@ namespace MassTransit.Transports.RabbitMq
 			get { return _address; }
 		}
 
-		public void Receive(Func<IReceiveContext, Action<IReceiveContext>> callback, TimeSpan timeout)
+		public void Receive(Func<IReceiveContext, Action<IReceiveContext>> getConsumers, TimeSpan dequeueTimeout)
 		{
-			_inbound.Receive(callback, timeout);
+			_inbound.Receive(getConsumers, dequeueTimeout);
 		}
 
 		public void Send(ISendContext context)

@@ -31,7 +31,7 @@ namespace MassTransit.Transports.ZeroMQ
 			throw new NotImplementedException();
 		}
 
-		public override void Receive(Func<IReceiveContext, Action<IReceiveContext>> callback, TimeSpan timeout)
+		public override void Receive(Func<IReceiveContext, Action<IReceiveContext>> getConsumers, TimeSpan dequeueTimeout)
 		{
 			throw new NotImplementedException();
 		}

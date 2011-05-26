@@ -31,7 +31,7 @@ namespace MassTransit.Transports
 
 		public abstract void Send(ISendContext context);
 
-		public abstract void Receive(Func<IReceiveContext, Action<IReceiveContext>> callback, TimeSpan timeout);
+		public abstract void Receive(Func<IReceiveContext, Action<IReceiveContext>> getConsumers, TimeSpan dequeueTimeout);
 
 		public void Dispose()
 		{
