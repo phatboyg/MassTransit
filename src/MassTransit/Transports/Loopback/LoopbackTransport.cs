@@ -62,7 +62,7 @@ namespace MassTransit.Transports
 			_messageReady.Set();
 		}
 
-		public override void Receive(Func<IReceiveContext, Action<IReceiveContext>> callback, TimeSpan timeout)
+		public override void Receive(Func<IReceiveContext, Action<IReceiveContext>> getConsumers, TimeSpan dequeueTimeout)
 		{
 			int messageCount;
 			lock (_messageLock)
@@ -76,14 +76,14 @@ namespace MassTransit.Transports
 
 			if (messageCount == 0)
 			{
-				if (!_messageReady.WaitOne(timeout, true))
+				if (!_messageReady.WaitOne(dequeueTimeout, true))
 					return;
 
 				waited = true;
 			}
 
 			bool monitorExitNeeded = true;
-			if (!Monitor.TryEnter(_messageLock, timeout))
+			if (!Monitor.TryEnter(_messageLock, dequeueTimeout))
 				return;
 
 			try
@@ -97,7 +97,7 @@ namespace MassTransit.Transports
 
 						using (ContextStorage.CreateContextScope(context))
 						{
-							Action<IReceiveContext> receive = callback(context);
+							Action<IReceiveContext> receive = getConsumers(context);
 							if (receive == null)
 								continue;
 
@@ -119,7 +119,7 @@ namespace MassTransit.Transports
 					return;
 
 				// we read to the end and none were accepted, so we are going to wait until we get another in the queue
-				if (!_messageReady.WaitOne(timeout, true))
+				if (!_messageReady.WaitOne(dequeueTimeout, true))
 					return;
 			}
 			finally

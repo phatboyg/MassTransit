@@ -18,6 +18,16 @@ namespace MassTransit.Transports
 	public interface IInboundTransport :
 		ITransport
 	{
-		void Receive(Func<IReceiveContext, Action<IReceiveContext>> callback, TimeSpan timeout);
+		/// <summary>
+		/// Implementors should create a receive context (e.g. a <see cref="ConsumeContext"/>)
+		/// and call the getConsumers function with it, in order to get a handler; the action result,
+		/// or otherwise to get null, if there are no handlers available.
+		/// </summary>
+		/// <param name="getConsumers">A function taking a receive context and returning the handlers for it. 
+		/// Return null if there 
+		/// are no handlers for it.</param>
+		/// <param name="dequeueTimeout">A 'setting' parameter, specifying how long the listening thread
+		/// should wait before 'doing another loop'.</param>
+		void Receive(Func<IReceiveContext, Action<IReceiveContext>> getConsumers, TimeSpan dequeueTimeout);
 	}
 }

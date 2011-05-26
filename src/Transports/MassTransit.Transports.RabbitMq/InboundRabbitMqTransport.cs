@@ -35,14 +35,14 @@
 			get { return _address; }
 		}
 
-		public void Receive(Func<IReceiveContext, Action<IReceiveContext>> callback, TimeSpan timeout)
+		public void Receive(Func<IReceiveContext, Action<IReceiveContext>> getConsumers, TimeSpan dequeueTimeout)
 		{
 			BeginReceiver();
 
 			try
 			{
 				object obj;
-				if (!_consumer.Queue.Dequeue((int) timeout.TotalMilliseconds, out obj))
+				if (!_consumer.Queue.Dequeue((int) dequeueTimeout.TotalMilliseconds, out obj))
 					return;
 
 				var result = obj as BasicDeliverEventArgs;
@@ -54,7 +54,7 @@
 					var context = new ConsumeContext(body);
 					using (ContextStorage.CreateContextScope(context))
 					{
-						Action<IReceiveContext> receive = callback(context);
+						Action<IReceiveContext> receive = getConsumers(context);
 						if (receive == null)
 						{
 							if (_log.IsDebugEnabled)
@@ -72,8 +72,9 @@
 
 				_channel.BasicAck(result.DeliveryTag, false);
 			}
-			catch (EndOfStreamException)
+			catch (EndOfStreamException ex)
 			{
+				_log.Warn("EndOfStreamException - have a look at inner exception", ex);
 				_channel.Close(Constants.ChannelError, "EndOfStreamException thrown");
 				_channel.Dispose();
 				_channel = null;

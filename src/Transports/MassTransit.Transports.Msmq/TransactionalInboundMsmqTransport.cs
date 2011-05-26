@@ -33,7 +33,7 @@ namespace MassTransit.Transports.Msmq
 			_transactionTimeout = transactionTimeout;
 		}
 
-		public override void Receive(Func<IReceiveContext, Action<IReceiveContext>> callback, TimeSpan timeout)
+		public override void Receive(Func<IReceiveContext, Action<IReceiveContext>> getConsumers, TimeSpan dequeueTimeout)
 		{
 			try
 			{
@@ -46,13 +46,13 @@ namespace MassTransit.Transports.Msmq
 
 				using (var scope = new TransactionScope(TransactionScopeOption.Required, options))
 				{
-					if (EnumerateQueue(callback, timeout))
+					if (EnumerateQueue(getConsumers, dequeueTimeout))
 						scope.Complete();
 				}
 			}
 			catch (MessageQueueException ex)
 			{
-				HandleInboundMessageQueueException(ex, timeout);
+				HandleInboundMessageQueueException(ex, dequeueTimeout);
 			}
 		}
 

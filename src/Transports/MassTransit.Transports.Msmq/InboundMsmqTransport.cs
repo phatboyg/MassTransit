@@ -42,15 +42,15 @@ namespace MassTransit.Transports.Msmq
 			get { return _address; }
 		}
 
-		public virtual void Receive(Func<IReceiveContext, Action<IReceiveContext>> callback, TimeSpan timeout)
+		public virtual void Receive(Func<IReceiveContext, Action<IReceiveContext>> getConsumers, TimeSpan dequeueTimeout)
 		{
 			try
 			{
-				EnumerateQueue(callback, timeout);
+				EnumerateQueue(getConsumers, dequeueTimeout);
 			}
 			catch (MessageQueueException ex)
 			{
-				HandleInboundMessageQueueException(ex, timeout);
+				HandleInboundMessageQueueException(ex, dequeueTimeout);
 			}
 		}
 
