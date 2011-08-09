@@ -7,19 +7,16 @@ namespace WebRequestReply.UI
 	using Core;
 	using MassTransit;
 
-    public partial class _Default :
+	public partial class _Default :
 		Page, IRequestReplyView
 	{
-		private readonly RequestReplyController _controller;
+		readonly RequestReplyController _controller;
 
 		public _Default()
 		{
-			var ba = (IBusAccessor)HttpContext.Current.ApplicationInstance;
-			var bus = ba.Bus;
+			IEndpoint targetService = Bus.Instance.GetEndpoint(new Uri(Global.ServiceUri));
 
-			_controller = new RequestReplyController(this, 
-				bus,
-				bus.GetEndpoint(new Uri("rabbitmq://localhost/WebRequestReply.Core.Service")));
+			_controller = new RequestReplyController(this, Bus.Instance, targetService);
 		}
 
 		public string RequestText

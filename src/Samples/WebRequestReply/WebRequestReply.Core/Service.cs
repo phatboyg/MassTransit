@@ -1,19 +1,20 @@
-using MassTransit;
-
-namespace WebRequestReply.Core
+﻿namespace WebRequestReply.Core
 {
-	public class Service : Consumes<RequestMessage>.All
+	using MassTransit;
+
+	public class Service :
+		Consumes<RequestMessage>.Context
 	{
-		private readonly IServiceBus _Bus;
+		readonly IServiceBus _bus;
 
 		public Service(IServiceBus bus)
 		{
-			_Bus = bus;
+			_bus = bus;
 		}
 
-		public void Consume(RequestMessage message)
+		public void Consume(IConsumeContext<RequestMessage> context)
 		{
-			_Bus.Context(cc => cc.Respond(new ResponseMessage(message.CorrelationId, "Request: " + message.Text)));
+			context.Respond(new ResponseMessage(context.Message.CorrelationId, "Request: " + context.Message.Text));
 		}
 	}
 }

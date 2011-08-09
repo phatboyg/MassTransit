@@ -17,25 +17,26 @@ namespace MassTransit.Testing.Instances
 	using Subjects;
 	using TestActions;
 
-	public class ConsumerTestInstance<TConsumer> :
-		BusTestInstance,
-		ConsumerTest<TConsumer>
+	public class ConsumerTestInstance<TScenario, TConsumer> :
+		TestInstance<TScenario>,
+		ConsumerTest<TScenario, TConsumer>
 		where TConsumer : class
+		where TScenario : TestScenario
 	{
-		readonly ConsumerTestSubjectImpl<TConsumer> _subject;
+		readonly ConsumerTestSubjectImpl<TScenario, TConsumer> _subject;
 
 		bool _disposed;
 
-		public ConsumerTestInstance(BusTestScenario testContext, IList<TestAction> actions,
+		public ConsumerTestInstance(TScenario scenario, IList<TestAction<TScenario>> actions,
 		                            IConsumerFactory<TConsumer> consumerFactory)
-			: base(testContext, actions)
+			: base(scenario, actions)
 		{
-			_subject = new ConsumerTestSubjectImpl<TConsumer>(consumerFactory);
+			_subject = new ConsumerTestSubjectImpl<TScenario, TConsumer>(consumerFactory);
 		}
 
 		public void Execute()
 		{
-			_subject.Prepare(Scenario.Bus);
+			_subject.Prepare(Scenario);
 
 			ExecuteTestActions();
 		}
@@ -47,13 +48,13 @@ namespace MassTransit.Testing.Instances
 
 		protected override void Dispose(bool disposing)
 		{
-			base.Dispose(disposing);
-
 			if (_disposed) return;
 			if (disposing)
 			{
 				_subject.Dispose();
 			}
+
+			base.Dispose(disposing);
 
 			_disposed = true;
 		}

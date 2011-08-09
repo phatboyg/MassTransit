@@ -19,7 +19,7 @@ namespace MassTransit
 		public static void SetConcurrentConsumerLimit(this ServiceBusConfigurator configurator, int concurrentConsumerLimit)
 		{
 			var controlBusConfigurator =
-				new PostCreateBusBuilderConfiguratorImpl(bus => { bus.MaximumConsumerThreads = concurrentConsumerLimit; });
+				new PostCreateBusBuilderConfigurator(bus => { bus.MaximumConsumerThreads = concurrentConsumerLimit; });
 
 			configurator.AddBusConfigurator(controlBusConfigurator);
 		}

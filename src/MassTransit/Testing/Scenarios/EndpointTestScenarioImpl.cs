@@ -18,21 +18,23 @@ namespace MassTransit.Testing.Scenarios
 	using TestDecorators;
 	using Transports;
 
-	public class EndpointTestScenarioImpl :
+	public abstract class EndpointTestScenarioImpl :
 		EndpointTestScenario
 	{
 		readonly EndpointCache _endpointCache;
 		readonly IDictionary<Uri, EndpointTestDecorator> _endpoints;
 		readonly ReceivedMessageListImpl _received;
+		readonly PublishedMessageListImpl _published;
 		readonly SentMessageListImpl _sent;
 		readonly ReceivedMessageListImpl _skipped;
 		bool _disposed;
 
-		public EndpointTestScenarioImpl(IEndpointFactory endpointFactory)
+		protected EndpointTestScenarioImpl(IEndpointFactory endpointFactory)
 		{
 			_received = new ReceivedMessageListImpl();
 			_sent = new SentMessageListImpl();
 			_skipped = new ReceivedMessageListImpl();
+			_published = new PublishedMessageListImpl();
 
 			_endpoints = new Dictionary<Uri, EndpointTestDecorator>();
 
@@ -65,6 +67,16 @@ namespace MassTransit.Testing.Scenarios
 			get { return _skipped; }
 		}
 
+		public virtual IServiceBus InputBus
+		{
+			get { throw new NotImplementedException(); }
+		}
+
+		public PublishedMessageList Published
+		{
+			get { return _published; }
+		}
+
 		public ReceivedMessageList Received
 		{
 			get { return _received; }
@@ -78,12 +90,17 @@ namespace MassTransit.Testing.Scenarios
 
 		public void AddEndpoint(EndpointTestDecorator endpoint)
 		{
-			_endpoints.Add(endpoint.Address.Uri, endpoint);
+			_endpoints[endpoint.Address.Uri] = endpoint;
 		}
 
 		public void AddSent(SentMessage message)
 		{
 			_sent.Add(message);
+		}
+
+		public void AddPublished(PublishedMessage message)
+		{
+			_published.Add(message);
 		}
 
 		public void AddReceived(ReceivedMessage message)
@@ -144,6 +161,11 @@ namespace MassTransit.Testing.Scenarios
 		~EndpointTestScenarioImpl()
 		{
 			Dispose(false);
+		}
+
+		public virtual IServiceBus GetDecoratedBus(IServiceBus bus)
+		{
+			return new ServiceBusTestDecorator(bus, this);
 		}
 	}
 }
