@@ -1,3 +1,5 @@
+using System.Web;
+
 namespace WebRequestReply.UI
 {
 	using System;
@@ -12,7 +14,12 @@ namespace WebRequestReply.UI
 
 		public _Default()
 		{
-			_controller = new RequestReplyController(this, Container.Instance.Resolve<IServiceBus>());
+			var ba = (IBusAccessor)HttpContext.Current.ApplicationInstance;
+			var bus = ba.Bus;
+
+			_controller = new RequestReplyController(this, 
+				bus, 
+				bus.GetEndpoint(new Uri("loopback://localhost/WebRequestReply.Core.Service")));
 		}
 
 		public string RequestText

@@ -6,49 +6,53 @@ namespace WebRequestReply.Core
 	public class RequestReplyController 
 	{
 		private readonly IServiceBus _serviceBus;
+		private readonly IEndpoint _targetService;
 		private readonly IRequestReplyView _view;
 
-		public RequestReplyController(IRequestReplyView view, IServiceBus serviceBus)
+		public RequestReplyController(IRequestReplyView view, IServiceBus serviceBus, IEndpoint targetService)
 		{
+			if (view == null) throw new ArgumentNullException("view");
+			if (serviceBus == null) throw new ArgumentNullException("serviceBus");
+			if (targetService == null) throw new ArgumentNullException("targetService");
 			_view = view;
 			_serviceBus = serviceBus;
+			_targetService = targetService;
 		}
-
 
 		public void SendRequest()
 		{
 			Guid requestId = Guid.NewGuid();
 
-			_serviceBus.MakeRequest(x => x.Publish(new RequestMessage(requestId, _view.RequestText),
-									y => y.SetResponseAddress(_serviceBus.Endpoint.Uri)))
-				.When<ResponseMessage>().RelatedTo(requestId).IsReceived(message =>
+			_targetService.SendRequest(new RequestMessage(requestId, _view.RequestText),
+				_serviceBus, rc =>
 				{
-					_view.ResponseText = message.Text;
-				})
-				.OnTimeout(() =>
-				{
-					_view.ResponseText = "Async Task Timeout";
-				})
-				.TimeoutAfter(TimeSpan.FromSeconds(10))
-				.Send();
+					rc.HandleTimeout(TimeSpan.FromMilliseconds(100), () =>
+					{
+						_view.ResponseText = "Async Task Timeout";
+					});
+					rc.Handle<ResponseMessage>(rm =>
+					{
+						_view.ResponseText = rm.Text;
+					});
+				});
 		}
 
 		public IAsyncResult BeginRequest(object sender, EventArgs e, AsyncCallback callback, object state)
 		{
 			Guid requestId = Guid.NewGuid();
 
-			return _serviceBus.MakeRequest(x => x.Publish(new RequestMessage(requestId, _view.RequestText), 
-									y => y.SetResponseAddress(_serviceBus.Endpoint.Uri)))
-				.When<ResponseMessage>().RelatedTo(requestId).IsReceived(message =>
-					{
-						_view.ResponseText = message.Text;
-					})
-				.OnTimeout(() =>
+			return _targetService.BeginSendRequest(_serviceBus, new RequestMessage(requestId, _view.RequestText),
+				callback, state, rc =>
+				{
+					rc.HandleTimeout(TimeSpan.FromMilliseconds(100), () =>
 					{
 						_view.ResponseText = "Async Task Timeout";
-					})
-				.TimeoutAfter(TimeSpan.FromSeconds(10))
-				.BeginSend(callback, state);
+					});
+					rc.Handle<ResponseMessage>(rm =>
+					{
+						_view.ResponseText = rm.Text;
+					});
+				});
 		}
 
 		public void EndRequest(IAsyncResult ar)

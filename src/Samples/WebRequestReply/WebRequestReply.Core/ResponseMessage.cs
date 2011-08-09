@@ -5,7 +5,7 @@ namespace WebRequestReply.Core
 
 	[Serializable]
 	public class ResponseMessage :
-        CorrelatedBy<Guid>
+		CorrelatedBy<Guid>
 	{
 		private readonly Guid _id;
 		private readonly string _text;
