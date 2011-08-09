@@ -27,7 +27,9 @@ namespace WebRequestReply.UI
 			{
 				return ServiceBusFactory.New(sbc =>
 				{
-					sbc.ReceiveFrom("loopback://localhost/WebRequestReply.UI");
+					sbc.UseRabbitMq();
+					sbc.UseRabbitMqRouting();
+					sbc.ReceiveFrom("rabbitmq://localhost/WebRequestReply.UI");
 					sbc.Subscribe(s => s.LoadFrom(Container));
 				});
 			}).LifeStyle.Singleton);
@@ -39,7 +41,9 @@ namespace WebRequestReply.UI
 				{
 					return ServiceBusFactory.New(sbc =>
 					{
-						sbc.ReceiveFrom("loopback://localhost/WebRequestReply.Core.Service");
+						sbc.UseRabbitMq();
+						sbc.UseRabbitMqRouting();
+						sbc.ReceiveFrom("rabbitmq://localhost/WebRequestReply.Core.Service");
 						sbc.Subscribe(s => s.LoadFrom(coreContainer));
 					});
 				}).LifeStyle.Singleton);

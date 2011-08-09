@@ -18,8 +18,8 @@ namespace WebRequestReply.UI
 			var bus = ba.Bus;
 
 			_controller = new RequestReplyController(this, 
-				bus, 
-				bus.GetEndpoint(new Uri("loopback://localhost/WebRequestReply.Core.Service")));
+				bus,
+				bus.GetEndpoint(new Uri("rabbitmq://localhost/WebRequestReply.Core.Service")));
 		}
 
 		public string RequestText

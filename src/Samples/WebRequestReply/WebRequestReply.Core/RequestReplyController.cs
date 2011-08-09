@@ -26,7 +26,7 @@ namespace WebRequestReply.Core
 			_targetService.SendRequest(new RequestMessage(requestId, _view.RequestText),
 				_serviceBus, rc =>
 				{
-					rc.HandleTimeout(TimeSpan.FromMilliseconds(100), () =>
+					rc.HandleTimeout(TimeSpan.FromSeconds(25), () =>
 					{
 						_view.ResponseText = "Async Task Timeout";
 					});
