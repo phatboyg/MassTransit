@@ -80,6 +80,19 @@
     <Compile Include="..\..\SolutionVersion.cs">
       <Link>SolutionVersion.cs</Link>
     </Compile>
+    <Compile Include="Configuration\Builders\ConnectionFactoryBuilder.cs" />
+    <Compile Include="Configuration\Builders\ConnectionFactoryBuilderImpl.cs" />
+    <Compile Include="Configuration\Builders\RabbitMqTransportFactoryBuilder.cs" />
+    <Compile Include="Configuration\Builders\RabbitMqTransportFactoryBuilderImpl.cs" />
+    <Compile Include="Configuration\Configurators\ConnectionFactoryBuilderConfigurator.cs" />
+    <Compile Include="Configuration\Configurators\ConnectionFactoryConfigurator.cs" />
+    <Compile Include="Configuration\Configurators\ConnectionFactoryConfiguratorImpl.cs" />
+    <Compile Include="Configuration\Configurators\SslConnectionFactoryConfigurator.cs" />
+    <Compile Include="Configuration\Configurators\SslConnectionFactoryConfiguratorImpl.cs" />
+    <Compile Include="Configuration\Configurators\RabbitMqTransportFactoryBuilderConfigurator.cs" />
+    <Compile Include="Configuration\Configurators\RabbitMqTransportFactoryConfigurator.cs" />
+    <Compile Include="Configuration\Configurators\RabbitMqTransportFactoryConfiguratorImpl.cs" />
+    <Compile Include="Configuration\RabbitMqTransportFactoryExtensions.cs" />
     <Compile Include="InboundRabbitMqTransport.cs" />
     <Compile Include="IRabbitMqEndpointAddress.cs" />
     <Compile Include="Management\IRabbitMqEndpointManagement.cs" />
@@ -88,12 +101,14 @@
     <Compile Include="OutboundRabbitMqTransport.cs" />
     <Compile Include="PublishEndpointInterceptor.cs" />
     <Compile Include="PublishEndpointSinkLocator.cs" />
+    <Compile Include="RabbitMqConnection.cs" />
+    <Compile Include="RabbitMqConsumer.cs" />
     <Compile Include="RabbitMqEndpointAddress.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RabbitMqAddressException.cs" />
     <Compile Include="RabbitMqConfigurationExtensions.cs" />
     <Compile Include="RabbitMqHelper.cs" />
-    <Compile Include="LoopbackRabbitMqTransport.cs" />
+    <Compile Include="RabbitMqProducer.cs" />
     <Compile Include="RabbitMqSubscriptionBinder.cs" />
     <Compile Include="RabbitMqTransportFactory.cs" />
     <Compile Include="Configuration\RabbitMqServiceBusExtensions.cs" />

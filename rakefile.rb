@@ -1,5 +1,7 @@
 COPYRIGHT = "Copyright 2007-2011 Chris Patterson, Dru Sellers, Travis Smith, et. al. - All rights reserved."
 
+require 'semver'
+
 require File.dirname(__FILE__) + "/build_support/BuildUtils.rb"
 require File.dirname(__FILE__) + "/build_support/util.rb"
 
@@ -11,12 +13,13 @@ require File.dirname(__FILE__) + "/build_support/ilmerge.rb"
 PRODUCT = 'MassTransit'
 CLR_TOOLS_VERSION = 'v4.0.30319'
 
-build_number_base = '2.0.0'
-asm_version = '2.0.0.2'
+REVISION = 4
+build_number_base = SemVer.find.format "%M.%m.%p" 
+asm_version = build_number_base + "." + REVISION.to_s
 tc_build_number = '0'
 tc_build_number = ENV["BUILD_NUMBER"] unless ENV['BUILD_NUMBER'].nil?
 BUILD_NUMBER = "#{build_number_base}.#{tc_build_number}"
-  
+
 BUILD_CONFIG = ENV['BUILD_CONFIG'] || "Release"
 BUILD_CONFIG_KEY = ENV['BUILD_CONFIG_KEY'] || 'NET40'
 BUILD_PLATFORM = ''
@@ -24,7 +27,7 @@ TARGET_FRAMEWORK_VERSION = (BUILD_CONFIG_KEY == "NET40" ? "v4.0" : "v3.5")
 MSB_USE = (BUILD_CONFIG_KEY == "NET40" ? :net4 : :net35)
 OUTPUT_PATH = (BUILD_CONFIG_KEY == "NET40" ? 'net-4.0' : 'net-3.5')
 
-props = { 
+props = {
   :src => File.expand_path("src"),
   :lib => File.expand_path("lib"),
   :build_support => File.expand_path("build_support"),
@@ -33,26 +36,6 @@ props = {
   :artifacts => File.expand_path("build_artifacts"),
   :projects => ["MassTransit", "MassTransit.RuntimeServices"]
 }
-
-puts "Building for .NET Framework #{TARGET_FRAMEWORK_VERSION} in #{BUILD_CONFIG}-mode."
- 
-desc "Displays a list of tasks"
-task :help do
-
-  taskHash = Hash[*(`rake.bat -T`.split(/\n/).collect { |l| l.match(/rake (\S+)\s+\#\s(.+)/).to_a }.collect { |l| [l[1], l[2]] }).flatten] 
- 
-  indent = "                          "
-  
-  puts "rake #{indent}#Runs the 'default' task"
-  
-  taskHash.each_pair do |key, value|
-    if key.nil?  
-      next
-    end
-    puts "rake #{key}#{indent.slice(0, indent.length - key.length)}##{value}"
-  end
-end
-
 
 desc "Cleans, compiles, il-merges, unit tests, prepares examples, packages zip and runs MoMA"
 task :all => [:clean, :compile, :compile_samples, :ilmerge, :copy_services, :tests]
@@ -65,15 +48,15 @@ task :unclean => [:compile, :ilmerge, :tests]
 
 desc "Update the common version information for the build. You can call this task without building."
 assemblyinfo :global_version do |asm|
-  
+
   commit_data = get_commit_hash_and_date
   commit = commit_data[0]
   commit_date = commit_data[1]
   puts "##teamcity[buildNumber '#{BUILD_NUMBER}']"
-  
+
   # Assembly file config
   asm.product_name = PRODUCT
-  asm.description = "Git commit hash: #{commit} - #{commit_date} - MassTransit is a distributed application framework for .NET  http://masstransit-project.com"
+  asm.description = "MassTransit is a distributed application framework for .NET  http://masstransit-project.com"
   asm.version = asm_version
   asm.file_version = BUILD_NUMBER
   asm.custom_attributes :AssemblyInformationalVersion => "#{asm_version}",
@@ -91,7 +74,7 @@ task :clean do
 	# work around latency issue where folder still exists for a short while after it is removed
 	waitfor { !exists?(props[:stage]) }
 	waitfor { !exists?(props[:artifacts]) }
-	
+
 	Dir.mkdir props[:stage]
 	Dir.mkdir props[:artifacts]
 end
@@ -115,7 +98,7 @@ task :compile => [:global_version, :build] do
 	copyOutputFiles File.join(props[:src], "Containers/MassTransit.WindsorIntegration/bin/#{BUILD_CONFIG}"), "MassTransit.WindsorIntegration.{dll,pdb,xml}", outc
 	copyOutputFiles File.join(props[:src], "Containers/MassTransit.NinjectIntegration/bin/#{BUILD_CONFIG}"), "MassTransit.NinjectIntegration.{dll,pdb,xml}", outc
 	copyOutputFiles File.join(props[:src], "Containers/MassTransit.AutofacIntegration/bin/#{BUILD_CONFIG}"), "MassTransit.AutofacIntegration.{dll,pdb,xml}", outc
-	
+
 	outt = File.join(props[:output], "Transports")
 
 	copyOutputFiles File.join(props[:src], "Transports/MassTransit.Transports.MSMQ/bin/#{BUILD_CONFIG}"), "MassTransit.Transports.MSMQ.{dll,pdb,xml}", File.join(outt, "MSMQ")
@@ -147,14 +130,14 @@ task :copy_services => [:compile] do
 
 	copyOutputFiles src, "MassTransit.*.{dll,exe,config,log4net.xml,sdf}", targ
 	copyOutputFiles props[:output], 'MassTransit.dll', targ
-     	copyOutputFiles src, "Castle*.dll", targ	
-     	copyOutputFiles src, "log4net.dll", targ	
-     	copyOutputFiles src, "Magnum.dll", targ	
-     	copyOutputFiles src, "FluentNHibernate.dll", targ	
-     	copyOutputFiles src, "NHibernate*.dll", targ	
-     	copyOutputFiles src, "Iesi.Collections.dll", targ	
-     	copyOutputFiles src, "StructureMap.dll", targ	
-     	copyOutputFiles src, "Topshelf.dll", targ	
+     	copyOutputFiles src, "Castle*.dll", targ
+     	copyOutputFiles src, "log4net.dll", targ
+     	copyOutputFiles src, "Magnum.dll", targ
+     	copyOutputFiles src, "FluentNHibernate.dll", targ
+     	copyOutputFiles src, "NHibernate*.dll", targ
+     	copyOutputFiles src, "Iesi.Collections.dll", targ
+     	copyOutputFiles src, "StructureMap.dll", targ
+     	copyOutputFiles src, "Topshelf.dll", targ
 	copyOutputFiles File.join(props[:lib], 'SqlCe'), '*', targ
 	copyOutputFiles File.join(props[:lib], 'SqlCe', 'x86'), '*', File.join(targ, 'x86')
 	copyOutputFiles File.join(props[:lib], 'SqlCe', 'x86', 'Microsoft.VC90.CRT'), '*', File.join(targ, 'x86', 'Microsoft.VC90.CRT')
@@ -166,29 +149,29 @@ task :copy_services => [:compile] do
 
 	copyOutputFiles src, "MassTransit.*.{dll,exe,config}", targ
 	copyOutputFiles props[:output], 'MassTransit.dll', targ
-     	copyOutputFiles src, "log4net.dll", targ	
-     	copyOutputFiles src, "Magnum.dll", targ	
-     	copyOutputFiles src, "StructureMap.dll", targ	
+     	copyOutputFiles src, "log4net.dll", targ
+     	copyOutputFiles src, "Magnum.dll", targ
+     	copyOutputFiles src, "StructureMap.dll", targ
 
   targ = File.join(props[:stage], 'Services', 'BusDriver')
   src = File.join(props[:src], "Tools/BusDriver/bin/#{BUILD_CONFIG}")
-  
+
   copyOutputFiles src, "BusDriver.{exe}", targ
 	copyOutputFiles src, "MassTransit.*.{dll,exe,config}", targ
 	copyOutputFiles src, "RabbitMQ.Client.{dll}", targ
 	copyOutputFiles props[:output], 'MassTransit.dll', targ
-     	copyOutputFiles src, "log4net.dll", targ	
-     	copyOutputFiles src, "Magnum.dll", targ	
+     	copyOutputFiles src, "log4net.dll", targ
+     	copyOutputFiles src, "Magnum.dll", targ
 
 	targ = File.join(props[:stage], 'Services', 'SystemView2')
 	src = File.join(props[:src], "MassTransit.SystemView2/bin/#{BUILD_CONFIG}")
 
 	copyOutputFiles src, "MassTransit.*.{dll,exe,config}", targ
 	copyOutputFiles props[:output], 'MassTransit.dll', targ
-     	copyOutputFiles src, "log4net.dll", targ	
-     	copyOutputFiles src, "Magnum.dll", targ	
-     	copyOutputFiles src, "StructureMap.dll", targ	
-     	copyOutputFiles src, "WPFToolkit.dll", targ	
+     	copyOutputFiles src, "log4net.dll", targ
+     	copyOutputFiles src, "Magnum.dll", targ
+     	copyOutputFiles src, "StructureMap.dll", targ
+     	copyOutputFiles src, "WPFToolkit.dll", targ
 
 	targ = File.join(props[:stage], 'Samples', 'Starbucks')
 	src = File.join(props[:src], "Samples", "Starbucks")
@@ -205,7 +188,7 @@ task :copy_services => [:compile] do
 	copyOutputFiles File.join(src, "Starbucks.Customer/bin/#{BUILD_CONFIG}"), "Starbucks.Customer.exe", targ
 	copyOutputFiles File.join(src, "Starbucks.Customer/bin/#{BUILD_CONFIG}"), "customer.log4net.xml", targ
 	copyOutputFiles File.join(src, "Starbucks.Customer/bin/#{BUILD_CONFIG}"), "Starbucks.Messages.dll", targ
-	
+
 	targ = File.join(props[:stage], 'Samples', 'Distributor')
 	src = File.join(props[:src], "Samples", "Distributor")
 
@@ -238,7 +221,7 @@ end
 
 desc "Only compiles the application."
 msbuild :build do |msb|
-	msb.properties :Configuration => BUILD_CONFIG, 
+	msb.properties :Configuration => BUILD_CONFIG,
 	    :BuildConfigKey => BUILD_CONFIG_KEY,
 	    :TargetFrameworkVersion => TARGET_FRAMEWORK_VERSION,
 	    :Platform => 'Any CPU'
@@ -249,7 +232,7 @@ msbuild :build do |msb|
 end
 
 msbuild :build_starbucks do |msb|
-	msb.properties :Configuration => "Build", 
+	msb.properties :Configuration => "Build",
 	    :BuildConfigKey => BUILD_CONFIG_KEY,
 	    :TargetFrameworkVersion => TARGET_FRAMEWORK_VERSION,
 	    :Platform => 'Any CPU'
@@ -260,7 +243,7 @@ msbuild :build_starbucks do |msb|
 end
 
 msbuild :build_distributor do |msb|
-	msb.properties :Configuration => "Build", 
+	msb.properties :Configuration => "Build",
 	    :BuildConfigKey => BUILD_CONFIG_KEY,
 	    :TargetFrameworkVersion => TARGET_FRAMEWORK_VERSION,
 	    :Platform => 'Any CPU'
@@ -291,6 +274,33 @@ task :unit_tests => [:compile] do
 	runner.run ['MassTransit.Tests'].map{ |assem| "#{assem}.dll" }
 end
 
+task :transport_tests => [:msmq_tests, :rabbitmq_tests]
+
+desc "Runs unit tests for MSMQ"
+task :msmq_tests do
+	Dir.mkdir props[:artifacts] unless exists?(props[:artifacts])
+
+	runner = NUnitRunner.new(File.join('lib', 'nunit', 'net-2.0',  "nunit-console#{(BUILD_PLATFORM.empty? ? '' : "-#{BUILD_PLATFORM}")}.exe"),
+		'tests',
+		TARGET_FRAMEWORK_VERSION,
+		['/nothread', '/nologo', '/labels', "\"/xml=#{File.join(props[:artifacts], 'msmq-test-results.xml')}\""])
+
+	runner.run ['MassTransit.Transports.Msmq.Tests'].map{ |assem| "#{assem}.dll" }
+end
+
+desc "Runs unit tests for RabbitMQ"
+task :rabbitmq_tests do
+	Dir.mkdir props[:artifacts] unless exists?(props[:artifacts])
+
+	runner = NUnitRunner.new(File.join('lib', 'nunit', 'net-2.0',  "nunit-console#{(BUILD_PLATFORM.empty? ? '' : "-#{BUILD_PLATFORM}")}.exe"),
+		'tests',
+		TARGET_FRAMEWORK_VERSION,
+		['/nothread', '/nologo', '/labels', "\"/xml=#{File.join(props[:artifacts], 'rabbitmq-test-results.xml')}\""])
+
+	runner.run ['MassTransit.Transports.RabbitMQ.Tests'].map{ |assem| "#{assem}.dll" }
+end
+
+
 desc "Target used for the CI server. It both builds, tests and packages."
 task :ci => [:default, :package, :moma]
 
@@ -308,10 +318,181 @@ task :moma => [:compile] do
 	sh "lib/MoMA/MoMA.exe --nogui --out #{File.join(props[:artifacts], 'MoMA-report.html')} #{dlls}"
 end
 
-# TODO: create tasks for installing and running samples!
+  # NUSPEC
+  # ===================================================
 
-desc "Builds the nuget package"
-task :nuget do
+def add_files stage, what_dlls, nuspec
+  [['net35', 'net-3.5'], ['net40', 'net-4.0']].each{|fw|
+    takeFrom = File.join(stage, fw[1], what_dlls)
+    Dir.glob(takeFrom).each do |f|
+      nuspec.file(f, "lib\\#{fw[0]}")
+    end
+  }
+end
+  
+task :all_nuspecs => [:mt_nuspec, :mtsm_nuspec, :mtaf_nuspec, :mtni_nuspec, :mtun_nuspec, :mtcw_nuspec, :mtnhib_nuspec, :mtrmq_nuspec]
+
+  directory 'nuspecs'
+
+  nuspec :mt_nuspec => ['nuspecs'] do |nuspec|
+    nuspec.id = 'MassTransit'
+    nuspec.version = asm_version
+    nuspec.authors = 'Chris Patterson, Dru Sellers, Travis Smith'
+    nuspec.description = 'MassTransit is a distributed application framework for .NET, including support for MSMQ and RabbitMQ. Version 2.0 is currently in beta, but the NuGet package is being made available prior to Pre-Release support in NuGet to ease installation.'
+    # nuspec.title = Projects[:tx][:title]
+    nuspec.projectUrl = 'http://masstransit-project.com'
+    nuspec.language = "en-US"
+    nuspec.licenseUrl = "http://www.apache.org/licenses/LICENSE-2.0"
+    nuspec.requireLicenseAcceptance = "true"
+    nuspec.dependency "Magnum", "2.0.0.0"
+    nuspec.dependency "log4net", "1.2.10"
+    nuspec.output_file = 'nuspecs/MassTransit.nuspec'
+    
+	add_files props[:stage], 'MassTransit.{dll,pdb,xml}', nuspec
+  end
+  
+  nuspec :mtcw_nuspec => ['nuspecs'] do |nuspec|
+    nuspec.id = 'MassTransit.CastleWindsor'
+    nuspec.version = asm_version
+    nuspec.authors = 'Chris Patterson, Dru Sellers, Travis Smith'
+    nuspec.description = 'This integration library adds support for Castle Windsor to MassTransit, a distributed application framework for .NET, including support for MSMQ and RabbitMQ. Version 2.0 is currently in beta, but the NuGet package is being made available prior to Pre-Release support in NuGet to ease installation.'
+    nuspec.projectUrl = 'http://masstransit-project.com'
+    nuspec.language = "en-US"
+    nuspec.licenseUrl = "http://www.apache.org/licenses/LICENSE-2.0"
+    nuspec.requireLicenseAcceptance = "true"
+    nuspec.dependency "MassTransit", asm_version
+    nuspec.dependency "Castle.Windsor", "2.5.2"
+    nuspec.output_file = 'nuspecs/MassTransit.CastleWindsor.nuspec'
+	
+	add_files props[:stage], "#{File.join('Containers', 'MassTransit.WindsorIntegration.{dll,pdb,xml}')}", nuspec
+  end
+  
+  nuspec :mtrmq_nuspec => ['nuspecs'] do |nuspec|
+    nuspec.id = 'MassTransit.RabbitMQ'
+    nuspec.version = asm_version
+    nuspec.authors = 'Chris Patterson, Dru Sellers, Travis Smith'
+    nuspec.description = 'This integration library adds support for RabbitMQ to MassTransit, a distributed application framework for .NET, including support for MSMQ and RabbitMQ. Version 2.0 is currently in beta, but the NuGet package is being made available prior to Pre-Release support in NuGet to ease installation.'
+    nuspec.projectUrl = 'http://masstransit-project.com'
+    nuspec.language = "en-US"
+    nuspec.licenseUrl = "http://www.apache.org/licenses/LICENSE-2.0"
+    nuspec.requireLicenseAcceptance = "true"
+    nuspec.dependency "MassTransit", asm_version
+    nuspec.dependency "RabbitMQ.Client", "2.5.1"
+    nuspec.output_file = 'nuspecs/MassTransit.RabbitMQ.nuspec'
+	
+	add_files props[:stage], "#{File.join('Transports', 'RabbitMQ', 'MassTransit.Transports.RabbitMq.{dll,pdb,xml}')}", nuspec
+  end
+
+  
+  nuspec :mtaf_nuspec => ['nuspecs'] do |nuspec|
+    nuspec.id = 'MassTransit.Autofac'
+    nuspec.version = asm_version
+    nuspec.authors = 'Chris Patterson, Dru Sellers, Travis Smith'
+    nuspec.description = 'This integration library adds support for Autofac to MassTransit, a distributed application framework for .NET, including support for MSMQ and RabbitMQ. Version 2.0 is currently in beta, but the NuGet package is being made available prior to Pre-Release support in NuGet to ease installation.'
+    nuspec.projectUrl = 'http://masstransit-project.com'
+    nuspec.language = "en-US"
+    nuspec.licenseUrl = "http://www.apache.org/licenses/LICENSE-2.0"
+    nuspec.requireLicenseAcceptance = "true"
+    nuspec.dependency "MassTransit", asm_version
+    nuspec.dependency "Autofac", "2.4.5.724"
+    nuspec.output_file = 'nuspecs/MassTransit.Autofac.nuspec'
+	
+	add_files props[:stage], "#{File.join('Containers', 'MassTransit.AutofacIntegration.{dll,pdb,xml}')}", nuspec
+  end
+
+  nuspec :mtnhib_nuspec => ['nuspecs'] do |nuspec|
+    nuspec.id = 'MassTransit.NHibernate'
+    nuspec.version = asm_version
+    nuspec.authors = 'Chris Patterson, Dru Sellers, Travis Smith'
+    nuspec.description = 'An integration library for NHibernate support in MassTransit, a distributed application framework for .NET, including support for MSMQ and RabbitMQ. Version 2.0 is currently in beta, but the NuGet package is being made available prior to Pre-Release support in NuGet to ease installation.'
+    nuspec.projectUrl = 'http://masstransit-project.com'
+    nuspec.language = "en-US"
+    nuspec.licenseUrl = "http://www.apache.org/licenses/LICENSE-2.0"
+    nuspec.requireLicenseAcceptance = "true"
+    nuspec.dependency "MassTransit", asm_version
+    nuspec.dependency "log4net", "1.2.10"
+    nuspec.dependency "NHibernate", "3.1.0"
+    nuspec.dependency "FluentNHibernate", "1.2"
+    nuspec.dependency "Magnum", "2.0.0"
+    nuspec.output_file = 'nuspecs/MassTransit.NHibernate.nuspec'
+	
+	add_files props[:stage], "#{File.join('Persistence', 'NHibernate', 'MassTransit.NHibernateIntegration.{dll,pdb,xml}')}", nuspec
+  end
+
+  
+  nuspec :mtni_nuspec => ['nuspecs'] do |nuspec|
+    nuspec.id = 'MassTransit.Ninject'
+    nuspec.version = asm_version
+    nuspec.authors = 'Chris Patterson, Dru Sellers, Travis Smith'
+    nuspec.description = 'This integration library adds support for Ninject to MassTransit, a distributed application framework for .NET, including support for MSMQ and RabbitMQ. Version 2.0 is currently in beta, but the NuGet package is being made available prior to Pre-Release support in NuGet to ease installation.'
+    nuspec.projectUrl = 'http://masstransit-project.com'
+    nuspec.language = "en-US"
+    nuspec.licenseUrl = "http://www.apache.org/licenses/LICENSE-2.0"
+    nuspec.requireLicenseAcceptance = "true"
+    nuspec.dependency "MassTransit", asm_version
+    nuspec.dependency "Ninject", "2.2.1.4"
+    nuspec.output_file = 'nuspecs/MassTransit.Ninject.nuspec'
+	
+	add_files props[:stage], "#{File.join('Containers', 'MassTransit.NinjectIntegration.{dll,pdb,xml}')}", nuspec
+  end
+
+  
+  nuspec :mtsm_nuspec => ['nuspecs'] do |nuspec|
+    nuspec.id = 'MassTransit.StructureMap'
+    nuspec.version = asm_version
+    nuspec.authors = 'Chris Patterson, Dru Sellers, Travis Smith'
+    nuspec.description = 'This integration library adds support for StructureMap to MassTransit, a distributed application framework for .NET, including support for MSMQ and RabbitMQ. Version 2.0 is currently in beta, but the NuGet package is being made available prior to Pre-Release support in NuGet to ease installation.'
+    nuspec.projectUrl = 'http://masstransit-project.com'
+    nuspec.language = "en-US"
+    nuspec.licenseUrl = "http://www.apache.org/licenses/LICENSE-2.0"
+    nuspec.requireLicenseAcceptance = "true"
+    nuspec.dependency "MassTransit", asm_version
+    nuspec.dependency "StructureMap", "2.6.2"
+    nuspec.output_file = 'nuspecs/MassTransit.StructureMap.nuspec'
+	
+	add_files props[:stage], "#{File.join('Containers', 'MassTransit.StructureMapIntegration.{dll,pdb,xml}')}", nuspec
+  end
+
+  
+  nuspec :mtun_nuspec => ['nuspecs'] do |nuspec|
+    nuspec.id = 'MassTransit.Unity'
+    nuspec.version = asm_version
+    nuspec.authors = 'Chris Patterson, Dru Sellers, Travis Smith'
+    nuspec.description = 'This integration library adds support for Unity to MassTransit, a distributed application framework for .NET, including support for MSMQ and RabbitMQ. Version 2.0 is currently in beta, but the NuGet package is being made available prior to Pre-Release support in NuGet to ease installation.'
+    nuspec.projectUrl = 'http://masstransit-project.com'
+    nuspec.language = "en-US"
+    nuspec.licenseUrl = "http://www.apache.org/licenses/LICENSE-2.0"
+    nuspec.requireLicenseAcceptance = "true"
+    nuspec.dependency "MassTransit", asm_version
+    nuspec.dependency "Unity", "2.0.0"
+    nuspec.output_file = 'nuspecs/MassTransit.Unity.nuspec'
+	
+	add_files props[:stage], "#{File.join('Containers', 'MassTransit.UnityIntegration.{dll,pdb,xml}')}", nuspec
+  end
+
+  
+  nuspec :mtmsmq_nuspec => ['nuspecs'] do |nuspec|
+    nuspec.id = 'MassTransit.Msmq'
+    nuspec.version = asm_version
+    nuspec.authors = 'Chris Patterson, Dru Sellers, Travis Smith'
+    nuspec.description = 'This integration library adds support for MSMQ to MassTransit, a distributed application framework for .NET, including support for MSMQ and RabbitMQ. Version 2.0 is currently in beta, but the NuGet package is being made available prior to Pre-Release support in NuGet to ease installation.'
+    nuspec.projectUrl = 'http://masstransit-project.com'
+    nuspec.language = "en-US"
+    nuspec.licenseUrl = "http://www.apache.org/licenses/LICENSE-2.0"
+    nuspec.requireLicenseAcceptance = "true"
+    nuspec.dependency "MassTransit", asm_version
+    nuspec.output_file = 'nuspecs/MassTransit.Transports.Msmq.nuspec'
+	
+	add_files props[:stage], "#{File.join('Transports', 'MSMQ', 'MassTransit.Transports.MSMQ.{dll,pdb,xml}')}", nuspec
+  end
+
+  
+  
+  # NUGET
+  # ===================================================
+
+  desc "Builds the nuget package"
+task :nuget => :nuspecs do
 	sh "lib/nuget.exe pack -BasePath build_output nugets/MassTransit.nuspec -o build_artifacts"
 	sh "lib/nuget.exe pack -BasePath build_output nugets/MassTransit.StructureMap.nuspec -o build_artifacts"
 	sh "lib/nuget.exe pack -BasePath build_output nugets/MassTransit.Autofac.nuspec -o build_artifacts"

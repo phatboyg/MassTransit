@@ -12,20 +12,44 @@
 // specific language governing permissions and limitations under the License.
 namespace MassTransit.Testing.Scenarios
 {
+	using TestDecorators;
 	using Transports;
 
 	public class BusTestScenarioImpl :
 		EndpointTestScenarioImpl,
 		BusTestScenario
 	{
+		IServiceBus _bus;
 		bool _disposed;
+		IServiceBus _realBus;
 
 		public BusTestScenarioImpl(IEndpointFactory endpointFactory)
 			: base(endpointFactory)
 		{
 		}
 
-		public IServiceBus Bus { get; set; }
+		public override IServiceBus InputBus
+		{
+			get { return Bus; }
+		}
+
+		public IServiceBus Bus
+		{
+			get { return _bus; }
+			set
+			{
+				_realBus = value;
+				_bus = new ServiceBusTestDecorator(value, this);
+			}
+		}
+
+		public override IServiceBus GetDecoratedBus(IServiceBus bus)
+		{
+			if (_realBus == bus)
+				return _bus;
+
+			return base.GetDecoratedBus(bus);
+		}
 
 		protected override void Dispose(bool disposing)
 		{

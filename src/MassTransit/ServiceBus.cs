@@ -1,14 +1,14 @@
 // Copyright 2007-2011 Chris Patterson, Dru Sellers, Travis Smith, et. al.
-//  
-// Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
-// this file except in compliance with the License. You may obtain a copy of the 
-// License at 
-// 
-//     http://www.apache.org/licenses/LICENSE-2.0 
-// 
-// Unless required by applicable law or agreed to in writing, software distributed 
-// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
-// CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+// this file except in compliance with the License. You may obtain a copy of the
+// License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software distributed
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 namespace MassTransit
 {
@@ -28,7 +28,7 @@ namespace MassTransit
 	using Util;
 
 	/// <summary>
-	/// A service bus is used to attach message handlers (services) to endpoints, as well as 
+	/// A service bus is used to attach message handlers (services) to endpoints, as well as
 	/// communicate with other service bus instances in a distributed application
 	/// </summary>
 	[DebuggerDisplay("{DebugDisplay}")]
@@ -54,8 +54,6 @@ namespace MassTransit
 			try
 			{
 				_log = LogManager.GetLogger(typeof (ServiceBus));
-
-				Null = new NullServiceBus();
 			}
 			catch (Exception ex)
 			{
@@ -65,7 +63,7 @@ namespace MassTransit
 
 		/// <summary>
 		/// Creates an instance of the ServiceBus, which implements IServiceBus. This is normally
-		/// not called and should be created using the ServiceBusConfigurator to ensure proper defaults 
+		/// not called and should be created using the ServiceBusConfigurator to ensure proper defaults
 		/// and operation.
 		/// </summary>
 		public ServiceBus(IEndpoint endpointToListenOn,
@@ -83,17 +81,12 @@ namespace MassTransit
 			_serviceContainer = new ServiceContainer(this);
 
 			OutboundPipeline = new OutboundPipelineConfigurator(this).Pipeline;
-
 			InboundPipeline = InboundPipelineConfigurator.CreateDefault(this);
-			InboundPipeline.Configure(
-				x => { _unsubscribeEventDispatchers += x.Register(new InboundOutboundSubscriptionBinder(OutboundPipeline, Endpoint)); });
 
 			ControlBus = this;
 
 			InitializePerformanceCounters();
 		}
-
-		public static IServiceBus Null { get; private set; }
 
 		public int ConcurrentReceiveThreads
 		{
@@ -254,12 +247,6 @@ namespace MassTransit
 			_serviceContainer.AddService(layer, service);
 		}
 
-		public void RemoveLoopbackSubsciber()
-		{
-			_unsubscribeEventDispatchers();
-			_unsubscribeEventDispatchers = () => true;
-		}
-
 		protected virtual void Dispose(bool disposing)
 		{
 			if (_disposed) return;
@@ -281,8 +268,6 @@ namespace MassTransit
 
 				if (ControlBus != this)
 					ControlBus.Dispose();
-
-				RemoveLoopbackSubsciber();
 
 				if (_performanceCounterConnection != null)
 				{

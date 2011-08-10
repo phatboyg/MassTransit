@@ -5,7 +5,8 @@ How MassTransit Works
 
     publishing.rst
     sending.rst
-    terms.rst
+    request.rst
     versioning.rst
     inbound.rst
     subscriptions.rst
+    valueadd.rst

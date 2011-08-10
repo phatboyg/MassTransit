@@ -20,7 +20,7 @@ namespace MassTransit.Testing.ScenarioBuilders
 	using Transports;
 
 	public class BusScenarioBuilderImpl :
-		EndpointScenarioBuilderImpl,
+		EndpointScenarioBuilderImpl<BusTestScenario>,
 		BusScenarioBuilder
 	{
 		readonly ServiceBusConfiguratorImpl _configurator;
@@ -46,18 +46,18 @@ namespace MassTransit.Testing.ScenarioBuilders
 			_configurator.Subscribe(configureCallback);
 		}
 
-		BusTestScenario BusScenarioBuilder.Build()
+		public override BusTestScenario Build()
 		{
 			IEndpointFactory endpointFactory = BuildEndpointFactory();
 
-			var context = new BusTestScenarioImpl(endpointFactory);
+			var scenario = new BusTestScenarioImpl(endpointFactory);
 
-			_configurator.ChangeSettings(x => { x.EndpointCache = context.EndpointCache; });
+			_configurator.ChangeSettings(x => { x.EndpointCache = scenario.EndpointCache; });
 			_configurator.EnableMessageTracing();
 
-			context.Bus = _configurator.CreateServiceBus();
+			scenario.Bus = _configurator.CreateServiceBus();
 
-			return context;
+			return scenario;
 		}
 	}
 }

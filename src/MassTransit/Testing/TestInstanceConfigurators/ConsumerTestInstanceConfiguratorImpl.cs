@@ -18,31 +18,34 @@ namespace MassTransit.Testing.TestInstanceConfigurators
 	using BuilderConfigurators;
 	using Builders;
 	using Configurators;
+	using ScenarioBuilders;
 	using Scenarios;
 
-	public class ConsumerTestInstanceConfiguratorImpl<TConsumer> :
-		BusTestInstanceConfiguratorImpl,
-		ConsumerTestInstanceConfigurator<TConsumer>
+	public class ConsumerTestInstanceConfiguratorImpl<TScenario, TConsumer> :
+		TestInstanceConfiguratorImpl<TScenario>,
+		ConsumerTestInstanceConfigurator<TScenario, TConsumer>
 		where TConsumer : class
+		where TScenario : TestScenario
 	{
-		readonly IList<ConsumerTestBuilderConfigurator<TConsumer>> _configurators;
+		readonly IList<ConsumerTestBuilderConfigurator<TScenario, TConsumer>> _configurators;
 
-		Func<BusTestScenario, ConsumerTestBuilder<TConsumer>> _builderFactory;
+		Func<TScenario, ConsumerTestBuilder<TScenario, TConsumer>> _builderFactory;
 		IConsumerFactory<TConsumer> _consumerFactory;
 
-		public ConsumerTestInstanceConfiguratorImpl()
+		public ConsumerTestInstanceConfiguratorImpl(Func<ScenarioBuilder<TScenario>> scenarioBuilderFactory)
+			: base(scenarioBuilderFactory)
 		{
-			_configurators = new List<ConsumerTestBuilderConfigurator<TConsumer>>();
+			_configurators = new List<ConsumerTestBuilderConfigurator<TScenario, TConsumer>>();
 
-			_builderFactory = testContext => new ConsumerTestBuilderImpl<TConsumer>(testContext);
+			_builderFactory = scenario => new ConsumerTestBuilderImpl<TScenario, TConsumer>(scenario);
 		}
 
-		public void UseBuilder(Func<BusTestScenario, ConsumerTestBuilder<TConsumer>> builderFactory)
+		public void UseBuilder(Func<TScenario, ConsumerTestBuilder<TScenario, TConsumer>> builderFactory)
 		{
 			_builderFactory = builderFactory;
 		}
 
-		public void AddConfigurator(ConsumerTestBuilderConfigurator<TConsumer> configurator)
+		public void AddConfigurator(ConsumerTestBuilderConfigurator<TScenario, TConsumer> configurator)
 		{
 			_configurators.Add(configurator);
 		}
@@ -52,16 +55,23 @@ namespace MassTransit.Testing.TestInstanceConfigurators
 			_consumerFactory = consumerFactory;
 		}
 
-		public IEnumerable<TestConfiguratorResult> Validate()
+		public new IEnumerable<TestConfiguratorResult> Validate()
 		{
-			return _configurators.SelectMany(x => x.Validate());
+			if (_consumerFactory == null)
+				yield return this.Failure("ConsumerFactory", "The consumer factory must be configured (using ConstructedBy)");
+
+			IEnumerable<TestConfiguratorResult> results = base.Validate().Concat(_configurators.SelectMany(x => x.Validate()));
+			foreach (TestConfiguratorResult result in results)
+			{
+				yield return result;
+			}
 		}
 
-		public ConsumerTest<TConsumer> Build()
+		public ConsumerTest<TScenario, TConsumer> Build()
 		{
-			BusTestScenario context = BuildBusTestScenario();
+			TScenario context = BuildTestScenario();
 
-			ConsumerTestBuilder<TConsumer> builder = _builderFactory(context);
+			ConsumerTestBuilder<TScenario, TConsumer> builder = _builderFactory(context);
 
 			builder.SetConsumerFactory(_consumerFactory);
 

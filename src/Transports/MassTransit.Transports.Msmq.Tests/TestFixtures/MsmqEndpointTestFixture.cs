@@ -13,8 +13,9 @@
 namespace MassTransit.Transports.Msmq.Tests.TestFixtures
 {
 	using System;
+	using BusConfigurators;
 	using MassTransit.Tests.TextFixtures;
-	using Services.Subscriptions;
+	using Subscriptions.Coordinator;
 
 	public class MsmqEndpointTestFixture :
 		EndpointTestFixture<MsmqTransportFactory>
@@ -22,8 +23,6 @@ namespace MassTransit.Transports.Msmq.Tests.TestFixtures
 		protected Uri LocalEndpointUri { get; set; }
 		protected Uri LocalErrorUri { get; set; }
 		protected Uri RemoteEndpointUri { get; set; }
-
-		ISubscriptionService SubscriptionService { get; set; }
 
 		protected IServiceBus LocalBus { get; set; }
 		protected IServiceBus RemoteBus { get; set; }
@@ -55,32 +54,36 @@ namespace MassTransit.Transports.Msmq.Tests.TestFixtures
 			LocalErrorEndpoint = EndpointCache.GetEndpoint(LocalErrorUri);
 			RemoteEndpoint = EndpointCache.GetEndpoint(RemoteEndpointUri);
 
-			SetupSubscriptionService();
+			LocalBus = ServiceBusFactory.New(ConfigureLocalBus);
 
-			LocalBus = ServiceBusFactory.New(x =>
-				{
-					ConnectSubscriptionService(x, SubscriptionService);
-					x.ReceiveFrom(LocalEndpointUri);
-				});
+			RemoteBus = ServiceBusFactory.New(ConfigureRemoteBus);
 
-			RemoteBus = ServiceBusFactory.New(x =>
-				{
-					ConnectSubscriptionService(x, SubscriptionService);
-					x.ReceiveFrom(RemoteEndpointUri);
-				});
+			_localLoopback.SetTargetCoordinator(_remoteLoopback.Router);
+			_remoteLoopback.SetTargetCoordinator(_localLoopback.Router);
 		}
 
-		protected void Purge(IEndpointAddress address)
+		SubscriptionLoopback _localLoopback;
+		SubscriptionLoopback _remoteLoopback;
+
+		protected virtual void ConfigureLocalBus(ServiceBusConfigurator configurator)
 		{
-			IEndpointManagement management = MsmqEndpointManagement.New(address.Uri);
-			management.Purge();
+			configurator.ReceiveFrom(LocalEndpointUri);
+			configurator.AddSubscriptionObserver((bus, coordinator) =>
+				{
+					_localLoopback = new SubscriptionLoopback(bus, coordinator);
+					return _localLoopback;
+				});
 		}
 
-		void SetupSubscriptionService()
+		protected virtual void ConfigureRemoteBus(ServiceBusConfigurator configurator)
 		{
-			SubscriptionService = new LocalSubscriptionService();
+			configurator.ReceiveFrom(RemoteEndpointUri);
+			configurator.AddSubscriptionObserver((bus, coordinator) =>
+				{
+					_remoteLoopback = new SubscriptionLoopback(bus, coordinator);
+					return _remoteLoopback;
+				});
 		}
-
 
 		protected IEndpoint LocalEndpoint { get; set; }
 		protected IEndpoint LocalErrorEndpoint { get; set; }

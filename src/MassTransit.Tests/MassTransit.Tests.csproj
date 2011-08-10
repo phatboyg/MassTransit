@@ -159,7 +159,6 @@
     <Compile Include="Examples\When_a_message_is_published_to_the_local_bus.cs" />
     <Compile Include="Examples\When_a_message_is_published_via_the_local_bus.cs" />
     <Compile Include="Examples\When_a_message_is_sent_to_the_bus_endpoint.cs" />
-    <Compile Include="Examples\When_a_ping_is_published.cs" />
     <Compile Include="Load\CommandInstance.cs" />
     <Compile Include="Distributor\Default_Specs.cs" />
     <Compile Include="Distributor\DistributorTestFixture.cs" />
@@ -183,14 +182,19 @@
     <Compile Include="Performance\EndpointLoadTest.cs" />
     <Compile Include="Performance\LoadedRequest.cs" />
     <Compile Include="Performance\LoadedResponse.cs" />
+    <Compile Include="PublishRequest_Specs.cs" />
     <Compile Include="Saga\StateMachine\CombineSaga.cs" />
     <Compile Include="Saga\StateMachine\CombineSaga_Specs.cs" />
     <Compile Include="Saga\Using_correlated_messages_to_start_sagas.cs" />
     <Compile Include="Services\Timeout\TimeoutService_Specs.cs" />
+    <Compile Include="Subscriptions\NewSubscriptionSystem_Specs.cs" />
+    <Compile Include="Subscriptions\TwoBus_Specs.cs" />
     <Compile Include="Testing\ConsumerMultiple_Specs.cs" />
     <Compile Include="Testing\ConsumerTest_Specs.cs" />
     <Compile Include="Testing\HandlerRespond_Specs.cs" />
     <Compile Include="Testing\HandlerTest_Specs.cs" />
+    <Compile Include="Testing\SagaTest_Specs.cs" />
+    <Compile Include="Testing\SagaStateMachineTest_Specs.cs" />
     <Compile Include="Uri_Specs.cs" />
     <None Include="app.config" />
     <None Include="Reactive\Samples\BasicExample.cs" />
@@ -310,8 +314,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="test.log4net.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Content Include="masstransit.tests.log4net.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>

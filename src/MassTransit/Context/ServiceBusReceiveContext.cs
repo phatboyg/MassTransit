@@ -51,19 +51,15 @@ namespace MassTransit.Context
 		{
 			try
 			{
-				if (_log.IsDebugEnabled)
-					_log.DebugFormat("Calling Receive on {0} from thread {1} ({2})", _bus.Endpoint.Address.Uri,
-						Thread.CurrentThread.ManagedThreadId, _receiveTimeout);
+				//if (_log.IsDebugEnabled)
+				//	_log.DebugFormat("Calling Receive on {0} from thread {1} ({2})", _bus.Endpoint.Address.Uri,
+				//		Thread.CurrentThread.ManagedThreadId, _receiveTimeout);
 
 				_startTime = SystemUtil.UtcNow;
 				_receiveTime.Start();
 
 				_bus.Endpoint.Receive(context =>
 					{
-						if (_log.IsDebugEnabled)
-							_log.DebugFormat("Enumerating pipeline on {0} from thread {1}", _bus.Endpoint.Address.Uri,
-								Thread.CurrentThread.ManagedThreadId);
-
 						context.SetBus(_bus);
 						
 						IEnumerable<Action<IConsumeContext>> enumerable = _bus.InboundPipeline.Enumerate(context);

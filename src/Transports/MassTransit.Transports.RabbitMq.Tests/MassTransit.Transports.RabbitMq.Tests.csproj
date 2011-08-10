@@ -93,6 +93,7 @@
     <Compile Include="Given_a_rabbitmq_bus.cs" />
     <Compile Include="Given_a_rabbitmq_bus_with_vhost_mt_and_credentials.cs" />
     <Compile Include="MessageName_Specs.cs" />
+    <Compile Include="RabbitMqSsl_Specs.cs" />
     <Compile Include="Testing\HandlerTest_Specs.cs" />
     <Compile Include="When_a_message_consumer_throws_an_exception.cs" />
     <Compile Include="When_a_message_is_published.cs" />
@@ -101,6 +102,7 @@
     <Compile Include="RabbitMqAddress_Specs.cs" />
     <Compile Include="When_a_message_is_published_to_as_custom_user.cs" />
     <Compile Include="When_a_message_is_published_to_a_subclass.cs" />
+    <Compile Include="When_a_request_is_made.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\MassTransit.TestFramework\MassTransit.TestFramework.csproj">
@@ -134,7 +136,12 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="test.log4net.xml">
+    <None Include="test.log4net.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="client.p12">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
