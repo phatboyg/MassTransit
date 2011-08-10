@@ -18,17 +18,18 @@ namespace MassTransit.Tests.Testing
 	[Scenario]
 	public class When_a_consumer_is_being_tested
 	{
-		ConsumerTest<Testsumer> _test;
+		ConsumerTest<BusTestScenario, Testsumer> _test;
 
 		[When]
 		public void A_consumer_is_being_tested()
 		{
 			_test = TestFactory.ForConsumer<Testsumer>()
+				.InSingleBusScenario()
 				.New(x =>
 					{
 						x.ConstructUsing(() => new Testsumer());
 
-						x.Send(new A(), c => c.SendResponseTo(_test.Scenario.Bus));
+						x.Send(new A(), (scenario, context) => context.SendResponseTo(scenario.Bus));
 					});
 
 			_test.Execute();
@@ -72,6 +73,75 @@ namespace MassTransit.Tests.Testing
 			public void Consume(A message)
 			{
 				this.MessageContext().Respond(new B());
+			}
+		}
+
+		class A
+		{
+		}
+
+		class B
+		{
+		}
+	}
+
+	[Scenario]
+	public class When_a_context_consumer_is_being_tested
+	{
+		ConsumerTest<BusTestScenario, Testsumer> _test;
+
+		[When]
+		public void A_consumer_is_being_tested()
+		{
+			_test = TestFactory.ForConsumer<Testsumer>()
+				.New(x =>
+					{
+						x.ConstructUsing(() => new Testsumer());
+
+						x.Send(new A(), (scenario, context) => context.SendResponseTo(scenario.Bus));
+					});
+
+			_test.Execute();
+		}
+
+		[Finally]
+		public void Teardown()
+		{
+			_test.Dispose();
+			_test = null;
+		}
+
+
+		[Then]
+		public void Should_send_the_initial_message_to_the_consumer()
+		{
+			_test.Sent.Any<A>().ShouldBeTrue();
+		}
+
+		[Then]
+		public void Should_have_sent_the_response_from_the_consumer()
+		{
+			_test.Sent.Any<B>().ShouldBeTrue();
+		}
+
+		[Then]
+		public void Should_receive_the_message_type_a()
+		{
+			_test.Received.Any<A>().ShouldBeTrue();
+		}
+
+		[Then]
+		public void Should_have_called_the_consumer_method()
+		{
+			_test.Consumer.Received.Any<A>().ShouldBeTrue();
+		}
+
+		class Testsumer :
+			Consumes<A>.Context
+		{
+			public void Consume(IConsumeContext<A> context)
+			{
+				context.Respond(new B());
 			}
 		}
 

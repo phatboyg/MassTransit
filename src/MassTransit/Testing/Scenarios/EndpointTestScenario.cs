@@ -12,17 +12,12 @@
 // specific language governing permissions and limitations under the License.
 namespace MassTransit.Testing.Scenarios
 {
-	using System;
 	using Transports;
 
 	public interface EndpointTestScenario :
-		IDisposable
+		TestScenario
 	{
 		IEndpointCache EndpointCache { get; }
 		IEndpointFactory EndpointFactory { get; }
-
-		ReceivedMessageList Received { get; }
-		SentMessageList Sent { get; }
-		ReceivedMessageList Skipped { get; }
 	}
 }

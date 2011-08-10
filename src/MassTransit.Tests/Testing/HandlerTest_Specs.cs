@@ -15,25 +15,6 @@ namespace MassTransit.Tests.Testing
 	using Magnum.TestFramework;
 	using MassTransit.Testing;
 
-//
-//	public class MySuperFlyContext :
-//		ContextFactory<BusTestContext>
-//	{
-//		BusTestContext CreateContext()
-//		{
-//		}
-//	}
-//
-//	public class MyHandlerScenario<T> :
-//		HandlerScenarioFactory
-//	{
-//		HandlerTest<T> CreateScenario<TContext>(TContext context)
-//			where TContext  : BusTestContext
-//		{
-//		}
-//	}
-//
-
 	[Scenario]
 	public class Using_the_handler_test_factory
 	{
@@ -42,14 +23,6 @@ namespace MassTransit.Tests.Testing
 		[When]
 		public void Setup()
 		{
-//			_test = TestFactory
-//				.UsingContext<LoopbackBusTestContext>()
-//				.ForHandler<A>()
-//				.New(x =>
-//					{
-//						x.Send(context => context.Bus, new A());
-//					});
-
 			_test = TestFactory.ForHandler<A>()
 				.New(x =>
 					{
@@ -95,6 +68,148 @@ namespace MassTransit.Tests.Testing
 		public void Should_have_sent_a_message_of_type_b()
 		{
 			_test.Sent.Any<B>().ShouldBeTrue();
+		}
+
+		[Then]
+		public void Should_support_a_simple_handler()
+		{
+			_test.Handler.Received.Any().ShouldBeTrue();
+		}
+
+		class A
+		{
+		}
+
+		class B
+		{
+		}
+	}
+
+	[Scenario]
+	public class Using_the_handler_on_a_remote_bus
+	{
+		HandlerTest<A> _test;
+
+		[When]
+		public void Setup()
+		{
+			_test = TestFactory.ForHandler<A>()
+				.InLocalRemoteBusScenario()
+				.New(x =>
+					{
+						x.Send(new A());
+						x.Send(new B());
+					});
+
+			_test.Execute();
+		}
+
+		[Finally]
+		public void Teardown()
+		{
+			_test.Dispose();
+			_test = null;
+		}
+
+		[Then]
+		public void Should_have_received_a_message_of_type_a()
+		{
+			_test.Received.Any<A>().ShouldBeTrue();
+		}
+
+		[Then]
+		public void Should_have_skipped_a_message_of_type_b()
+		{
+			_test.Skipped.Any<B>().ShouldBeTrue();
+		}
+
+		[Then]
+		public void Should_not_have_skipped_a_message_of_type_a()
+		{
+			_test.Skipped.Any<A>().ShouldBeFalse();
+		}
+
+		[Then]
+		public void Should_have_sent_a_message_of_type_a()
+		{
+			_test.Sent.Any<A>().ShouldBeTrue();
+		}
+
+		[Then]
+		public void Should_have_sent_a_message_of_type_b()
+		{
+			_test.Sent.Any<B>().ShouldBeTrue();
+		}
+
+		[Then]
+		public void Should_support_a_simple_handler()
+		{
+			_test.Handler.Received.Any().ShouldBeTrue();
+		}
+
+		class A
+		{
+		}
+
+		class B
+		{
+		}
+	}
+
+	[Scenario]
+	public class Publishing_to_a_handler_test
+	{
+		HandlerTest<A> _test;
+
+		[When]
+		public void Setup()
+		{
+			_test = TestFactory.ForHandler<A>()
+				.InLocalRemoteBusScenario()
+				.New(x =>
+					{
+						x.Publish(new A());
+						x.Publish(new B());
+					});
+
+			_test.Execute();
+		}
+
+		[Finally]
+		public void Teardown()
+		{
+			_test.Dispose();
+			_test = null;
+		}
+
+		[Then]
+		public void Should_have_received_a_message_of_type_a()
+		{
+			_test.Received.Any<A>().ShouldBeTrue();
+		}
+
+		[Then]
+		public void Should_have_published_a_message_of_type_b()
+		{
+			_test.Published.Any<B>().ShouldBeTrue();
+		}
+
+		[Then]
+		public void Should_not_have_skipped_a_message_of_type_a()
+		{
+			_test.Skipped.Any<A>().ShouldBeFalse();
+		}
+
+		[Then]
+		public void Should_have_sent_a_message_of_type_a()
+		{
+			_test.Sent.Any<A>().ShouldBeTrue();
+		}
+
+		[Then]
+		public void Should_not_have_sent_a_message_of_type_b()
+		{
+			_test.Sent.Any<B>().ShouldBeFalse();
 		}
 
 		[Then]

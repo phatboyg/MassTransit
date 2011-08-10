@@ -50,6 +50,7 @@ namespace MassTransit.SubscriptionConnectors
 			_connectors = Distributors()
 				.Concat(Workers())
 				.Concat(ConsumesCorrelated())
+				.Concat(ConsumesContext())
 				.Concat(ConsumesSelected())
 				.Concat(ConsumesAll())
 				.Distinct((x, y) => x.MessageType == y.MessageType)
@@ -68,6 +69,22 @@ namespace MassTransit.SubscriptionConnectors
 				.Aggregate<UnsubscribeAction, UnsubscribeAction>(() => true, (seed, x) => () => seed() && x());
 		}
 
+		IEnumerable<InstanceSubscriptionConnector> ConsumesContext()
+		{
+			return typeof(T).GetInterfaces()
+				.Where(x => x.IsGenericType)
+				.Where(x => x.GetGenericTypeDefinition() == typeof(Consumes<>.All))
+				.Select(x => new { InterfaceType = x, MessageType = x.GetGenericArguments()[0] })
+				.Where(x => x.MessageType.IsGenericType)
+				.Where(x => x.MessageType.GetGenericTypeDefinition() == typeof(IConsumeContext<>))
+				.Select(x => new { x.InterfaceType, MessageType = x.MessageType.GetGenericArguments()[0] })
+				.Where(x => x.MessageType.IsValueType == false)
+				.Select(x =>
+						FastActivator.Create(typeof(InstanceContextSubscriptionConnector<,>),
+							new[] { typeof(T), x.MessageType }))
+				.Cast<InstanceSubscriptionConnector>();
+		}
+
 		static IEnumerable<InstanceSubscriptionConnector> ConsumesAll()
 		{
 			return typeof (T).GetInterfaces()
@@ -75,6 +92,7 @@ namespace MassTransit.SubscriptionConnectors
 				.Where(x => x.GetGenericTypeDefinition() == typeof (Consumes<>.All))
 				.Select(x => new {InterfaceType = x, MessageType = x.GetGenericArguments()[0]})
 				.Where(x => x.MessageType.IsValueType == false)
+				.Where(x => !(x.MessageType.IsGenericType && x.MessageType.GetGenericTypeDefinition() == typeof(IConsumeContext<>)))
 				.Select(x => FastActivator.Create(typeof (InstanceSubscriptionConnector<,>), new[] {typeof (T), x.MessageType}))
 				.Cast<InstanceSubscriptionConnector>();
 		}
@@ -86,6 +104,7 @@ namespace MassTransit.SubscriptionConnectors
 				.Where(x => x.GetGenericTypeDefinition() == typeof (Consumes<>.Selected))
 				.Select(x => new {InterfaceType = x, MessageType = x.GetGenericArguments()[0]})
 				.Where(x => x.MessageType.IsValueType == false)
+				.Where(x => !(x.MessageType.IsGenericType && x.MessageType.GetGenericTypeDefinition() == typeof(IConsumeContext<>)))
 				.Select(
 					x => FastActivator.Create(typeof (SelectedInstanceSubscriptionConnector<,>), new[] {typeof (T), x.MessageType}))
 				.Cast<InstanceSubscriptionConnector>();
@@ -103,7 +122,8 @@ namespace MassTransit.SubscriptionConnectors
 						CorrelationType = x.GetGenericArguments()[1]
 					})
 				.Where(x => x.MessageType.IsValueType == false)
-				.Select(
+				.Where(x => !(x.MessageType.IsGenericType && x.MessageType.GetGenericTypeDefinition() == typeof(IConsumeContext<>)))
+	.Select(
 					x =>
 					typeof (CorrelatedInstanceSubscriptionConnector<,,>).MakeGenericType(typeof (T), x.MessageType, x.CorrelationType))
 				.Select(x => FastActivator.Create(x))
@@ -117,7 +137,8 @@ namespace MassTransit.SubscriptionConnectors
 				.Where(x => x.GetGenericTypeDefinition() == typeof (IDistributor<>))
 				.Select(x => new {InterfaceType = x, MessageType = x.GetGenericArguments()[0]})
 				.Where(x => x.MessageType.IsValueType == false)
-				.Select(x => FastActivator.Create(typeof (DistributorSubscriptionConnector<>), new[] {x.MessageType}))
+				.Where(x => !(x.MessageType.IsGenericType && x.MessageType.GetGenericTypeDefinition() == typeof(IConsumeContext<>)))
+				.Select(x => FastActivator.Create(typeof(DistributorSubscriptionConnector<>), new[] { x.MessageType }))
 				.Cast<InstanceSubscriptionConnector>();
 		}
 
@@ -128,6 +149,7 @@ namespace MassTransit.SubscriptionConnectors
 				.Where(x => x.GetGenericTypeDefinition() == typeof (IWorker<>))
 				.Select(x => new {InterfaceType = x, MessageType = x.GetGenericArguments()[0]})
 				.Where(x => x.MessageType.IsValueType == false)
+				.Where(x => !(x.MessageType.IsGenericType && x.MessageType.GetGenericTypeDefinition() == typeof(IConsumeContext<>)))
 				.Select(x => FastActivator.Create(typeof (WorkerSubscriptionConnector<>), new[] {x.MessageType}))
 				.Cast<InstanceSubscriptionConnector>();
 		}

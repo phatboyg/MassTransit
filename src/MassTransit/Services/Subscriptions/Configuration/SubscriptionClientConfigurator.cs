@@ -13,32 +13,11 @@
 namespace MassTransit.Services.Subscriptions.Configuration
 {
 	using System;
-	using BusServiceConfigurators;
-	using Client;
 
-	public class SubscriptionClientConfigurator :
-		BusServiceConfigurator
+	public interface SubscriptionClientConfigurator
 	{
-		Uri _subscriptionServiceUri;
+		void SetSubscriptionServiceEndpoint(Uri uri);
 
-		public Type ServiceType
-		{
-			get { return typeof (SubscriptionClient); }
-		}
-
-		public BusServiceLayer Layer
-		{
-			get { return BusServiceLayer.Session; }
-		}
-
-		public IBusService Create(IServiceBus bus)
-		{
-			return new SubscriptionClient(_subscriptionServiceUri);
-		}
-
-		public void SetSubscriptionServiceEndpoint(Uri uri)
-		{
-			_subscriptionServiceUri = uri;
-		}
+		void SetStartTimeout(TimeSpan timeout);
 	}
 }

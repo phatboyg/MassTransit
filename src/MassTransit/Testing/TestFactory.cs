@@ -13,21 +13,31 @@
 namespace MassTransit.Testing
 {
 	using Factories;
+	using Saga;
+	using ScenarioBuilders;
 
 	public static class TestFactory
 	{
-		public static HandlerTestFactory<TMessage> ForHandler<TMessage>()
+		public static HandlerTestFactory<BusTestScenario, TMessage> ForHandler<TMessage>()
 			where TMessage : class
 		{
-			var factory = new HandlerTestFactoryImpl<TMessage>();
+			var factory = new HandlerTestFactoryImpl<BusTestScenario, TMessage>(() => new LoopbackBusScenarioBuilder());
 
 			return factory;
 		}
 
-		public static ConsumerTestFactory<TConsumer> ForConsumer<TConsumer>()
+		public static ConsumerTestFactory<BusTestScenario, TConsumer> ForConsumer<TConsumer>()
 			where TConsumer : class
 		{
-			var factory = new ConsumerTestFactoryImpl<TConsumer>();
+			var factory = new ConsumerTestFactoryImpl<BusTestScenario, TConsumer>(() => new LoopbackBusScenarioBuilder());
+
+			return factory;
+		}
+
+		public static SagaTestFactory<BusTestScenario, TSaga> ForSaga<TSaga>()
+			where TSaga : class, ISaga
+		{
+			var factory = new SagaTestFactoryImpl<BusTestScenario, TSaga>(() => new LoopbackBusScenarioBuilder());
 
 			return factory;
 		}

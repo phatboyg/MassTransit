@@ -187,10 +187,14 @@
     <Compile Include="Saga\StateMachine\CombineSaga_Specs.cs" />
     <Compile Include="Saga\Using_correlated_messages_to_start_sagas.cs" />
     <Compile Include="Services\Timeout\TimeoutService_Specs.cs" />
+    <Compile Include="Subscriptions\NewSubscriptionSystem_Specs.cs" />
+    <Compile Include="Subscriptions\TwoBus_Specs.cs" />
     <Compile Include="Testing\ConsumerMultiple_Specs.cs" />
     <Compile Include="Testing\ConsumerTest_Specs.cs" />
     <Compile Include="Testing\HandlerRespond_Specs.cs" />
     <Compile Include="Testing\HandlerTest_Specs.cs" />
+    <Compile Include="Testing\SagaTest_Specs.cs" />
+    <Compile Include="Testing\SagaStateMachineTest_Specs.cs" />
     <Compile Include="Uri_Specs.cs" />
     <None Include="app.config" />
     <None Include="Reactive\Samples\BasicExample.cs" />
@@ -310,8 +314,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="test.log4net.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Content Include="masstransit.tests.log4net.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>

@@ -13,7 +13,10 @@
 namespace MassTransit.Transports.RabbitMq
 {
 	using System;
+	using System.Collections.Generic;
 	using System.Linq;
+	using Configuration.Builders;
+	using Configuration.Configurators;
 	using Exceptions;
 	using Magnum.Extensions;
 	using Magnum.Threading;
@@ -26,12 +29,21 @@ namespace MassTransit.Transports.RabbitMq
 	{
 		static readonly ILog _log = LogManager.GetLogger(typeof (RabbitMqTransportFactory));
 		readonly ReaderWriterLockedDictionary<Uri, ConnectionHandler<RabbitMqConnection>> _connectionCache;
+		readonly IDictionary<Uri, ConnectionFactoryBuilder> _connectionFactoryBuilders;
+
 
 		bool _disposed;
+
+		public RabbitMqTransportFactory(IDictionary<Uri, ConnectionFactoryBuilder> connectionFactoryBuilders)
+		{
+			_connectionCache = new ReaderWriterLockedDictionary<Uri, ConnectionHandler<RabbitMqConnection>>();
+			_connectionFactoryBuilders = connectionFactoryBuilders;
+		}
 
 		public RabbitMqTransportFactory()
 		{
 			_connectionCache = new ReaderWriterLockedDictionary<Uri, ConnectionHandler<RabbitMqConnection>>();
+			_connectionFactoryBuilders = new Dictionary<Uri, ConnectionFactoryBuilder>();
 		}
 
 		public void Dispose()
@@ -62,12 +74,7 @@ namespace MassTransit.Transports.RabbitMq
 
 			ConnectionHandler<RabbitMqConnection> connectionHandler = GetConnection(address);
 
-			if (settings.PurgeExistingMessages)
-			{
-				PurgeExistingMessages(connectionHandler, address);
-			}
-
-			return new InboundRabbitMqTransport(address, connectionHandler);
+			return new InboundRabbitMqTransport(address, connectionHandler, settings.PurgeExistingMessages);
 		}
 
 		public IOutboundTransport BuildOutbound(ITransportSettings settings)
@@ -78,7 +85,7 @@ namespace MassTransit.Transports.RabbitMq
 
 			ConnectionHandler<RabbitMqConnection> connectionHandler = GetConnection(address);
 
-			return new OutboundRabbitMqTransport(address, connectionHandler);
+			return new OutboundRabbitMqTransport(address, connectionHandler, false);
 		}
 
 		public IOutboundTransport BuildError(ITransportSettings settings)
@@ -89,9 +96,7 @@ namespace MassTransit.Transports.RabbitMq
 
 			ConnectionHandler<RabbitMqConnection> connection = GetConnection(address);
 
-			BindErrorExchangeToQueue(address, connection);
-
-			return new OutboundRabbitMqTransport(address, connection);
+			return new OutboundRabbitMqTransport(address, connection, true);
 		}
 
 		public int ConnectionCount()
@@ -117,7 +122,16 @@ namespace MassTransit.Transports.RabbitMq
 		{
 			return _connectionCache.Retrieve(address.Uri, () =>
 				{
-					var connection = new RabbitMqConnection(address);
+					ConnectionFactoryBuilder builder = _connectionFactoryBuilders.Retrieve(address.Uri, () =>
+						{
+							var configurator = new ConnectionFactoryConfiguratorImpl(address);
+
+							return configurator.CreateBuilder();
+						});
+
+					ConnectionFactory connectionFactory = builder.Build();
+
+					var connection = new RabbitMqConnection(connectionFactory);
 					var connectionHandler = new ConnectionHandlerImpl<RabbitMqConnection>(connection);
 					return connectionHandler;
 				});
@@ -127,35 +141,6 @@ namespace MassTransit.Transports.RabbitMq
 		{
 			Dispose(false);
 		}
-
-		static void PurgeExistingMessages(ConnectionHandler<RabbitMqConnection> connectionHandler,
-		                                  IRabbitMqEndpointAddress address)
-		{
-			connectionHandler.Use(connection =>
-				{
-					using (var management = new RabbitMqEndpointManagement(address, connection.Connection))
-					{
-						management.Purge(address.Name);
-					}
-				});
-		}
-
-
-		static void BindErrorExchangeToQueue(IRabbitMqEndpointAddress address,
-		                                     ConnectionHandler<RabbitMqConnection> connectionHandler)
-		{
-			// we need to go ahead and bind a durable queue for the error transport, since
-			// there is probably not a listener for it.
-
-			connectionHandler.Use(connection =>
-				{
-					using (var management = new RabbitMqEndpointManagement(address, connection.Connection))
-					{
-						management.BindQueue(address.Name, address.Name, ExchangeType.Fanout, "");
-					}
-				});
-		}
-
 
 		static void EnsureProtocolIsCorrect(Uri address)
 		{

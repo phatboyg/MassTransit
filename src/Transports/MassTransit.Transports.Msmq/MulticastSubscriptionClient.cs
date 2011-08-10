@@ -13,72 +13,86 @@
 namespace MassTransit.Transports.Msmq
 {
 	using System;
+	using System.Collections.Generic;
+	using System.Linq;
+	using Services.Subscriptions.Messages;
+	using Subscriptions.Coordinator;
+	using Subscriptions.Messages;
 	using log4net;
-	using Services.Subscriptions.Client;
 
 	public class MulticastSubscriptionClient :
-		IBusService
+		SubscriptionObserver,
+		Consumes<AddSubscriptionClient>.Context
 	{
 		static readonly ILog _log = LogManager.GetLogger(typeof (MulticastSubscriptionClient));
-		readonly string _networkKey;
-		readonly Uri _uri;
-		SubscriptionCoordinator _coordinator;
-		bool _disposed;
+		readonly string _network;
+		readonly Guid _peerId;
+		readonly Uri _peerUri;
+		readonly BusSubscriptionMessageProducer _producer;
+		readonly SubscriptionRouter _router;
 		IServiceBus _subscriptionBus;
+		UnsubscribeAction _unsubscribeAction;
 
-		public MulticastSubscriptionClient(IServiceBus subscriptionBus, Uri uri, string networkKey)
+		public MulticastSubscriptionClient(IServiceBus subscriptionBus, SubscriptionRouter router)
 		{
 			_subscriptionBus = subscriptionBus;
-			_uri = uri;
+			_router = router;
+			_network = router.Network;
+			_peerId = router.PeerId;
+			_peerUri = router.PeerUri;
 
-			_networkKey = networkKey;
-		}
-
-		public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		public void Start(IServiceBus bus)
-		{
 			if (_log.IsDebugEnabled)
-				_log.DebugFormat("Starting MulticastSubscriptionClient on {0}", _uri);
+				_log.DebugFormat("Starting MulticastSubscriptionService using {0}", subscriptionBus.Endpoint.Address);
 
-			_coordinator = new SubscriptionCoordinator(_subscriptionBus, _subscriptionBus.Endpoint, _networkKey, true);
-			_coordinator.Start(bus);
+			var consumerInstance = new SubscriptionMessageConsumer(_router, _network);
+
+			_unsubscribeAction = _subscriptionBus.SubscribeInstance(consumerInstance);
+
+			_producer = new BusSubscriptionMessageProducer(router, subscriptionBus.Endpoint);
 		}
 
-		public void Stop()
+		public void Consume(IConsumeContext<AddSubscriptionClient> context)
 		{
-			if (_coordinator != null)
+			// made a new friend, let's introduce ourselves, but may need to send
+			// an addclient first, which would loop forever, so how do we only send
+			// to people we just met? Observe a PeerAdded event? ;) OnPeerAdded/OnPeerRemoved
+
+			List<SubscriptionInformation> subscriptions = _router.LocalSubscriptions
+				.Select(x => new SubscriptionInformation(_peerId, x.SubscriptionId, x.MessageName, x.CorrelationId, x.EndpointUri))
+				.ToList();
+
+			var response = new SubscriptionRefresh(subscriptions);
+
+			IEndpoint clientEndpoint = _subscriptionBus.GetEndpoint(context.SourceAddress);
+
+			clientEndpoint.Send(response, x => x.SetSourceAddress(_peerUri));
+		}
+
+		public void OnSubscriptionAdded(SubscriptionAdded message)
+		{
+			_producer.OnSubscriptionAdded(message);
+		}
+
+		public void OnSubscriptionRemoved(SubscriptionRemoved message)
+		{
+			_producer.OnSubscriptionRemoved(message);
+		}
+
+		public void OnComplete()
+		{
+			if (_unsubscribeAction != null)
 			{
-				_coordinator.Stop();
-				_coordinator.Dispose();
-				_coordinator = null;
+				_unsubscribeAction();
+				_unsubscribeAction = null;
 			}
+
+			_producer.OnComplete();
 
 			if (_subscriptionBus != null)
 			{
 				_subscriptionBus.Dispose();
 				_subscriptionBus = null;
 			}
-		}
-
-		void Dispose(bool disposing)
-		{
-			if (_disposed) return;
-			if (disposing)
-			{
-				Stop();
-			}
-
-			_disposed = true;
-		}
-
-		~MulticastSubscriptionClient()
-		{
-			Dispose(false);
 		}
 	}
 }

@@ -18,41 +18,42 @@ namespace MassTransit.Testing.Builders
 	using Scenarios;
 	using TestActions;
 
-	public class HandlerTestBuilderImpl<TMessage> :
-		HandlerTestBuilder<TMessage>
+	public class HandlerTestBuilderImpl<TScenario, TMessage> :
+		HandlerTestBuilder<TScenario, TMessage>
 		where TMessage : class
+		where TScenario : TestScenario
 	{
-		readonly BusTestScenario _testContext;
-		IList<TestAction> _actions;
-		Action<IServiceBus, TMessage> _handler;
+		readonly TScenario _scenario;
+		readonly IList<TestAction<TScenario>> _actions;
+		Action<IConsumeContext<TMessage>, TMessage> _handler;
 
 
-		public HandlerTestBuilderImpl(BusTestScenario testContext)
+		public HandlerTestBuilderImpl(TScenario scenario)
 		{
-			_testContext = testContext;
+			_scenario = scenario;
 			_handler = DefaultHandler;
 
-			_actions = new List<TestAction>();
+			_actions = new List<TestAction<TScenario>>();
 		}
 
-		public HandlerTest<TMessage> Build()
+		public HandlerTest<TScenario, TMessage> Build()
 		{
-			var test = new HandlerTestInstance<TMessage>(_testContext, _actions, _handler);
+			var test = new HandlerTestInstance<TScenario, TMessage>(_scenario, _actions, _handler);
 
 			return test;
 		}
 
-		public void SetHandler(Action<IServiceBus, TMessage> handler)
+		public void SetHandler(Action<IConsumeContext<TMessage>, TMessage> handler)
 		{
 			_handler = handler;
 		}
 
-		public void AddTestAction(TestAction testAction)
+		public void AddTestAction(TestAction<TScenario> testAction)
 		{
 			_actions.Add(testAction);
 		}
 
-		static void DefaultHandler(IServiceBus bus, TMessage message)
+		static void DefaultHandler(IConsumeContext<TMessage> bus, TMessage message)
 		{
 		}
 	}
