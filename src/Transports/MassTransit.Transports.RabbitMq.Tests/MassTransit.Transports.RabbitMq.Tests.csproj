@@ -102,6 +102,7 @@
     <Compile Include="RabbitMqAddress_Specs.cs" />
     <Compile Include="When_a_message_is_published_to_as_custom_user.cs" />
     <Compile Include="When_a_message_is_published_to_a_subclass.cs" />
+    <Compile Include="When_a_request_is_made.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\MassTransit.TestFramework\MassTransit.TestFramework.csproj">

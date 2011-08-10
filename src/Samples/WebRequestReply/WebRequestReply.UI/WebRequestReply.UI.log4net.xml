@@ -16,7 +16,7 @@
 	<appender name="LogFileAppender"
 				type="log4net.Appender.RollingFileAppender" >
 		<param name="File"
-				 value="C:\\LogFiles\\WebRequestReplyUI.log" />
+				 value="logs/WebRequestReplyUI.log" />
 		<param name="AppendToFile"
 				 value="false" />
 		<rollingStyle value="Size" />

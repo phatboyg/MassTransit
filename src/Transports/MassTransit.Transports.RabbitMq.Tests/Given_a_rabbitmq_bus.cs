@@ -38,4 +38,14 @@ namespace MassTransit.Transports.RabbitMq.Tests
 			configurator.UseRabbitMqRouting();
 		}
 	}
+
+	[Scenario]
+	public class Given_two_rabbitmq_buses
+		: Given_a_rabbitmq_bus
+	{
+		protected Given_two_rabbitmq_buses()
+		{
+
+		}
+	}
 }
