@@ -23,6 +23,7 @@ namespace MassTransit.Transports.Stomp
                 bus => bus.AddService(BusServiceLayer.Network, new StompSubscriptionService()));
 
             configurator.AddBusConfigurator(busConfigurator);
+            configurator.UseJsonSerializer();
 
             return configurator.AddTransportFactory<StompTransportFactory>();
         }
