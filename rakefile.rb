@@ -11,7 +11,7 @@ require File.dirname(__FILE__) + "/build_support/ilmerge.rb"
 PRODUCT = 'MassTransit'
 CLR_TOOLS_VERSION = 'v4.0.30319'
 
-REVISION = 4
+REVISION = 5
 build_number_base = "2.0.0"
 asm_version = build_number_base + "." + REVISION.to_s
 tc_build_number = '0'
@@ -261,15 +261,12 @@ end
 task :tests => [:unit_tests]
 
 desc "Runs unit tests (integration tests?, acceptance-tests?) etc."
-task :unit_tests => [:compile] do
-	Dir.mkdir props[:artifacts] unless exists?(props[:artifacts])
+nunit :unit_tests => [:compile] do |nunit|
 
-	runner = NUnitRunner.new(File.join('lib', 'nunit', 'net-2.0',  "nunit-console#{(BUILD_PLATFORM.empty? ? '' : "-#{BUILD_PLATFORM}")}.exe"),
-		'tests',
-		TARGET_FRAMEWORK_VERSION,
-		['/nothread', '/nologo', '/labels', "\"/xml=#{File.join(props[:artifacts], 'nunit-test-results.xml')}\""])
+        nunit.command = File.join('lib', 'nunit', 'net-2.0',  "nunit-console#{(BUILD_PLATFORM.empty? ? '' : "-#{BUILD_PLATFORM}")}.exe")
+        nunit.options = "/framework=#{CLR_TOOLS_VERSION}", '/nothread', '/nologo', '/labels', "\"/xml=#{File.join(props[:artifacts], 'nunit-test-results.xml')}\""
 
-	runner.run ['MassTransit.Tests'].map{ |assem| "#{assem}.dll" }
+        nunit.assemblies = FileList["tests/MassTransit.Tests.dll"]
 end
 
 task :transport_tests => [:msmq_tests, :rabbitmq_tests]
@@ -342,7 +339,7 @@ task :all_nuspecs => [:mt_nuspec, :mtsm_nuspec, :mtaf_nuspec, :mtni_nuspec, :mtu
     nuspec.language = "en-US"
     nuspec.licenseUrl = "http://www.apache.org/licenses/LICENSE-2.0"
     nuspec.requireLicenseAcceptance = "true"
-    nuspec.dependency "Magnum", "2.0.0.0"
+    nuspec.dependency "Magnum", "2.0.0.1"
     nuspec.dependency "log4net", "1.2.10"
     nuspec.output_file = 'nuspecs/MassTransit.nuspec'
 
@@ -412,7 +409,7 @@ task :all_nuspecs => [:mt_nuspec, :mtsm_nuspec, :mtaf_nuspec, :mtni_nuspec, :mtu
     nuspec.dependency "log4net", "1.2.10"
     nuspec.dependency "NHibernate", "3.1.0"
     nuspec.dependency "FluentNHibernate", "1.2"
-    nuspec.dependency "Magnum", "2.0.0"
+    nuspec.dependency "Magnum", "2.0.0.1"
     nuspec.output_file = 'nuspecs/MassTransit.NHibernate.nuspec'
 
 	add_files props[:stage], "#{File.join('Persistence', 'NHibernate', 'MassTransit.NHibernateIntegration.{dll,pdb,xml}')}", nuspec

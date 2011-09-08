@@ -35,6 +35,12 @@ namespace MassTransit
 
 		void SetBus(IServiceBus bus);
 
+	    void SetRequestId(string value);
+
+	    void SetConversationId(string value);
+
+	    void SetCorrelationId(string value);
+
 		void SetSourceAddress(Uri uri);
 
 		void SetDestinationAddress(Uri uri);
@@ -50,6 +56,8 @@ namespace MassTransit
 		void SetExpirationTime(DateTime value);
 
 		void SetMessageType(string messageType);
+
+	    void SetHeader(string key, string value);
 
 		void SetBodyStream(Stream stream);
 

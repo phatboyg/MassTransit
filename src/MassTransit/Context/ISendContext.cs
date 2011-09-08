@@ -22,6 +22,12 @@ namespace MassTransit
 	{
 		void SetMessageType(string messageType);
 
+	    void SetRequestId(string value);
+
+	    void SetConversationId(string value);
+
+	    void SetCorrelationId(string value);
+
 		void SetSourceAddress(Uri uri);
 
 		void SetDestinationAddress(Uri uri);
@@ -41,6 +47,8 @@ namespace MassTransit
 		void SetBodyWriter(Action<Stream> bodyWriter);
 
 		void SetContentType(string value);
+
+	    void SetHeader(string key, string value);
 
 		/// <summary>
 		/// Sets the receive context that the send was created in for tracing

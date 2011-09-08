@@ -12,30 +12,30 @@
 // specific language governing permissions and limitations under the License.
 namespace MassTransit.Pipeline.Configuration
 {
-	using Context;
-	using Inspectors;
-	using Sinks;
-	using Util;
+    using Inspectors;
+    using Sinks;
+    using Util;
 
-	public class InboundCorrelatedMessageRouterConfiguratorScope<TMessage, TKey> :
-		PipelineInspectorBase<InboundCorrelatedMessageRouterConfiguratorScope<TMessage, TKey>>
-		where TMessage : class, CorrelatedBy<TKey>
-	{
-		public CorrelatedMessageRouter<IConsumeContext<TMessage>, TMessage, TKey> Router { get; private set; }
+    public class InboundCorrelatedMessageRouterConfiguratorScope<TMessage, TKey> :
+        PipelineInspectorBase<InboundCorrelatedMessageRouterConfiguratorScope<TMessage, TKey>>
+        where TMessage : class, CorrelatedBy<TKey>
+    {
+        public CorrelatedMessageRouter<IConsumeContext<TMessage>, TMessage, TKey> Router { get; private set; }
 
-		[UsedImplicitly]
-		public bool Inspect<T, TM, TK>(CorrelatedMessageRouter<T, TM, TK> router)
-			where T : class, IMessageContext<TM>
-			where TM : class, CorrelatedBy<TK>
-		{
-			if (typeof (T) == typeof (IConsumeContext<TMessage>) && typeof (TM) == typeof (TMessage) && typeof (TK) == typeof (TKey))
-			{
-				Router = router.TranslateTo<CorrelatedMessageRouter<IConsumeContext<TMessage>, TMessage, TKey>>();
+        [UsedImplicitly]
+        public bool Inspect<T, TM, TK>(CorrelatedMessageRouter<T, TM, TK> router)
+            where T : class, IMessageContext<TM>
+            where TM : class, CorrelatedBy<TK>
+        {
+            if (typeof (T) == typeof (IConsumeContext<TMessage>) && typeof (TM) == typeof (TMessage) &&
+                typeof (TK) == typeof (TKey))
+            {
+                Router = router.TranslateTo<CorrelatedMessageRouter<IConsumeContext<TMessage>, TMessage, TKey>>();
 
-				return false;
-			}
+                return false;
+            }
 
-			return true;
-		}
-	}
+            return true;
+        }
+    }
 }

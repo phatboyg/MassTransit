@@ -12,3 +12,6 @@ How MassTransit Works
     valueadd.rst
     saga.rst
     routing.rst
+    databus.rst
+    controlbus.rst
+    inheritance.rst
