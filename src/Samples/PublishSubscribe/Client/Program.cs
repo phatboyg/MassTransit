@@ -51,14 +51,19 @@ namespace Client
                     s.WhenStarted(o =>
                     {
                         container = new WindsorContainer();
-                        container.Install(
-                            new MassTransitInstaller(),
-                            new MassTransitInMemorySagaRepositoryInstaller(), 
-                            new MassTransitInMemorySubscriptionsInstaller()
-                            );
+                        
                         container.Register(Component.For<PasswordUpdater>());
 
-                        var bus = Bus.Instance();
+                        Bus.Initialize(sbc=>
+                        {
+                            sbc.ReceiveFrom("msmq://localhost/mt_client");
+                            sbc.UseSubscriptionService("msmq://localhost/mt_subscriptions");
+                            sbc.UseMsmq();
+                            sbc.VerifyMsDtcConfiguration();
+                            sbc.VerifyMsmqConfiguration();
+
+                        });
+                        var bus = Bus.Instance;
                         o.Start(bus);
                     });
                     s.WhenStopped(o => o.Stop());

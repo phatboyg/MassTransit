@@ -3,6 +3,7 @@ How MassTransit Works
 
 .. toctree::
 
+    keyideas.rst
     publishing.rst
     sending.rst
     request.rst
@@ -15,3 +16,4 @@ How MassTransit Works
     databus.rst
     controlbus.rst
     inheritance.rst
+    users.rst
