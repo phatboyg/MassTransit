@@ -18,6 +18,7 @@ namespace MassTransit.Serialization
 	using Magnum.Reflection;
 	using Newtonsoft.Json;
 	using Newtonsoft.Json.Linq;
+	using Newtonsoft.Json.Converters;
 
 	public class JsonMessageTypeConverter :
 		IMessageTypeConverter
@@ -32,6 +33,7 @@ namespace MassTransit.Serialization
 			_token = token;
 			_supportedTypes = supportedTypes;
 			_serializer = serializer;
+			_serializer.Converters.Add(new IsoDateTimeConverter());
 			_mapped = new Dictionary<Type, object>();
 		}
 
