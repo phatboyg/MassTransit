@@ -15,10 +15,9 @@ namespace MassTransit.Serialization.Custom
 	using System;
 	using System.Collections.Generic;
 	using System.Xml;
-	using Magnum.Monads;
 
 	public interface IObjectSerializer
 	{
-		IEnumerable<K<Action<XmlWriter>>> GetSerializationActions(ISerializerContext context, string localName, object value);
+		IEnumerable<Continuation<Action<XmlWriter>>> GetSerializationActions(ISerializerContext context, string localName, object value);
 	}
 }

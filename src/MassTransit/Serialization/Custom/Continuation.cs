@@ -10,23 +10,9 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
-namespace MassTransit.Testing.ScenarioBuilders
+namespace MassTransit.Serialization.Custom
 {
-	using System;
-	using BusConfigurators;
+    using System;
 
-	public class NewLoopbackBusScenarioBuilder :
-		BusScenarioBuilderImpl
-	{
-		string _network;
-		const string DefaultUri = "loopback://localhost/mt_client";
-
-		public NewLoopbackBusScenarioBuilder()
-			: base(new Uri(DefaultUri))
-		{
-			ConfigureBus(x =>
-				{
-				});
-		}
-	}
+    public delegate void Continuation<T>(Action<T> c);
 }

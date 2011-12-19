@@ -74,15 +74,81 @@ Windsor
 AutoFac
 '''''''
 
-Coming soon. Feel free to write it up.
+.. sourcecode:: csharp
 
-Unity
-'''''
+    public static void main(string[] args)
+    {
+        var builder = new ContainerBuilder();
 
-Coming soon. Feel free to write it up.
+        // register each consumer manually
+        builder.RegisterType<YourConsumer>().As<IConsumer>();
+
+        //or use Autofac's scanning capabilities -- SomeClass is any class in the correct assembly
+        builder.RegisterAssemblyTypes(typeof(SomeClass).Assembly).As<IConsumer>();
+
+        //now we add the bus
+        builder.Register(c => ServiceBusFactory.New(sbc =>
+        {
+            //other configuration options
+
+            //this will find all of the consumers in the container and
+            //register them with the bus.
+            sbc.LoadFrom(c);
+        })).As<IServiceBus>()
+            .SingleInstance();
+
+        var container = builder.Build();
+    }
+
+.. note::
+
+    We recommend that most of this type of code be placed in an Autofac Module
+
 
 Ninject
 '''''''
+
+.. sourcecode:: csharp
+
+    public static void main(string[] args) 
+    {
+        var kernel = new StandardKernel();
+        
+        // register each consumer manually
+        kernel.Bind<YourConsumer>().ToSelf();
+        
+        //Dru is currently unaware of any scanning capability
+        
+        var bus = ServiceBusFactory.New(sbc =>
+        {
+            //other configuration options
+            
+            //we have to explicitly configure the subscriptions because 
+            //the Ninject metadata model is not rich enough.
+            sbc.Subscribe(subs =>
+            {
+                subs.Consumer<YourConsumer>(kernel)
+            });
+        });
+        
+        //now we add the bus
+        kernel.Bind<IServiceBus>().To(bus);
+    }
+
+.. note::
+
+    We recommend that most of this type of code be placed in an Ninject Module
+
+.. warning::
+
+    The Ninject container doesn't currently support the workflow that we can use with
+    the other containers, and because of that the ``LoadFrom`` method that our other
+    container extensions use is not supported. We filed an issue with the Ninject
+    team, and the issue was closed with 'Not going to fix'. 
+    https://github.com/ninject/ninject/issues/35
+
+Unity
+'''''
 
 Coming soon. Feel free to write it up.
 
