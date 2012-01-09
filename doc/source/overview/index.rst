@@ -17,3 +17,9 @@ How MassTransit Works
     controlbus.rst
     inheritance.rst
     users.rst
+    serializers.rst
+    logging.rst
+    perfcounters.rst
+    standardservices.rst
+    runtimeservices.rst
+    videos.rst
