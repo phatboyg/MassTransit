@@ -32,7 +32,7 @@ desc "Cleans, compiles, il-merges, unit tests, prepares examples, packages zip a
 task :all =>     [:clean, :compile, :compile_samples, :ilmerge, :copy_services, :tests]
 
 desc "**Default**, compiles and runs tests"
-task :default => [:clean, :compile, :compile_samples, :ilmerge, :copy_services]
+task :default => [:clean, :compile, :compile_samples, :ilmerge, :copy_services, :nuget]
 
 desc "**DOOES NOT CLEAR OUTPUT FOLDER**, compiles and runs tests"
 task :unclean => [:compile, :ilmerge, :tests]
