@@ -10,25 +10,29 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
-namespace MassTransit.Testing.ScenarioBuilders
+namespace MassTransit.Transports.RabbitMq.Tests
 {
 	using System;
-	using BusConfigurators;
-	using SubscriptionConfigurators;
+	using Magnum.TestFramework;
+	using NUnit.Framework;
+	using RabbitMQ.Client;
 
-	public interface BusScenarioBuilder :
-		EndpointScenarioBuilder<BusTestScenario>
+	public class RabbitMqConnection_Specs
 	{
-		/// <summary>
-		/// Configure any bus-specific items as part of building the test scenario
-		/// </summary>
-		/// <param name="configureCallback"></param>
-		void ConfigureBus(Action<ServiceBusConfigurator> configureCallback);
+		RabbitMqConnection _conn = new RabbitMqConnection(
+			TestFactory.ConnectionFactory());
 
-		/// <summary>
-		/// Configure the subscriptions for a test using this scenario.
-		/// </summary>
-		/// <param name="configureCallback"></param>
-		void ConfigureSubscriptions(Action<SubscriptionBusServiceConfigurator> configureCallback);
+		[When]
+		public void Disposing_Managed()
+		{
+			_conn.Dispose();
+		}
+
+		[Then]
+		public void Second_Dispose_Throws_ObjectDisposedException()
+		{
+			Assert.Throws<ObjectDisposedException>(
+				() => _conn.Dispose());
+		}
 	}
 }

@@ -19,7 +19,7 @@ namespace MassTransit.Transports.RabbitMq.Tests.Assumptions
     using RabbitMQ.Client.Framing.v0_9_1;
 
     [Scenario]
-    public class Given_a_rabbitmq_server
+    public abstract class Given_a_rabbitmq_server
     {
         public IConnection Connection { get; set; }
         public IModel Model { get; private set; }
@@ -29,15 +29,7 @@ namespace MassTransit.Transports.RabbitMq.Tests.Assumptions
         [Given]
         public void A_rabbitmq_server()
         {
-            Factory = new ConnectionFactory
-                {
-                    UserName = "guest",
-                    Password = "guest",
-                    Port = 5672,
-                    VirtualHost = "/",
-                    HostName = "localhost",
-                    Protocol = Protocols.AMQP_0_9_1,
-                };
+        	Factory = TestFactory.ConnectionFactory();
 
             Connection = Factory.CreateConnection();
             Model = Connection.CreateModel();
