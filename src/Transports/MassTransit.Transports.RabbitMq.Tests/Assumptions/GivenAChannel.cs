@@ -15,6 +15,7 @@ namespace MassTransit.Transports.RabbitMq.Tests.Assumptions
 	using System;
 	using System.Diagnostics;
 	using Magnum.Extensions;
+	using Magnum.TestFramework;
 	using NUnit.Framework;
 	using RabbitMQ.Client;
 
@@ -23,23 +24,17 @@ namespace MassTransit.Transports.RabbitMq.Tests.Assumptions
 		protected readonly byte[] TheMessage = new byte[] {1, 2, 3};
 		IConnection _connection;
 
-		[SetUp]
+		[When]
 		public void BuildUpAConnection()
 		{
-			var cf = new ConnectionFactory();
-			cf.UserName = "guest";
-			cf.Password = "guest";
-			cf.Port = 5672;
-			cf.VirtualHost = "/";
-			cf.HostName = "localhost";
-
-			_connection = cf.CreateConnection();
+			_connection = TestFactory.ConnectionFactory().CreateConnection();
 		}
 
-		[TearDown]
+		[After]
 		public void TearDown()
 		{
 			_connection.Close();
+			_connection.Dispose();
 		}
 
 		public void WithStopWatch(string name, Action action)
@@ -62,9 +57,7 @@ namespace MassTransit.Transports.RabbitMq.Tests.Assumptions
 			finally
 			{
 				if (model != null)
-				{
 					model.Dispose();
-				}
 			}
 		}
 	}

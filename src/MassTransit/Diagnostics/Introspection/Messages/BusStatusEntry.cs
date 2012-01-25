@@ -10,14 +10,12 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
-namespace MassTransit.Diagnostics
+namespace MassTransit.Diagnostics.Introspection.Messages
 {
-	/// <summary>
-	/// Returns the trace history from the diagnostics service
-	/// </summary>
-	public class GetMessageTraceListImpl :
-		GetMessageTraceList
-	{
-		public int Count { get; set; }
-	}
+    public interface BusStatusEntry
+    {
+        string Context { get; }
+        string Key { get; }
+        string Value { get; }
+    }
 }

@@ -10,15 +10,29 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
-namespace MassTransit.Diagnostics
+namespace MassTransit.Transports.RabbitMq.Tests
 {
 	using System;
+	using Magnum.TestFramework;
+	using NUnit.Framework;
+	using RabbitMQ.Client;
 
-	public static class MessageTraceClientExtensions
+	public class RabbitMqConnection_Specs
 	{
-		public static void GetMessageTrace(this IServiceBus bus, IEndpoint endpoint, Action<ReceivedMessageTraceList> callback)
+		RabbitMqConnection _conn = new RabbitMqConnection(
+			TestFactory.ConnectionFactory());
+
+		[When]
+		public void Disposing_Managed()
 		{
-			new MessageTraceClient(bus, endpoint, 100, callback);
+			_conn.Dispose();
+		}
+
+		[Then]
+		public void Second_Dispose_Throws_ObjectDisposedException()
+		{
+			Assert.Throws<ObjectDisposedException>(
+				() => _conn.Dispose());
 		}
 	}
 }

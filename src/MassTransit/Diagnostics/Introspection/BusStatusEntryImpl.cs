@@ -10,13 +10,22 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
-namespace MassTransit.Diagnostics
+namespace MassTransit.Diagnostics.Introspection
 {
-	using System.Collections.Generic;
+    using Messages;
 
-	public class ReceivedMessageTraceListImpl :
-		ReceivedMessageTraceList
-	{
-		public IList<ReceivedMessageTraceDetail> Messages { get; set; }
-	}
+    public class BusStatusEntryImpl :
+        BusStatusEntry
+    {
+        public BusStatusEntryImpl(string context, string key, string value)
+        {
+            Context = context;
+            Key = key;
+            Value = value;
+        }
+
+        public string Context { get; private set; }
+        public string Key { get; private set; }
+        public string Value { get; private set; }
+    }
 }

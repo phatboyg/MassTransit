@@ -13,7 +13,6 @@
 namespace MassTransit
 {
 	using Magnum;
-	using SubscriptionBuilders;
 	using SubscriptionConfigurators;
 	using SubscriptionConnectors;
 	using Util;
@@ -61,7 +60,7 @@ namespace MassTransit
 		/// <param name="bus"></param>
 		/// <param name="instance"></param>
 		public static UnsubscribeAction SubscribeInstance<T>([NotNull] this IServiceBus bus, [NotNull] T instance)
-			where T : class
+			where T : class, IConsumer
 		{
 			Guard.AgainstNull(instance, "instance", "A null instance cannot be subscribed");
 

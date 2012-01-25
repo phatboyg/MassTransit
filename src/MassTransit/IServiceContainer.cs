@@ -13,9 +13,12 @@
 namespace MassTransit
 {
     using System;
+    using Diagnostics;
+    using Diagnostics.Introspection;
 
     public interface IServiceContainer :
-        IDisposable
+        IDisposable,
+        DiagnosticsSource
     {
         void AddService(BusServiceLayer layer, IBusService service);
 

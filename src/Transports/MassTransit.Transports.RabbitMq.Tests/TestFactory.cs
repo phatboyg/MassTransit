@@ -10,18 +10,23 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
-namespace MassTransit.Diagnostics
+namespace MassTransit.Transports.RabbitMq.Tests
 {
-	using System;
+	using RabbitMQ.Client;
 
-	public class ReceiverTraceDetailImpl :
-		ReceiverTraceDetail
+	public static class TestFactory
 	{
-		public string MessageType { get; set; }
-		public string ReceiverType { get; set; }
-		public DateTime StartTime { get; set; }
-		public TimeSpan Duration { get; set; }
-
-		public string CorrelationId { get; set; }
+		public static ConnectionFactory ConnectionFactory()
+		{
+			return new ConnectionFactory
+			{
+				UserName = "guest",
+				Password = "guest",
+				Port = 5672,
+				VirtualHost = "/",
+				HostName = "localhost",
+				Protocol = Protocols.AMQP_0_9_1,
+			};
+		}
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright 2007-2011 The Apache Software Foundation.
+// Copyright 2007-2011 Chris Patterson, Dru Sellers, Travis Smith, et. al.
 //  
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 // this file except in compliance with the License. You may obtain a copy of the 
@@ -12,115 +12,123 @@
 // specific language governing permissions and limitations under the License.
 namespace MassTransit.Services.HealthMonitoring
 {
-	using System;
-	using Magnum;
-	using Magnum.Extensions;
-	using Messages;
-	using Stact;
-	using Stact.Internal;
-	using log4net;
+    using System;
+    using Diagnostics.Introspection;
+    using Magnum;
+    using Magnum.Extensions;
+    using Messages;
+    using Stact;
+    using Stact.Internal;
+    using log4net;
 
-	public class HealthClient :
-		IBusService,
-		Consumes<PingEndpoint>.All
-	{
-		static readonly ILog _log = LogManager.GetLogger(typeof (HealthClient));
+    public class HealthClient :
+        IBusService,
+        Consumes<PingEndpoint>.All,
+        DiagnosticsSource
+    {
+        static readonly ILog _log = LogManager.GetLogger(typeof (HealthClient));
 
-		readonly int _heartbeatIntervalInMilliseconds;
-		readonly int _heartbeatIntervalInSeconds;
-		IServiceBus _bus;
-		Uri _controlUri;
-		Uri _dataUri;
-		volatile bool _disposed;
-		Fiber _fiber;
-		Scheduler _scheduler;
-		ScheduledOperation _unschedule;
-		UnsubscribeAction _unsubscribe;
+        readonly int _heartbeatIntervalInMilliseconds;
+        readonly int _heartbeatIntervalInSeconds;
+        IServiceBus _bus;
+        Uri _controlUri;
+        Uri _dataUri;
+        volatile bool _disposed;
+        Fiber _fiber;
+        Scheduler _scheduler;
+        ScheduledOperation _unschedule;
+        UnsubscribeAction _unsubscribe;
 
-		/// <summary>
-		///   Initializes a new instance of the <see cref="HealthClient" /> class with an interval time out of 3 seconds.
-		/// </summary>
-		public HealthClient()
-			: this(3)
-		{
-		}
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="HealthClient" /> class with an interval time out of 3 seconds.
+        /// </summary>
+        public HealthClient()
+            : this(3)
+        {
+        }
 
-		/// <summary>
-		///   Constructs a new HealthClient object
-		/// </summary>
-		/// <param name="intervalInSeconds"> The heartbeat interval in seconds </param>
-		public HealthClient(int intervalInSeconds)
-		{
-			_fiber = new PoolFiber();
-			_scheduler = new TimerScheduler(new PoolFiber());
+        /// <summary>
+        ///   Constructs a new HealthClient object
+        /// </summary>
+        /// <param name="intervalInSeconds"> The heartbeat interval in seconds </param>
+        public HealthClient(int intervalInSeconds)
+        {
+            _fiber = new PoolFiber();
+            _scheduler = new TimerScheduler(new PoolFiber());
 
-			_heartbeatIntervalInSeconds = intervalInSeconds;
-			_heartbeatIntervalInMilliseconds = (int) TimeSpan.FromSeconds(_heartbeatIntervalInSeconds).TotalMilliseconds;
+            _heartbeatIntervalInSeconds = intervalInSeconds;
+            _heartbeatIntervalInMilliseconds = (int) TimeSpan.FromSeconds(_heartbeatIntervalInSeconds).TotalMilliseconds;
 
-			SystemId = CombGuid.Generate();
-		}
+            SystemId = CombGuid.Generate();
+        }
 
-		public Guid SystemId { get; private set; }
+        public Guid SystemId { get; private set; }
 
-		public void Consume(PingEndpoint message)
-		{
-			var response = new PingEndpointResponse(SystemId, _controlUri, _dataUri, _heartbeatIntervalInSeconds);
+        public void Consume(PingEndpoint message)
+        {
+            var response = new PingEndpointResponse(SystemId, _controlUri, _dataUri, _heartbeatIntervalInSeconds);
 
-			_bus.ControlBus.Context().Respond(response);
-		}
+            _bus.ControlBus.Context().Respond(response);
+        }
 
-		public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
-		public void Start(IServiceBus bus)
-		{
-			_bus = bus;
+        public void Start(IServiceBus bus)
+        {
+            _bus = bus;
 
-			_controlUri = _bus.ControlBus.Endpoint.Address.Uri;
-			_dataUri = _bus.ControlBus.Endpoint.Address.Uri;
+            _controlUri = _bus.ControlBus.Endpoint.Address.Uri;
+            _dataUri = _bus.ControlBus.Endpoint.Address.Uri;
 
-			_unsubscribe = _bus.ControlBus.SubscribeInstance(this);
+            _unsubscribe = _bus.ControlBus.SubscribeInstance(this);
 
-			var message = new EndpointCameOnline(SystemId, _controlUri, _dataUri, _heartbeatIntervalInSeconds);
-			_bus.ControlBus.Publish(message);
+            var message = new EndpointCameOnline(SystemId, _controlUri, _dataUri, _heartbeatIntervalInSeconds);
+            _bus.ControlBus.Publish(message);
 
-			_unschedule = _scheduler.Schedule(_heartbeatIntervalInMilliseconds, _heartbeatIntervalInMilliseconds, _fiber,
-				PublishHeartbeat);
-		}
+            _unschedule = _scheduler.Schedule(_heartbeatIntervalInMilliseconds, _heartbeatIntervalInMilliseconds, _fiber,
+                PublishHeartbeat);
+        }
 
-		public void Stop()
-		{
-			_bus.ControlBus.Publish(new EndpointWentOffline(SystemId, _controlUri, _dataUri, _heartbeatIntervalInSeconds));
-			_unschedule.Cancel();
-			_unsubscribe();
-		}
+        public void Stop()
+        {
+            _bus.ControlBus.Publish(new EndpointWentOffline(SystemId, _controlUri, _dataUri, _heartbeatIntervalInSeconds));
+            _unschedule.Cancel();
+            _unsubscribe();
+        }
 
-		public virtual void Dispose(bool disposing)
-		{
-			if (!disposing || _disposed) return;
+        public void Inspect(DiagnosticsProbe probe)
+        {
+            probe.Add("health_client", "on");
+            probe.Add("health_client.interval", _heartbeatIntervalInSeconds);
+        }
 
-			_scheduler.Stop(60.Seconds());
-			_scheduler = null;
+        public virtual void Dispose(bool disposing)
+        {
+            if (!disposing || _disposed) return;
 
-			_fiber.Shutdown(60.Seconds());
-			_fiber = null;
+            _scheduler.Stop(60.Seconds());
+            _scheduler = null;
 
-			_disposed = true;
-		}
+            _fiber.Shutdown(60.Seconds());
+            _fiber = null;
 
-		public void PublishHeartbeat()
-		{
-			var message = new Heartbeat(SystemId, _controlUri, _dataUri, _heartbeatIntervalInSeconds);
-			_bus.ControlBus.Publish(message,
-				context => _log.Info("No routing entry found for the HeartBeat message. Are you sure the HealthMonitor is setup correctly?"));
-		}
+            _disposed = true;
+        }
 
-		~HealthClient()
-		{
-			Dispose(false);
-		}
-	}
+        public void PublishHeartbeat()
+        {
+            var message = new Heartbeat(SystemId, _controlUri, _dataUri, _heartbeatIntervalInSeconds);
+            _bus.ControlBus.Publish(message,
+                context => _log.Info("No routing entry found for the HeartBeat message. Are you sure the HealthMonitor is setup correctly?"));
+        }
+
+        ~HealthClient()
+        {
+            Dispose(false);
+        }
+    }
 }
