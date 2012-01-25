@@ -16,16 +16,18 @@ namespace MassTransit.Services.HealthMonitoring
     using Diagnostics.Introspection;
     using Magnum;
     using Magnum.Extensions;
-    using MassTransit.Diagnostics;
     using Messages;
     using Stact;
     using Stact.Internal;
+    using log4net;
 
     public class HealthClient :
         IBusService,
         Consumes<PingEndpoint>.All,
         DiagnosticsSource
     {
+        static readonly ILog _log = LogManager.GetLogger(typeof (HealthClient));
+
         readonly int _heartbeatIntervalInMilliseconds;
         readonly int _heartbeatIntervalInSeconds;
         IServiceBus _bus;
@@ -37,6 +39,9 @@ namespace MassTransit.Services.HealthMonitoring
         ScheduledOperation _unschedule;
         UnsubscribeAction _unsubscribe;
 
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="HealthClient" /> class with an interval time out of 3 seconds.
+        /// </summary>
         public HealthClient()
             : this(3)
         {
@@ -45,7 +50,7 @@ namespace MassTransit.Services.HealthMonitoring
         /// <summary>
         ///   Constructs a new HealthClient object
         /// </summary>
-        /// <param name = "intervalInSeconds">The heartbeat interval in seconds</param>
+        /// <param name="intervalInSeconds"> The heartbeat interval in seconds </param>
         public HealthClient(int intervalInSeconds)
         {
             _fiber = new PoolFiber();
@@ -63,7 +68,7 @@ namespace MassTransit.Services.HealthMonitoring
         {
             var response = new PingEndpointResponse(SystemId, _controlUri, _dataUri, _heartbeatIntervalInSeconds);
 
-            _bus.Context().Respond(response);
+            _bus.ControlBus.Context().Respond(response);
         }
 
         public void Dispose()
@@ -84,7 +89,8 @@ namespace MassTransit.Services.HealthMonitoring
             var message = new EndpointCameOnline(SystemId, _controlUri, _dataUri, _heartbeatIntervalInSeconds);
             _bus.ControlBus.Publish(message);
 
-            _unschedule = _scheduler.Schedule(_heartbeatIntervalInMilliseconds, _heartbeatIntervalInMilliseconds, _fiber, PublishHeartbeat);
+            _unschedule = _scheduler.Schedule(_heartbeatIntervalInMilliseconds, _heartbeatIntervalInMilliseconds, _fiber,
+                PublishHeartbeat);
         }
 
         public void Stop()
@@ -116,7 +122,8 @@ namespace MassTransit.Services.HealthMonitoring
         public void PublishHeartbeat()
         {
             var message = new Heartbeat(SystemId, _controlUri, _dataUri, _heartbeatIntervalInSeconds);
-            _bus.ControlBus.Publish(message);
+            _bus.ControlBus.Publish(message,
+                context => _log.Info("No routing entry found for the HeartBeat message. Are you sure the HealthMonitor is setup correctly?"));
         }
 
         ~HealthClient()
