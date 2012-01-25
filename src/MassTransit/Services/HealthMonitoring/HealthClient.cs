@@ -82,7 +82,7 @@ namespace MassTransit.Services.HealthMonitoring
             _bus = bus;
 
             _controlUri = _bus.ControlBus.Endpoint.Address.Uri;
-            _dataUri = _bus.ControlBus.Endpoint.Address.Uri;
+            _dataUri = _bus.Endpoint.Address.Uri;
 
             _unsubscribe = _bus.ControlBus.SubscribeInstance(this);
 
