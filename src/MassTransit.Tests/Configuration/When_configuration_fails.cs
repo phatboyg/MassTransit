@@ -67,6 +67,27 @@ namespace MassTransit.Tests.Configuration
 			}
 		}
 
+
+		[Test]
+		public void Should_validate_against_null()
+		{
+			try
+			{
+				using (ServiceBusFactory.New(x =>
+					{
+						x.ReceiveFrom("loopback://localhost/a");
+						x.UseBusBuilder(null);
+					}))
+				{
+				}
+
+				Assert.Fail("bus builder was set to null");
+			}
+			catch (ConfigurationException)
+			{
+			}
+		}
+
 		[Serializable]
 		public class MessageWithNonDefaultCtor
 		{
