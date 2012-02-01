@@ -26,6 +26,19 @@ Documentation is located at [http://docs.masstransit-project.com/](http://docs.m
  
  Download Nightly Binaries from [TeamCity](http://teamcity.codebetter.com/viewType.html?buildTypeId=bt8&tab=buildTypeStatusDiv).
 
+### Simplest possible thing:
+
+`install-package MassTransit.RabbitMq` then;
+
+```
+ServiceBusFactory.New(sbc =>
+{
+	sbc.UseRabbitMq();
+	sbc.UseRabbitMqRouting();
+	sbc.ReceiveFrom("rabbitmq://localhost/mybus");
+});
+```
+
 ### Mailing List
 
 [MassTransit Discuss](http://groups.google.com/group/masstransit-discuss)
@@ -35,8 +48,11 @@ Documentation is located at [http://docs.masstransit-project.com/](http://docs.m
 1. Clone the source down to your machine. 
   `git clone git://github.com/MassTransit/MassTransit.git`
 2. Ensure Ruby is installed. [RubyInstaller for Windows](http://rubyinstaller.org/)
-3. Ensure Albacore is installed.
-  `gem install albacore`
+3. Ensure Bundler is installed.
+  `gem install bundler`
+   
+    * Then do: `bundle install` which will install all dependencies.
+
 4. Run `build.bat`.
 
 ### Contributing 
@@ -44,11 +60,12 @@ Documentation is located at [http://docs.masstransit-project.com/](http://docs.m
 1. `git config --global core.autoclrf false`
 2. Shared ReSharper settings are under src/MassTransit.resharper.xml
 3. Make a pull request
-
+`bundle exec rake global_version` generates the global version if you prefer building with MsBuild/Visual Studio. 
+ 
  
 # REQUIREMENTS
-* .NET Framework 3.5 
-
+* .NET Framework 3.5
+* (Will also try to build for .Net 4.0)
 
 # CREDITS
 Logo Design by [The Agile Badger](http://www.theagilebadger.com)  
