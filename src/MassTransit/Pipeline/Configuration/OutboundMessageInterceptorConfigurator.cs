@@ -15,19 +15,37 @@ namespace MassTransit.Pipeline.Configuration
     using System;
     using Exceptions;
     using Sinks;
+    using Util;
 
+	/// <summary>
+	/// A configurator that takes in the constructor, the outbound pipeline (bus.OutboundPipeline),
+	/// and then allows consumers to call Create with their own message interceptor; this interceptor
+	/// is then inserted after the last outbound message sink.
+	/// </summary>
     public class OutboundMessageInterceptorConfigurator
     {
         readonly IPipelineSink<ISendContext> _sink;
 
-        public OutboundMessageInterceptorConfigurator(IPipelineSink<ISendContext> sink)
-        {
-            _sink = sink;
-        }
+		/// <summary>
+		/// Create a new configurator based on a pipeline sink that takes the send context,
+		/// i.e. the outbound pipeline.
+		/// </summary>
+		/// <param name="sink">The outbound pipeline/pipeline sinks taking send contexts.</param>
+        public OutboundMessageInterceptorConfigurator([NotNull] IPipelineSink<ISendContext> sink)
+		{
+			if (sink == null) throw new ArgumentNullException("sink");
+			_sink = sink;
+		}
 
-        public OutboundMessageInterceptor Create(IOutboundMessageInterceptor messageInterceptor)
+		/// <summary>
+		/// Create the new interceptor as well as thread it into the pipeline. The pipeline insertion is done with 
+		/// the <see cref="OutboundMessageInterceptor"/>.
+		/// </summary>
+		public OutboundMessageInterceptor Create([NotNull] IOutboundMessageInterceptor messageInterceptor)
         {
-            var scope = new OutboundMessageInterceptorConfiguratorScope();
+			if (messageInterceptor == null) throw new ArgumentNullException("messageInterceptor");
+
+			var scope = new OutboundMessageInterceptorConfiguratorScope();
             _sink.Inspect(scope);
 
             return ConfigureInterceptor(scope.InsertAfter, messageInterceptor);

@@ -12,7 +12,9 @@
 // specific language governing permissions and limitations under the License.
 namespace MassTransit
 {
-    /// <summary>
+	using Util;
+
+	/// <summary>
     /// Implementations can be added to the outbound message pipeline to intercept
     /// messages before they are delivered to any endpoints.
     /// </summary>
@@ -22,12 +24,12 @@ namespace MassTransit
         /// Called before the message is dispatched to the next handler in the pipeline
         /// </summary>
         /// <param name="context">The context of the message being dispatched</param>
-        void PreDispatch(ISendContext context);
+        void PreDispatch([NotNull] ISendContext context);
 
         /// <summary>
         /// Calls after the message has been dispatched through the pipeline
         /// </summary>
         /// <param name="context">The context of the message being dispatched</param>
-        void PostDispatch(ISendContext context);
+        void PostDispatch([NotNull] ISendContext context);
     }
 }
