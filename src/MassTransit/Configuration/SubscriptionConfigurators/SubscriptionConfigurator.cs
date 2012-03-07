@@ -21,8 +21,20 @@ namespace MassTransit.SubscriptionConfigurators
 	public interface SubscriptionConfigurator<out TInterface>
 		where TInterface : class
 	{
+		/// <summary>
+		/// Specifies that the subscription should be permanent; don't delete 
+		/// the subscription on unsubscription/bus shutdown.
+		/// </summary>
+		/// <returns>The same interface instance that was called.</returns>
 		TInterface Permanent();
+
+		/// <summary>
+		/// Specifies that the subscription should be transient; delete
+		/// the subscription on unsubscription/bus shutdown.
+		/// </summary>
+		/// <returns>The same interface that was called.</returns>
 		TInterface Transient();
+
 		TInterface SetReferenceFactory(Func<UnsubscribeAction, ISubscriptionReference> referenceFactory);
 	}
 }

@@ -19,7 +19,7 @@ namespace MassTransit
     using Transports.RabbitMq;
 
 	/// <summary>
-	/// Extensions for configuring RabbitMq.
+	/// Extensions for configuring a RabbitMq-based endpoint.
 	/// </summary>
 	public static class RabbitMqConfigurationExtensions
 	{
@@ -51,6 +51,11 @@ namespace MassTransit
 			configurator.UseRabbitMq();
 		}
 
+		/// <summary>
+		/// Gets the URI from the data in the connection factory.
+		/// </summary>
+		/// <param name="factory">Factory to scan for data.</param>
+		/// <returns>A URI corresponding to the endpoint of this factory.</returns>
         public static Uri GetUri(this ConnectionFactory factory)
         {
             return new UriBuilder("rabbitmq", factory.HostName, factory.Port, factory.VirtualHost)

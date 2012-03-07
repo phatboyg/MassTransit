@@ -14,21 +14,33 @@ namespace MassTransit.Pipeline.Sinks
 {
     using System;
     using System.Collections.Generic;
+    using Util;
 
-    public class OutboundMessageInterceptor :
+	public class OutboundMessageInterceptor :
         IPipelineSink<ISendContext>
     {
         readonly IOutboundMessageInterceptor _interceptor;
         readonly IPipelineSink<ISendContext> _output;
 
-        public OutboundMessageInterceptor(Func<IPipelineSink<ISendContext>, IPipelineSink<ISendContext>> insertAfter,
-                                          IOutboundMessageInterceptor interceptor)
+		/// <summary>
+		/// c'tor that also inserts the current instance as a sink in the pipeline.
+		/// </summary>
+		/// <param name="insertAfter"></param>
+		/// <param name="interceptor"></param>
+        public OutboundMessageInterceptor([NotNull] Func<IPipelineSink<ISendContext>, IPipelineSink<ISendContext>> insertAfter, 
+                                          [NotNull] IOutboundMessageInterceptor interceptor)
         {
-            _interceptor = interceptor;
+        	if (insertAfter == null) throw new ArgumentNullException("insertAfter");
+        	if (interceptor == null) throw new ArgumentNullException("interceptor");
+
+        	_interceptor = interceptor;
 
             _output = insertAfter(this);
         }
 
+		/// <summary>
+		/// <see cref="IPipelineSink{T}.Enumerate"/>.
+		/// </summary>
         public IEnumerable<Action<ISendContext>> Enumerate(ISendContext context)
         {
             _interceptor.PreDispatch(context);
