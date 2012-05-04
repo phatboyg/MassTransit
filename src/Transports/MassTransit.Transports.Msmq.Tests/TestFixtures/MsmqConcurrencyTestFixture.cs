@@ -15,7 +15,9 @@ namespace MassTransit.Transports.Msmq.Tests.TestFixtures
     using System.Data;
     using FluentNHibernate.Cfg;
     using FluentNHibernate.Cfg.Db;
+    using MassTransit.Tests.Saga.StateMachine;
     using NHibernate;
+    using NHibernate.Cache;
     using NHibernate.Cfg;
     using NHibernate.Tool.hbm2ddl;
     using NHibernateIntegration.Tests.Sagas;
@@ -30,14 +32,8 @@ namespace MassTransit.Transports.Msmq.Tests.TestFixtures
         protected override void EstablishContext()
         {
             SessionFactory = Fluently.Configure()
-                .Database(
-                    MsSqlConfiguration.MsSql2005
-                        .AdoNetBatchSize(100)
-                        .ConnectionString(s => s.Is("Server=(local);initial catalog=test;Trusted_Connection=yes"))
-                        .DefaultSchema("dbo")
-                        .ShowSql()
-                        .Raw(Environment.Isolation, IsolationLevel.RepeatableRead.ToString()))
-                .ProxyFactoryFactory("NHibernate.Bytecode.DefaultProxyFactoryFactory, NHibernate")
+                .Database(configureForSqlLite)
+                .ExposeConfiguration(configureCommonOptions)
                 .Mappings(m =>
                     {
                         m.FluentMappings.Add<ConcurrentSagaMap>();
@@ -47,6 +43,31 @@ namespace MassTransit.Transports.Msmq.Tests.TestFixtures
                 .BuildSessionFactory();
            
             base.EstablishContext();
+        }
+
+        static void configureCommonOptions(Configuration cfg)
+        {
+            var connectionString = "Data Source=:memory:";
+            cfg.SetProperty(Environment.ConnectionString, connectionString)
+                .SetProperty(Environment.UseSecondLevelCache, "true")
+                .SetProperty(Environment.UseQueryCache, "true")
+                .SetProperty(Environment.CacheProvider, typeof (HashtableCacheProvider).AssemblyQualifiedName)
+                .AddAssembly(typeof(RegisterUserStateMachine).Assembly)
+                .AddAssembly(typeof(SagaRepository_Specs).Assembly);
+        }
+        static IPersistenceConfigurer configureForSqlLite()
+        {
+            return SQLiteConfiguration
+                .Standard
+                .InMemory();
+        }
+
+        static IPersistenceConfigurer configureForSql2008()
+        {
+            return MsSqlConfiguration
+                .MsSql2008
+                .IsolationLevel(IsolationLevel.RepeatableRead)
+                .DefaultSchema("bus");
         }
 
         static void BuildSchema(Configuration config)
