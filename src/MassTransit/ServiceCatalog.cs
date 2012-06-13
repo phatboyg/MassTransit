@@ -12,7 +12,8 @@
 // specific language governing permissions and limitations under the License.
 namespace MassTransit
 {
-	using System.Collections.Generic;
+    using System;
+    using System.Collections.Generic;
 	using System.Diagnostics;
 	using System.Linq;
 	using Magnum.Extensions;
@@ -52,6 +53,22 @@ namespace MassTransit
 				serviceList.Add(service);
 			}
 		}
+
+        public IBusService Get(Type type)
+        {
+            return UnorderdedServices.First(x => type.IsInstanceOfType(x));
+        }
+
+        public bool TryGet(Type type, out IBusService result)
+        {
+            result = UnorderdedServices.FirstOrDefault(x => type.IsInstanceOfType(x));
+            return result != null;
+        }
+
+        IEnumerable<IBusService> UnorderdedServices
+        {
+            get { return _services.SelectMany(x => x.Value); }
+        }
 
         [UsedImplicitly]
         string DebuggerDisplay()

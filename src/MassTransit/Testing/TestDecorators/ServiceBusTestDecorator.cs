@@ -106,6 +106,16 @@ namespace MassTransit.Testing.TestDecorators
 		public UnsubscribeAction Configure(Func<IInboundPipelineConfigurator, UnsubscribeAction> configure)
 		{
 			return _bus.Configure(configure);
-		}
+        }
+
+        public IBusService GetService(Type type)
+        {
+            return _bus.GetService(type);
+        }
+
+        public bool TryGetService(Type type, out IBusService result)
+        {
+            return _bus.TryGetService(type, out result);
+        }
 	}
 }
