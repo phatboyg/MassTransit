@@ -82,6 +82,7 @@
     <Compile Include="Configuration\Configurators\ConnectionFactoryBuilderConfigurator.cs" />
     <Compile Include="Configuration\Configurators\ConnectionFactoryConfigurator.cs" />
     <Compile Include="Configuration\Configurators\ConnectionFactoryConfiguratorImpl.cs" />
+    <Compile Include="Configuration\Configurators\RequestedHeartbeatConnectionFactoryConfiguratorImpl.cs" />
     <Compile Include="Configuration\Configurators\SslConnectionFactoryConfigurator.cs" />
     <Compile Include="Configuration\Configurators\SslConnectionFactoryConfiguratorImpl.cs" />
     <Compile Include="Configuration\Configurators\RabbitMqTransportFactoryBuilderConfigurator.cs" />
