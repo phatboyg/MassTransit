@@ -29,7 +29,7 @@ namespace MassTransit.Serialization
 
         public JsonMessageTypeConverter(JsonSerializer serializer, JToken token, IEnumerable<string> supportedTypes)
         {
-            _token = token;
+            _token = token ?? new JObject();
             _supportedTypes = supportedTypes;
             _serializer = serializer;
             _mapped = new Dictionary<Type, object>();
@@ -67,20 +67,15 @@ namespace MassTransit.Serialization
 
             if (_supportedTypes.Any(typeUrn.Equals))
             {
-                object obj;
+                object obj = null;
                 if (typeof(T).IsInterface && typeof(T).IsAllowedMessageType())
                 {
                     Type proxyType = InterfaceImplementationBuilder.GetProxyFor(typeof(T));
-
-                    obj = FastActivator.Create(proxyType);
-
-                    UsingReader(jsonReader => _serializer.Populate(jsonReader, obj));
+                    UsingReader(jsonReader => { obj = _serializer.Deserialize(jsonReader, proxyType); });
                 }
                 else
                 {
-                    obj = FastActivator<T>.Create();
-
-                    UsingReader(jsonReader => _serializer.Populate(jsonReader, obj));
+                    UsingReader(jsonReader => { obj = _serializer.Deserialize(jsonReader, typeof(T)); });
                 }
 
                 _mapped[typeof(T)] = obj;
@@ -97,9 +92,6 @@ namespace MassTransit.Serialization
 
         void UsingReader(Action<JsonReader> callback)
         {
-            if (_token == null)
-                return;
-
             using (var jsonReader = new JTokenReader(_token))
             {
                 callback(jsonReader);

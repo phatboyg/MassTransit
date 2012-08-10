@@ -16,14 +16,21 @@ namespace MassTransit
 	using BusConfigurators;
 	using EndpointConfigurators;
 	using Magnum.Reflection;
+	using Newtonsoft.Json;
 	using Serialization;
 
 	public static class SerializerConfigurationExtensions
 	{
-		public static T UseJsonSerializer<T>(this T configurator)
+		public static T UseJsonSerializer<T>(this T configurator, 
+			Action<JsonSerializerSettings> serializerConfigurator = null,
+			Action<JsonSerializerSettings> deserializerConfigurator = null)
 			where T : EndpointFactoryConfigurator
 		{
 			configurator.SetDefaultSerializer<JsonMessageSerializer>();
+			if (serializerConfigurator != null)
+				serializerConfigurator(JsonMessageSerializer.SerializerSettings);
+			if (deserializerConfigurator != null)
+				deserializerConfigurator(JsonMessageSerializer.DeserializerSettings);
 
 			return configurator;
 		}
