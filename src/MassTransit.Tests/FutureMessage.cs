@@ -37,6 +37,7 @@ namespace MassTransit.Tests
 			Trace.WriteLine("Message Received After " + _elapsed.Elapsed);
 
 			Message = message;
+
 			_received.Set();
 		}
 

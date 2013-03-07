@@ -227,7 +227,8 @@ namespace MassTransit.Context
         {
             if (faultAddress != null)
             {
-                bus.GetEndpoint(faultAddress).Send(message, context =>
+                var endpoint = bus.GetEndpoint(faultAddress);
+                endpoint.Send(message, context =>
                     {
                         context.SetSourceAddress(bus.Endpoint.Address.Uri);
                         context.SetRequestId(requestId);

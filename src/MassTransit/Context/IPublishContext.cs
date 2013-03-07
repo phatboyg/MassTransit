@@ -37,7 +37,11 @@ namespace MassTransit
         void ForEachSubscriber(Action<IEndpointAddress> callback);
     }
 
-    public interface IPublishContext<T> :
+#if NET40
+    public interface IPublishContext<out T> :
+#else
+	public interface IPublishContext<T> :
+#endif
         ISendContext<T>,
         IPublishContext
         where T : class

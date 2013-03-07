@@ -21,7 +21,11 @@ namespace MassTransit
     /// calling <see cref="GenerateFault"/>.)
     /// </summary>
     /// <typeparam name="T">Incoming message type.</typeparam>
+#if NET40
+    public interface IConsumeContext<out T> :
+#else
     public interface IConsumeContext<T> :
+#endif
         IConsumeContext,
         IMessageContext<T>
         where T : class

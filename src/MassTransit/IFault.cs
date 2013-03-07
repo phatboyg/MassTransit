@@ -38,4 +38,15 @@ namespace MassTransit
         /// </summary>
         List<string> StackTrace { get; set; }
     }
+
+#if NET40
+    public interface IFault<out TMessage>
+#else
+    public interface IFault<TMessage>
+#endif
+ : IFault
+        where TMessage : class
+    {
+        TMessage FailedMessage { get; }
+    }
 }

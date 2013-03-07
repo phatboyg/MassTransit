@@ -78,6 +78,7 @@
     <Reference Include="Stact" Condition="'$(TargetFrameworkVersion)' == 'v4.0'">
       <HintPath>..\..\lib\Stact\net-4.0\Stact.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CSharp" Condition="'$(TargetFrameworkVersion)' == 'v4.0'" />
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core">
@@ -107,6 +108,7 @@
     <Compile Include="Configuration\Builders\ServiceBusBuilder.cs" />
     <Compile Include="Configuration\Advanced\AdvancedBusConfiguratorExtensions.cs" />
     <Compile Include="Configuration\InterceptorExtensions.cs" />
+    <Compile Include="DynamicRequestResponseExtensions.cs" />
     <Compile Include="IFault.cs" />
     <Compile Include="NewId\INewIdFormatter.cs" />
     <Compile Include="NewId\INewIdParser.cs" />
