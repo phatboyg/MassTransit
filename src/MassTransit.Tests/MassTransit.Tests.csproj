@@ -101,6 +101,7 @@
     <Reference Include="System.Reactive" Condition="'$(TargetFrameworkVersion)' == 'v4.0'">
       <HintPath>..\..\lib\Rx\Net4\System.Reactive.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CSharp" Condition="'$(TargetFrameworkVersion)' == 'v4.0'"/>
     <Reference Include="System.Data" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Windows.Forms" />

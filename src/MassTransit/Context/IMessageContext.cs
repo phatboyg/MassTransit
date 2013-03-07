@@ -15,7 +15,11 @@ namespace MassTransit
     using System;
 
 
-    public interface IMessageContext<T> :
+#if NET40
+    public interface IMessageContext<out T> :
+#else
+	public interface IMessageContext<T> :
+#endif
         IMessageContext
         where T : class
     {

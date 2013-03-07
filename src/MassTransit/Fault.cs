@@ -23,7 +23,7 @@ namespace MassTransit
     /// <typeparam name="TMessage">The type of message that threw the exception</typeparam>
     [Serializable]
     public class Fault<TMessage> :
-        IFault
+        IFault<TMessage>
         where TMessage : class
     {
         /// <summary>

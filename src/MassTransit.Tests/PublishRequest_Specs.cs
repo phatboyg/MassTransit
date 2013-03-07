@@ -171,6 +171,41 @@ namespace MassTransit.Tests
             pongReceived.IsAvailable(timeout).ShouldBeTrue("The pong was not received");
         }
 
+#if NET40
+        [Test]
+        public void Should_support_dynamic_send_as_well()
+        {
+            var pongReceived = new FutureMessage<PongMessage>();
+            var pingReceived = new FutureMessage<PingMessage>();
+
+            RemoteBus.SubscribeContextHandler<PingMessage>(x =>
+            {
+                pingReceived.Set(x.Message);
+                x.Respond(new PongMessage { TransactionId = x.Message.TransactionId });
+            });
+            LocalBus.ShouldHaveSubscriptionFor<PingMessage>();
+
+            var ping = new PingMessage();
+
+            TimeSpan timeout = 8.Seconds();
+
+            RemoteBus.Endpoint.SendRequest(ping.GetType(), ping, LocalBus, x =>
+            {
+                x.Handle<PongMessage>(message =>
+                {
+                    message.TransactionId.ShouldEqual(ping.TransactionId,
+                        "The response correlationId did not match");
+                    pongReceived.Set(message);
+                });
+
+                x.SetTimeout(timeout);
+            });
+
+            pingReceived.IsAvailable(timeout).ShouldBeTrue("The ping was not received");
+            pongReceived.IsAvailable(timeout).ShouldBeTrue("The pong was not received");
+        }
+#endif
+
         [Test, Category("NotOnTeamCity")]
         public void Should_support_the_asynchronous_programming_model()
         {
@@ -210,6 +245,48 @@ namespace MassTransit.Tests
 
             Assert.IsTrue(result, "EndRequest should be true");
         }
+
+#if NET40
+        [Test, Category("NotOnTeamCity")]
+        public void Should_support_the_dynamic_asynchronous_programming_model()
+        {
+            var pongReceived = new FutureMessage<PongMessage>();
+            var pingReceived = new FutureMessage<PingMessage>();
+            var callbackCalled = new FutureMessage<IAsyncResult>();
+
+            RemoteBus.SubscribeContextHandler<PingMessage>(x =>
+            {
+                pingReceived.Set(x.Message);
+                x.Respond(new PongMessage { TransactionId = x.Message.TransactionId });
+            });
+            LocalBus.ShouldHaveSubscriptionFor<PingMessage>();
+
+            var ping = new PingMessage();
+
+            TimeSpan timeout = 18.Seconds();
+
+            LocalBus.BeginPublishRequest(ping.GetType(), ping, callbackCalled.Set, null, x =>
+            {
+                x.Handle<PongMessage>(message =>
+                {
+                    message.TransactionId.ShouldEqual(ping.TransactionId,
+                        "The response correlationId did not match");
+                    pongReceived.Set(message);
+                });
+
+                x.SetTimeout(timeout);
+            });
+
+            pingReceived.IsAvailable(timeout).ShouldBeTrue("The ping was not received");
+            pongReceived.IsAvailable(timeout).ShouldBeTrue("The pong was not received");
+
+            callbackCalled.IsAvailable(timeout).ShouldBeTrue("The callback was not called");
+
+            bool result = LocalBus.EndPublishRequest<PingMessage>(callbackCalled.Message);
+
+            Assert.IsTrue(result, "EndRequest should be true");
+        }
+#endif
 
         [Test]
         public void Should_throw_a_handler_exception_on_the_calling_thread()
@@ -254,7 +331,7 @@ namespace MassTransit.Tests
         public void Should_throw_an_exception_if_a_fault_was_published()
         {
             var pongReceived = new FutureMessage<PongMessage>();
-            var faultReceived = new FutureMessage<Fault<PingMessage>>();
+            var faultReceived = new FutureMessage<IFault<PingMessage>>();
             var pingReceived = new FutureMessage<PingMessage>();
 
             RemoteBus.SubscribeContextHandler<PingMessage>(x =>
@@ -272,7 +349,13 @@ namespace MassTransit.Tests
             LocalBus.PublishRequest(ping, x =>
                 {
                     x.Handle<PongMessage>(pongReceived.Set);
-                    x.HandleFault(faultReceived.Set);
+                    x.HandleFault(fault =>
+                        {
+                            var failedMessage = fault.FailedMessage;
+                            var exception = fault.Messages;
+
+                            faultReceived.Set(fault);
+                        });
 
                     x.SetTimeout(timeout);
                 });
@@ -416,6 +499,42 @@ namespace MassTransit.Tests
             pingReceived.IsAvailable(timeout).ShouldBeTrue("The ping was not received");
             pongReceived.IsAvailable(timeout).ShouldBeTrue("The pong was not received");
         }
+
+#if NET40
+        [Test]
+        public void Should_use_dynamic_messages()
+        {
+            var pongReceived = new FutureMessage<PongMessage>();
+            var pingReceived = new FutureMessage<PingMessage>();
+
+            RemoteBus.SubscribeContextHandler<PingMessage>(x =>
+            {
+                pingReceived.Set(x.Message);
+                x.Respond(new PongMessage { TransactionId = x.Message.TransactionId });
+            });
+            LocalBus.ShouldHaveSubscriptionFor<PingMessage>();
+
+            var ping = new PingMessage();
+
+            TimeSpan timeout = 8.Seconds();
+
+            LocalBus.PublishRequest(ping.GetType(), ping, x =>
+            {
+                x.Handle<PongMessage>(message =>
+                {
+                    message.TransactionId.ShouldEqual(ping.TransactionId,
+                        "The response correlationId did not match");
+                    pongReceived.Set(message);
+                });
+
+                x.SetTimeout(timeout);
+            });
+
+            pingReceived.IsAvailable(timeout).ShouldBeTrue("The ping was not received");
+            pongReceived.IsAvailable(timeout).ShouldBeTrue("The pong was not received");
+        }
+
+#endif
 
         class PingMessage
         {

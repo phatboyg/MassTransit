@@ -15,7 +15,11 @@ namespace MassTransit.RequestResponse.Configurators
     using System;
     using System.Threading;
 
-    public interface InlineRequestConfigurator<TRequest> :
+#if NET40
+    public interface InlineRequestConfigurator<out TRequest> :
+#else
+    public interface InlineRequestConfigurator<TRequest> : 
+#endif
         RequestConfigurator<TRequest>
         where TRequest : class
     {
@@ -55,12 +59,12 @@ namespace MassTransit.RequestResponse.Configurators
         /// Specifies a handler for a fault published by the request handler
         /// </summary>
         /// <param name="faultCallback"></param>
-        void HandleFault(Action<Fault<TRequest>> faultCallback);
+        void HandleFault(Action<IFault<TRequest>> faultCallback);
 
         /// <summary>
         /// Specifies a handler for a fault published by the request handler
         /// </summary>
         /// <param name="faultCallback"></param>
-        void HandleFault(Action<IConsumeContext<Fault<TRequest>>, Fault<TRequest>> faultCallback);
+        void HandleFault(Action<IConsumeContext<IFault<TRequest>>, IFault<TRequest>> faultCallback);
     }
 }
