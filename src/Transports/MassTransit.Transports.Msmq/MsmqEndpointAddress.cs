@@ -38,7 +38,7 @@ namespace MassTransit.Transports.Msmq
 
 			IsTransactional = CheckForTransactionalHint(uri, defaultTransactional);
 
-	        IsRecoverable = CheckForRecoverableHint(uri, defaultRecoverable);
+	        IsRecoverable = IsTransactional && CheckForRecoverableHint(uri, defaultRecoverable);
 
 			MulticastAddress = uri.GetMulticastAddress();
 			if(MulticastAddress != null)
