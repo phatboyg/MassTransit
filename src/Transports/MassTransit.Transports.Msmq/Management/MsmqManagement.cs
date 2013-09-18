@@ -85,6 +85,10 @@ namespace MassTransit.Transports.Msmq.Management
 
 				case WindowsVersion.Windows7:
                 case WindowsVersion.Windows8:
+                case WindowsVersion.Windows81:
+                case WindowsVersion.Windows2012:
+                case WindowsVersion.Windows2012R2:
+                case WindowsVersion.Unknown:         //This is probably a newer version of Windows and the last method might work
 					installer = new Windows7Installer();
 					break;
 
@@ -119,12 +123,7 @@ namespace MassTransit.Transports.Msmq.Management
 			                	.OfType<ManagementObject>()
 			                	.Select(x => x.GetPropertyValue("Caption") as string))
 			                	.FirstOrDefault() ?? "";
-
-			if (osName.Contains("Windows 7"))
-				return WindowsVersion.Windows7;
-
-            if (osName.Contains("Microsoft Windows 8"))
-                return WindowsVersion.Windows8;
+		    var isServer = osName.Contains("Server");
 
 			if (osInfo.Platform == PlatformID.Win32Windows)
 				return WindowsVersion.TooOldToCare;
@@ -138,22 +137,32 @@ namespace MassTransit.Transports.Msmq.Management
 			switch (version.Major)
 			{
 				case 5:
-					if (version.Minor == 0)
-						return WindowsVersion.Windows2000;
-					if (version.Minor == 1)
-						return WindowsVersion.WindowsXp;
-					return WindowsVersion.Windows2003;
-
+			        switch (version.Minor)
+			        {
+                        case 0:
+			                return WindowsVersion.Windows2000;
+                        case 1:
+			                return WindowsVersion.WindowsXp;
+                        case 2:
+			                return WindowsVersion.Windows2003;
+			        }
+                    break;
 				case 6:
-                    if (version.Minor == 0)
-                    {
-                        return WindowsVersion.WindowsVista;
+			        switch (version.Minor)
+			        {
+                        case 0:
+                            return isServer ? WindowsVersion.Windows2008 : WindowsVersion.WindowsVista;
+                        case 1:
+                            return isServer ? WindowsVersion.Windows2008R2 : WindowsVersion.Windows7;
+                        case 2:
+                            return isServer ? WindowsVersion.Windows2012 : WindowsVersion.Windows8;
+                        case 3:
+                            return isServer ? WindowsVersion.Windows2012R2 : WindowsVersion.Windows81;
                     }
-					return WindowsVersion.Windows2008R2;
-
-				default:
-					return WindowsVersion.Unknown;
+			        break;
 			}
+
+			return WindowsVersion.Unknown;
 		}
 
 		static IEnumerable<string> GetInstalledComponents()
