@@ -12,8 +12,12 @@
 // specific language governing permissions and limitations under the License.
 namespace MassTransit.Tests.Testing
 {
+	using System;
+	using System.IO;
 	using Magnum.TestFramework;
+	using MassTransit.Serialization;
 	using MassTransit.Testing;
+	using MassTransit.Testing.ScenarioConfigurators;
 
 	[Scenario]
 	public class When_a_consumer_is_being_tested
@@ -143,6 +147,81 @@ namespace MassTransit.Tests.Testing
 			{
 				context.Respond(new B());
 			}
+		}
+
+		class A
+		{
+		}
+
+		class B
+		{
+		}
+	}
+
+	[Scenario]
+	public class When_configuring_builders
+	{
+		ConsumerTest<BusTestScenario, Testsumer> _test;
+
+		[When]
+		public void Giving_a_specific_configuration_builder_impl()
+		{
+			_test = TestFactory.ForConsumer<Testsumer>()
+				.New(x =>
+				{
+					x.AddConfigurator(new BusTestScenarioBuilderConfiguratorImpl(sbc =>
+						sbc.SetDefaultSerializer<AngrySerializer>()));
+
+					x.ConstructUsing(() => new Testsumer());
+
+					x.Send(new A(), (scenario, context) => context.SendResponseTo(scenario.Bus));
+				});
+
+			_test.Execute();
+		}
+
+		public class AngrySerializer
+			: IMessageSerializer
+		{
+			public string ContentType { get; private set; }
+
+			public void Serialize<T>(Stream stream, ISendContext<T> context) where T : class
+			{
+				throw new Exception("MERGHH!!! YOU shall not serialize today!");
+			}
+
+			public void Deserialize(IReceiveContext context)
+			{
+				throw new Exception("EERGG!!! YOU shall not deserialize today!");
+			}
+		}
+
+		[Finally]
+		public void Teardown()
+		{
+			_test.Dispose();
+			_test = null;
+		}
+
+		class Testsumer :
+			Consumes<A>.Context
+		{
+			public void Consume(IConsumeContext<A> context)
+			{
+				context.Respond(new B());
+			}
+		}
+
+		[Then]
+		public void Should_not_send_the_initial_message_to_the_consumer()
+		{
+			_test.Sent.Any<A>().ShouldBeFalse("because A was never correctly serialized to the transport");
+		}
+
+		[Then]
+		public void Should_not_have_sent_the_response_from_the_consumer()
+		{
+			_test.Sent.Any<B>().ShouldBeFalse("because A was never correctly deserialized");
 		}
 
 		class A
