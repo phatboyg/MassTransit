@@ -18,6 +18,7 @@ StructureMap
         var container = new Container(cfg =>
         {
             // register each consumer
+            cfg.ForConcreteType<YourConsumer>();
             
             //or use StructureMap's excellent scanning capabilities
         });
@@ -49,7 +50,7 @@ Windsor
         var container = new WindsorContainer();
         
         // register each consumer manually
-        container.Register(Component.For<IConsumer>().ImplementedBy<YourConsumer>);
+        container.Register(Component.For<YourConsumer>().LifestyleTransient());
         
         //or use Windsor's excellent scanning capabilities
         container.Register(AllTypes.FromThisAssembly().BasedOn<IConsumer>());
@@ -71,6 +72,37 @@ Windsor
 
     We recommend that most of this type of code be placed in an IWindsorInstaller
 
+A POCO handler approach and IWindsorInstaller wrapped could be like the following:
+
+.. sourcecode:: csharp
+
+    public class MassTransitInstaller : IWindsorInstaller
+    {
+        public void Install(IWindsorContainer container, Castle.MicroKernel.SubSystems.Configuration.IConfigurationStore store)
+        {
+            var consumerConfig = container.Resolve<ConsumersConfiguration>(); // for configurations, like queue's address used below
+
+            var busBatchClose = ServiceBusFactory.New(sbc =>
+                {
+                    sbc.UseMsmq();
+                    sbc.UseMulticastSubscriptionClient();
+                    sbc.ReceiveFrom(consumerConfig.BatchCloseQueue);
+                    sbc.EnableMessageScope();
+                    sbc.Subscribe(x => x.Handler<CloseBatchMessage>(msg =>
+                        {
+                            var handler = container.Resolve<IBatchCloseHandler>();
+                            handler.CloseBatch(msg);
+                            container.Release(handler);
+                        }));
+                }
+            );
+
+            container.Register(Component.For<IServiceBus>().Instance(busBatchClose).Named("BatchCloseQueueBus"));
+
+            container.Release(consumerConfig); // irrelevant for this sample, but we need to release what we resolve.
+        }
+    }
+
 AutoFac
 '''''''
 
@@ -81,7 +113,7 @@ AutoFac
         var builder = new ContainerBuilder();
 
         // register each consumer manually
-        builder.RegisterType<YourConsumer>().As<IConsumer>();
+        builder.RegisterType<YourConsumer>().AsSelf();
 
         //or use Autofac's scanning capabilities -- SomeClass is any class in the correct assembly
         builder.RegisterAssemblyTypes(typeof(SomeClass).Assembly)
@@ -152,8 +184,53 @@ Ninject
 Unity
 '''''
 
-Coming soon. Feel free to write it up.
+.. sourcecode:: csharp
 
+	public static void main(string[] args) 
+    {
+		var container = new UnityContainer(); 
+		
+		// Lookup the types.
+		// You can scan for all types that implement the .All-interface of the Consumes-class.
+		var types = new TypeFinder().FindTypesWhichImplement(typeof(Consumes<>.All));
+		foreach (var type in types)
+		{
+			var interfaceType = type.GetInterfaces().FirstOrDefault(a=> a == typeof(Consumes<>.All));
+			container.RegisterType(interfaceType, type, new ContainerControlledLifetimeManager());
+		}
+		
+		// or you can register your types directly.
+		container.RegisterType<<Consumes<MessageType>.All, Type>(new ContainerControlledLifetimeManager());
+		// ...
+
+		// Register the ServiceBus.
+		container.RegisterInstance<IServiceBus>(ServiceBusFactory.New(sbc =>
+		{
+			sbc.UseRabbitMq(c =>
+			{
+				// Add configation options if required.
+				// Default JSON serialization is set by MassTransit.  
+			});
+			// Configure exchanges.
+			sbc.ReceiveFrom(receiveQueue);
+			sbc.Subscribe(s => s.LoadFrom(container));
+
+			sbc.SetConcurrentConsumerLimit(concurrentConsumers);
+			sbc.SetDefaultRetryLimit(retryLimit);
+
+			// When using MSMQ as Transport you can choose to verify the DTC configuration.
+			// if (verifyDTCConfiguration)
+			// 		sbc.VerifyMsDtcConfiguration();
+
+			// Configure logging.
+			if (enableLogging)
+				sbc.UseLog4Net();
+			
+			// No performance counters.
+			sbc.DisablePerformanceCounters();
+		}));
+	}
+	
 Hey! Where's my container??
 '''''''''''''''''''''''''''
 

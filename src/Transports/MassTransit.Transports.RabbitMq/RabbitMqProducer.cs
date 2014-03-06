@@ -15,10 +15,12 @@ namespace MassTransit.Transports.RabbitMq
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Logging;
 #if NET40
     using System.Threading.Tasks;
-    using Magnum.Caching;
 #endif
+    using Magnum.Caching;
+    using Magnum.Extensions;
     using RabbitMQ.Client;
     using RabbitMQ.Client.Events;
 
@@ -29,11 +31,10 @@ namespace MassTransit.Transports.RabbitMq
 #if NET40
         readonly Cache<ulong, TaskCompletionSource<bool>> _confirms;
 #endif
+        static readonly ILog _log = Logger.Get<RabbitMqProducer>();
         readonly IRabbitMqEndpointAddress _address;
         readonly bool _bindToQueue;
-        readonly object _channelLock = new object();
-        readonly HashSet<ExchangeBinding> _exchangeBindings;
-        readonly HashSet<string> _exchanges;
+        readonly object _lock = new object();
         IModel _channel;
         bool _immediate;
         bool _mandatory;
@@ -42,8 +43,6 @@ namespace MassTransit.Transports.RabbitMq
         {
             _address = address;
             _bindToQueue = bindToQueue;
-            _exchangeBindings = new HashSet<ExchangeBinding>();
-            _exchanges = new HashSet<string>();
 #if NET40
             _confirms = new ConcurrentCache<ulong, TaskCompletionSource<bool>>();
 #endif
@@ -51,16 +50,14 @@ namespace MassTransit.Transports.RabbitMq
 
         public void Bind(RabbitMqConnection connection)
         {
-            lock (_channelLock)
+            lock (_lock)
             {
                 IModel channel = null;
                 try
                 {
                     channel = connection.Connection.CreateModel();
 
-                    DeclareAndBindQueue(channel);
-
-                    RebindExchanges(channel);
+                    DeclareAndBindQueue(connection, channel);
 
                     BindEvents(channel);
 
@@ -68,20 +65,21 @@ namespace MassTransit.Transports.RabbitMq
                 }
                 catch (Exception ex)
                 {
-                    if (channel != null)
-                    {
-                        try
-                        {
-                            channel.Close(500, ex.Message);
-                        }
-                        catch
-                        {
-                        }
-                        channel.Dispose();
-                    }
+                    channel.Cleanup(500, ex.Message);
 
                     throw new InvalidConnectionException(_address.Uri, "Invalid connection to host", ex);
                 }
+            }
+        }
+
+        void DeclareAndBindQueue(RabbitMqConnection connection, IModel channel)
+        {
+            if (_bindToQueue)
+            {
+                connection.DeclareExchange(channel, _address.Name, _address.Durable, _address.AutoDelete);
+
+                connection.BindQueue(channel, _address.Name, _address.Durable, _address.Exclusive, _address.AutoDelete,
+                    _address.QueueArguments());
             }
         }
 
@@ -97,24 +95,43 @@ namespace MassTransit.Transports.RabbitMq
 
         public void Unbind(RabbitMqConnection connection)
         {
-            lock (_channelLock)
+            lock (_lock)
             {
                 try
                 {
                     if (_channel != null)
                     {
-                        UnbindEvents(_channel);
+#if NET40
+                        WaitForPendingConfirms();
+#endif
 
-                        if (_channel.IsOpen)
-                            _channel.Close(200, "producer unbind");
-                        _channel.Dispose();
-                        _channel = null;
+                        UnbindEvents(_channel);
+                        _channel.Cleanup(200, "Producer Unbind");
                     }
                 }
                 finally
                 {
+                    if (_channel != null)
+                        _channel.Dispose();
+                    _channel = null;
+
                     FailPendingConfirms();
                 }
+            }
+        }
+
+        void WaitForPendingConfirms()
+        {
+            try
+            {
+                bool timedOut;
+                _channel.WaitForConfirms(60.Seconds(), out timedOut);
+                if (timedOut)
+                    _log.WarnFormat("Timeout waiting for all pending confirms on {0}", _address.Uri);
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Waiting for pending confirms threw an exception", ex);
             }
         }
 
@@ -132,64 +149,23 @@ namespace MassTransit.Transports.RabbitMq
 #if NET40
             try
             {
-                var exception = new InvalidOperationException("Publish not confirmed before channel closed");
+                var exception = new MessageNotConfirmedException(_address.Uri,
+                    "Publish not confirmed before channel closed");
 
                 _confirms.Each((id, task) => task.TrySetException(exception));
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _log.Error("Exception while failing pending confirms", ex);
             }
 
             _confirms.Clear();
 #endif
         }
 
-        public void ExchangeDeclare(string name)
-        {
-            lock (_exchangeBindings)
-                _exchanges.Add(name);
-        }
-
-        public void ExchangeBind(string destination, string source)
-        {
-            var binding = new ExchangeBinding(destination, source);
-
-            lock (_exchangeBindings)
-                _exchangeBindings.Add(binding);
-        }
-
-        void DeclareAndBindQueue(IModel channel)
-        {
-            channel.ExchangeDeclare(_address.Name, ExchangeType.Fanout, true);
-
-            if (_bindToQueue)
-            {
-                string queue = channel.QueueDeclare(_address.Name, true, false, false, _address.QueueArguments());
-
-                channel.QueueBind(queue, _address.Name, "");
-            }
-        }
-
-        void RebindExchanges(IModel channel)
-        {
-            lock (_exchangeBindings)
-            {
-                IEnumerable<string> exchanges = _exchangeBindings.Select(x => x.Destination)
-                                                                 .Concat(_exchangeBindings.Select(x => x.Source))
-                                                                 .Concat(_exchanges)
-                                                                 .Distinct();
-
-                foreach (string exchange in exchanges)
-                    channel.ExchangeDeclare(exchange, ExchangeType.Fanout, true, false, null);
-
-                foreach (ExchangeBinding exchange in _exchangeBindings)
-                    channel.ExchangeBind(exchange.Destination, exchange.Source, "");
-            }
-        }
-
         public IBasicProperties CreateProperties()
         {
-            lock (_channelLock)
+            lock (_lock)
             {
                 if (_channel == null)
                     throw new InvalidConnectionException(_address.Uri, "Channel should not be null");
@@ -200,7 +176,7 @@ namespace MassTransit.Transports.RabbitMq
 
         public void Publish(string exchangeName, IBasicProperties properties, byte[] body)
         {
-            lock (_channelLock)
+            lock (_lock)
             {
                 if (_channel == null)
                     throw new InvalidConnectionException(_address.Uri, "No connection to RabbitMQ Host");
@@ -212,7 +188,7 @@ namespace MassTransit.Transports.RabbitMq
 #if NET40
         public Task PublishAsync(string exchangeName, IBasicProperties properties, byte[] body)
         {
-            lock (_channelLock)
+            lock (_lock)
             {
                 if (_channel == null)
                     throw new InvalidConnectionException(_address.Uri, "No connection to RabbitMQ Host");
@@ -239,6 +215,14 @@ namespace MassTransit.Transports.RabbitMq
 
         void HandleModelShutdown(IModel model, ShutdownEventArgs reason)
         {
+            try
+            {
+                FailPendingConfirms();
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Fail pending confirms failed during model shutdown", ex);
+            }
         }
 
         void HandleFlowControl(IModel sender, FlowControlEventArgs args)

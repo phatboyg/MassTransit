@@ -23,6 +23,9 @@ namespace MassTransit.Transports.Msmq.Management
 		Windows2008,
 		Windows7,
 		Windows2008R2,
-        Windows8
+        Windows8,
+        Windows81,
+        Windows2012,
+        Windows2012R2
 	}
 }

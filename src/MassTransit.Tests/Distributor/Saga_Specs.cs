@@ -1,12 +1,14 @@
 ﻿namespace MassTransit.Tests.Distributor
 {
     using System;
+    using System.Diagnostics;
     using System.Linq;
     using System.Linq.Expressions;
     using BusConfigurators;
     using Magnum.Extensions;
     using Magnum.TestFramework;
     using MassTransit.Distributor.Messages;
+    using MassTransit.Pipeline.Inspectors;
     using MassTransit.Saga;
     using MassTransit.Testing;
     using NUnit.Framework;
@@ -135,11 +137,12 @@
         }
     }
 
-    [TestFixture]
+    [TestFixture, Explicit]
     public class Using_a_distributor_and_worker_saga :
         LoopbackLocalAndRemoteTestFixture
     {
         InMemorySagaRepository<MySaga> _sagaRepository;
+        TimeSpan _testTimeout = Debugger.IsAttached ? 5.Minutes() : 30.Seconds();
 
         [Test]
         public void Should_deliver_a_published_message()
@@ -148,9 +151,9 @@
             Publish<C>();
             Publish<B>();
 
-            MySaga.FutureA.IsAvailable(8.Seconds()).ShouldBeTrue("Missing regular consumer");
-            MySaga.FutureC.IsAvailable(8.Seconds()).ShouldBeTrue("Missing context consumer");
-            MySaga.FutureB.IsAvailable(8.Seconds()).ShouldBeTrue("Missing selective consumer");
+            MySaga.FutureA.IsAvailable(_testTimeout).ShouldBeTrue("Missing regular consumer");
+            MySaga.FutureC.IsAvailable(_testTimeout).ShouldBeTrue("Missing context consumer");
+            MySaga.FutureB.IsAvailable(_testTimeout).ShouldBeTrue("Missing selective consumer");
         }
 
         void Publish<T>()

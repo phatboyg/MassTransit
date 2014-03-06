@@ -12,74 +12,80 @@
 // specific language governing permissions and limitations under the License.
 namespace MassTransit.Transports.RabbitMq
 {
+    using System;
     using System.Collections.Generic;
-    using System.Linq;
     using RabbitMQ.Client;
+
 
     public class RabbitMqPublisher :
         ConnectionBinding<RabbitMqConnection>
     {
+        readonly IRabbitMqEndpointAddress _address;
+        readonly object _bindings = new object();
         readonly HashSet<ExchangeBinding> _exchangeBindings;
-        readonly HashSet<string> _exchanges;
+        readonly IDictionary<string,bool> _exchanges;
+        readonly object _lock = new object();
         IModel _channel;
 
-        public RabbitMqPublisher()
+        public RabbitMqPublisher(IRabbitMqEndpointAddress address)
         {
+            _address = address;
             _exchangeBindings = new HashSet<ExchangeBinding>();
-            _exchanges = new HashSet<string>();
+            _exchanges = new Dictionary<string, bool>();
         }
 
         public void Bind(RabbitMqConnection connection)
         {
-            _channel = connection.Connection.CreateModel();
+            lock (_lock)
+            {
+                _channel = connection.Connection.CreateModel();
 
-            RebindExchanges(_channel);
+                RebindExchanges(_channel);
+            }
         }
 
         public void Unbind(RabbitMqConnection connection)
         {
-            if (_channel != null)
+            lock (_lock)
             {
-                if (_channel.IsOpen)
-                    _channel.Close(200, "publisher unbind");
-                _channel.Dispose();
+                _channel.Cleanup(200, "Publisher Unbind");
                 _channel = null;
             }
         }
 
-        public void ExchangeDeclare(string name)
+        public void ExchangeDeclare(string name, bool temporary)
         {
-            lock (_exchangeBindings)
-                _exchanges.Add(name);
+            lock (_bindings)
+            {
+                if (_exchanges.ContainsKey(name))
+                    return;
 
-            try
-            {
+                _exchanges[name] = temporary;
+            }
+
+            lock (_lock)
                 if (_channel != null)
-                    _channel.ExchangeDeclare(name, ExchangeType.Fanout, true, false, null);
-            }
-            catch
-            {
-            }
+                    DeclareExchange(name, temporary);
         }
 
-        public void ExchangeBind(string destination, string source)
+        public void ExchangeBind(string destination, string source, bool destinationTemporary = false, bool sourceTemporary = false)
         {
             var binding = new ExchangeBinding(destination, source);
 
-            lock (_exchangeBindings)
-                _exchangeBindings.Add(binding);
+            lock (_bindings)
+                if (!_exchangeBindings.Add(binding))
+                    return;
 
-            try
+            lock(_lock)
             {
                 if (_channel != null)
                 {
-                    _channel.ExchangeDeclare(source, ExchangeType.Fanout, true, false, null);
-                    _channel.ExchangeDeclare(destination, ExchangeType.Fanout, true, false, null);
+                    ExchangeDeclare(destination, destinationTemporary);
+                    ExchangeDeclare(source, sourceTemporary);
+
                     _channel.ExchangeBind(destination, source, "");
                 }
-            }
-            catch
-            {
+                    
             }
         }
 
@@ -87,14 +93,15 @@ namespace MassTransit.Transports.RabbitMq
         {
             var binding = new ExchangeBinding(destination, source);
 
-            lock (_exchangeBindings)
+            lock (_bindings)
                 _exchangeBindings.Remove(binding);
 
             try
             {
-                if (_channel != null)
+                lock (_lock)
                 {
-                    _channel.ExchangeUnbind(destination, source, "");
+                    if (_channel != null)
+                        _channel.ExchangeUnbind(destination, source, "");
                 }
             }
             catch
@@ -102,24 +109,39 @@ namespace MassTransit.Transports.RabbitMq
             }
         }
 
+        void DeclareExchange(string name, bool temporary)
+        {
+            if (string.Compare(name, _address.Name, StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                _channel.ExchangeDeclare(_address.Name, ExchangeType.Fanout, _address.Durable,
+                    _address.AutoDelete, null);
+            }
+            else
+                _channel.ExchangeDeclare(name, ExchangeType.Fanout, !temporary, temporary, null);
+        }
+
         void RebindExchanges(IModel channel)
         {
-            lock (_exchangeBindings)
+            lock (_bindings)
             {
-                IEnumerable<string> exchanges = _exchangeBindings.Select(x => x.Destination)
-                                                                 .Concat(_exchangeBindings.Select(x => x.Source))
-                                                                 .Concat(_exchanges)
-                                                                 .Distinct();
-
-                foreach (string exchange in exchanges)
+                var exchanges = new Dictionary<string,bool>(_exchanges);
+                
+                foreach (var binding in _exchangeBindings)
                 {
-                    channel.ExchangeDeclare(exchange, ExchangeType.Fanout, true, false, null);
+                    if (!exchanges.ContainsKey(binding.Source))
+                        exchanges.Add(binding.Source, binding.SourceTemporary);
+
+                    if (!exchanges.ContainsKey(binding.Destination))
+                        exchanges.Add(binding.Destination, binding.DestinationTemporary);
+                }
+
+                foreach (var exchange in exchanges)
+                {
+                    DeclareExchange(exchange.Key, exchange.Value);
                 }
 
                 foreach (ExchangeBinding exchange in _exchangeBindings)
-                {
                     channel.ExchangeBind(exchange.Destination, exchange.Source, "");
-                }
             }
         }
     }

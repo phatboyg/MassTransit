@@ -137,14 +137,19 @@ namespace MassTransit.Transports.RabbitMq
                 {
                     MessageName messageName = messageNameFormatter.GetMessageName(messageType);
 
-                    _publisher.ExchangeDeclare(messageName.ToString());
+                    bool temporary = IsTemporaryMessageType(messageType);
+
+                    _publisher.ExchangeDeclare(messageName.ToString(), temporary);
+
                     messageTypes.Add(messageType);
 
                     foreach (Type type in messageType.GetMessageTypes().Skip(1))
                     {
                         MessageName interfaceName = messageNameFormatter.GetMessageName(type);
 
-                        _publisher.ExchangeBind(interfaceName.ToString(), messageName.ToString());
+                        bool isTemporary = IsTemporaryMessageType(type);
+
+                        _publisher.ExchangeBind(interfaceName.ToString(), messageName.ToString(), isTemporary, temporary);
                         messageTypes.Add(type);
                     }
                 });
@@ -152,12 +157,19 @@ namespace MassTransit.Transports.RabbitMq
             return messageTypes;
         }
 
-        public void BindSubscriberExchange(string exchangeName)
+        static bool IsTemporaryMessageType(Type messageType)
+        {
+            return (!messageType.IsPublic && messageType.IsClass)
+                   || (messageType.IsGenericType
+                       && messageType.GetGenericArguments().Any(x => IsTemporaryMessageType(x)));
+        }
+
+        public void BindSubscriberExchange(IRabbitMqEndpointAddress address, string exchangeName, bool temporary)
         {
             AddPublisherBinding();
             _connectionHandler.Use(connection =>
                 {
-                    _publisher.ExchangeBind(_address.Name, exchangeName);
+                    _publisher.ExchangeBind(address.Name, exchangeName, false, temporary);
                 });
         }
 
@@ -185,7 +197,7 @@ namespace MassTransit.Transports.RabbitMq
             if (_publisher != null)
                 return;
 
-            _publisher = new RabbitMqPublisher();
+            _publisher = new RabbitMqPublisher(_address);
 
             _connectionHandler.AddBinding(_publisher);
         }
