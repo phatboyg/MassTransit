@@ -826,6 +826,9 @@
     <Compile Include="Serialization\XmlMessageDeserializer.cs" />
     <Compile Include="MassTransitBus.cs" />
     <Compile Include="SuperExtensions.cs" />
+    <Compile Include="Telemetry\CallContextReference.cs" />
+    <Compile Include="Telemetry\ITelemetry.cs" />
+    <Compile Include="Telemetry\Telemetry.cs" />
     <Compile Include="Testing\ActionConfigurators\PublishTestActionConfigurator.cs" />
     <Compile Include="Testing\ActionConfigurators\SendTestActionConfigurator.cs" />
     <Compile Include="Testing\ActionConfigurators\ITestActionConfigurator.cs" />
