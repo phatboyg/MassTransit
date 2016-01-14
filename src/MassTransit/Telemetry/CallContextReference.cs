@@ -75,7 +75,7 @@ namespace MassTransit.Telemetry
             CallContext.LogicalSetData(Key, this);
         }
 
-        public static CallContextReference<T> FromContext()
+        protected static CallContextReference<T> FromCallContext()
         {
             return (CallContextReference<T>)CallContext.LogicalGetData(Key);
         }

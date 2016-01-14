@@ -1,4 +1,4 @@
-﻿// Copyright 2007-2015 Chris Patterson, Dru Sellers, Travis Smith, et. al.
+﻿// Copyright 2007-2016 Chris Patterson, Dru Sellers, Travis Smith, et. al.
 //  
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 // this file except in compliance with the License. You may obtain a copy of the 
@@ -12,27 +12,26 @@
 // specific language governing permissions and limitations under the License.
 namespace MassTransit.Telemetry
 {
-    using System;
-
-
     /// <summary>
-    /// Telemetry is a new way of logging that ensures continuity during message consumption and publication.
+    /// Instructs the logger on how to store information about provided
+    /// parameters.
     /// </summary>
-    public interface ITelemetry
+    public enum Destructuring
     {
         /// <summary>
-        /// The unique identifier for this operation
+        /// Convert known types and objects to scalars, arrays to sequences.
         /// </summary>
-        Guid OperationId { get; }
+        Default,
 
         /// <summary>
-        /// When the operation was started
+        /// Convert all types to scalar strings. Prefix name with '$'.
         /// </summary>
-        DateTime Started { get; }
+        Stringify,
 
         /// <summary>
-        /// Elapsed time for the operation, thus far
+        /// Convert known types to scalars, destructure objects and collections
+        /// into sequences and structures. Prefix name with '@'.
         /// </summary>
-        TimeSpan Elapsed { get; }
+        Destructure
     }
 }

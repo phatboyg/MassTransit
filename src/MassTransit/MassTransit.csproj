@@ -71,6 +71,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="NewId, Version=2.1.3.0, Culture=neutral, PublicKeyToken=b8e0e9f2f1e657fa, processorArchitecture=MSIL">
       <HintPath>..\packages\NewId.2.1.3\lib\net45\NewId.dll</HintPath>
       <Private>True</Private>
@@ -826,9 +827,45 @@
     <Compile Include="Serialization\XmlMessageDeserializer.cs" />
     <Compile Include="MassTransitBus.cs" />
     <Compile Include="SuperExtensions.cs" />
+    <Compile Include="Telemetry\Alignment.cs" />
+    <Compile Include="Telemetry\AlignmentDirection.cs" />
+    <Compile Include="Telemetry\ByteArrayScalarConversionPolicy.cs" />
     <Compile Include="Telemetry\CallContextReference.cs" />
-    <Compile Include="Telemetry\ITelemetry.cs" />
-    <Compile Include="Telemetry\Telemetry.cs" />
+    <Compile Include="Telemetry\DelegateDestructuringPolicy.cs" />
+    <Compile Include="Telemetry\Destructuring.cs" />
+    <Compile Include="Telemetry\DictionaryValue.cs" />
+    <Compile Include="Telemetry\EnumScalarConversionPolicy.cs" />
+    <Compile Include="Telemetry\IMessageTemplateParser.cs" />
+    <Compile Include="Telemetry\ITelemetryContext.cs" />
+    <Compile Include="Telemetry\ITelemetryData.cs" />
+    <Compile Include="Telemetry\ITelemetryDataItem.cs" />
+    <Compile Include="Telemetry\LogEventContext.cs" />
+    <Compile Include="Telemetry\MessageTemplate.cs" />
+    <Compile Include="Telemetry\MessageTemplateParser.cs" />
+    <Compile Include="Telemetry\MessageTemplateProcessor.cs" />
+    <Compile Include="Telemetry\MessageTemplateToken.cs" />
+    <Compile Include="Telemetry\MultipleTelemetryDataItem.cs" />
+    <Compile Include="Telemetry\NullableScalarConversionPolicy.cs" />
+    <Compile Include="Telemetry\ProjectedDestructuringPolicy.cs" />
+    <Compile Include="Telemetry\PropertyBinder.cs" />
+    <Compile Include="Telemetry\PropertyToken.cs" />
+    <Compile Include="Telemetry\PropertyValueConverter.cs" />
+    <Compile Include="Telemetry\ReflectionTypesScalarConversionPolicy.cs" />
+    <Compile Include="Telemetry\ScalarValue.cs" />
+    <Compile Include="Telemetry\SequenceValue.cs" />
+    <Compile Include="Telemetry\SeverityLogEventFilter.cs" />
+    <Compile Include="Telemetry\SimpleScalarConversionPolicy.cs" />
+    <Compile Include="Telemetry\SingleTelemetryDataItem.cs" />
+    <Compile Include="Telemetry\StructureValue.cs" />
+    <Compile Include="Telemetry\TelemetryContext.cs" />
+    <Compile Include="Telemetry\ObjectTelemetryDataItem.cs" />
+    <Compile Include="Telemetry\TelemetryData.cs" />
+    <Compile Include="Telemetry\TelemetryLogEvent.cs" />
+    <Compile Include="Telemetry\TelemetryLogEventContext.cs" />
+    <Compile Include="Telemetry\TelemetryLogEventProperty.cs" />
+    <Compile Include="Telemetry\TelemetryLogEventPropertyValue.cs" />
+    <Compile Include="Telemetry\LogEventSeverity.cs" />
+    <Compile Include="Telemetry\TextToken.cs" />
     <Compile Include="Testing\ActionConfigurators\PublishTestActionConfigurator.cs" />
     <Compile Include="Testing\ActionConfigurators\SendTestActionConfigurator.cs" />
     <Compile Include="Testing\ActionConfigurators\ITestActionConfigurator.cs" />
