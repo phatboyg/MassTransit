@@ -18,6 +18,8 @@ namespace MassTransit.Telemetry
     using System.Linq;
     using System.Reflection;
     using Internals.Extensions;
+    using Policies;
+    using Values;
 
 
     class PropertyValueConverter :

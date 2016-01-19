@@ -16,6 +16,7 @@ namespace MassTransit.Telemetry
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using Templates;
 
 
     public class MessageTemplate
@@ -35,7 +36,6 @@ namespace MassTransit.Telemetry
                 throw new ArgumentNullException(nameof(tokens));
 
             Text = text;
-
             _tokens = tokens.ToArray();
 
             var propertyTokens = _tokens.OfType<PropertyToken>().ToArray();

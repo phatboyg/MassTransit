@@ -10,35 +10,11 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
-namespace MassTransit.Telemetry
+namespace MassTransit.Telemetry.Filters
 {
-    using System;
     using System.Threading.Tasks;
     using Pipeline;
     using Util;
-
-    /// <summary>
-    /// A property handle allows a property to be removed if it was added or set
-    /// </summary>
-    public interface PropertyHandle :
-        IDisposable
-    {
-        /// <summary>
-        /// Remove (and restore if the value was replaced) the property
-        /// </summary>
-        void Remove();
-    }
-
-    public interface ILogEventPropertyFactory
-    {
-        TelemetryLogEventProperty CreateProperty(string name, object value, bool destructureObjects = false);
-    }
-
-
-    public interface ILogEventPropertyValueFactory
-    {
-        TelemetryLogEventPropertyValue CreateValue(object value, bool destructureObjects = false);
-    }
 
 
     /// <summary>

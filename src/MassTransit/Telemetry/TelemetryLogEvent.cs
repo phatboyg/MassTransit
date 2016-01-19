@@ -18,22 +18,49 @@ namespace MassTransit.Telemetry
 
 
     /// <summary>
-    /// A log event emitted by a telemetry context
+    /// A log event
     /// </summary>
     public class TelemetryLogEvent
     {
+        readonly Dictionary<string, TelemetryLogEventPropertyValue> _propertyValues;
+
         public TelemetryLogEvent(DateTimeOffset timestamp, LogEventSeverity severity, MessageTemplate template,
             IEnumerable<TelemetryLogEventProperty> properties)
         {
             Timestamp = timestamp;
             Severity = severity;
             Template = template;
-            Properties = properties.Distinct().ToDictionary(x => x.Name, x => x.Value);
+
+            _propertyValues = properties.Distinct().ToDictionary(x => x.Name, x => x.Value);
         }
 
+        /// <summary>
+        /// The time when the event occurred
+        /// </summary>
         public DateTimeOffset Timestamp { get; set; }
+
+        /// <summary>
+        /// The severity of the event
+        /// </summary>
         public LogEventSeverity Severity { get; }
-        public MessageTemplate Template { get; set; }
-        public IReadOnlyDictionary<string, TelemetryLogEventPropertyValue> Properties { get; set; }
+
+        /// <summary>
+        /// The message template supplied (unformatted)
+        /// </summary>
+        public MessageTemplate Template { get; }
+
+        /// <summary>
+        /// The properties for the log event
+        /// </summary>
+        public IReadOnlyDictionary<string, TelemetryLogEventPropertyValue> Properties => _propertyValues;
+
+        public void GetOrAddProperty(TelemetryLogEventProperty property)
+        {
+            if (property == null)
+                throw new ArgumentNullException(nameof(property));
+
+            if (!_propertyValues.ContainsKey(property.Name))
+                _propertyValues.Add(property.Name, property.Value);
+        }
     }
 }

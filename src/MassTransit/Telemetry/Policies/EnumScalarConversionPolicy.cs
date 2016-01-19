@@ -10,19 +10,17 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
-namespace MassTransit.Telemetry
+namespace MassTransit.Telemetry.Policies
 {
-    using System;
     using System.Reflection;
+    using Values;
 
 
-    class ReflectionTypesScalarConversionPolicy : IScalarConversionPolicy
+    class EnumScalarConversionPolicy : IScalarConversionPolicy
     {
         public bool TryConvertToScalar(object value, ILogEventPropertyValueFactory propertyValueFactory, out ScalarValue result)
         {
-            // These types and their subclasses are property-laden and deep;
-            // most sinks will convert them to strings.
-            if (value is Type || value is MemberInfo)
+            if (value.GetType().GetTypeInfo().IsEnum)
             {
                 result = new ScalarValue(value);
                 return true;

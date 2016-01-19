@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MassTransit.Telemetry
+namespace MassTransit.Telemetry.Policies
 {
     using System;
+    using Values;
 
 
     class NullableScalarConversionPolicy : IScalarConversionPolicy

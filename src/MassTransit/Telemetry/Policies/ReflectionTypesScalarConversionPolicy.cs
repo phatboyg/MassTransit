@@ -10,20 +10,23 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
-namespace MassTransit.Telemetry
+namespace MassTransit.Telemetry.Policies
 {
     using System;
+    using System.Reflection;
+    using Values;
 
 
-    class DelegateDestructuringPolicy :
-        IDestructuringPolicy
+    class ReflectionTypesScalarConversionPolicy : 
+        IScalarConversionPolicy
     {
-        public bool TryDestructure(object value, ILogEventPropertyValueFactory propertyValueFactory, out TelemetryLogEventPropertyValue result)
+        public bool TryConvertToScalar(object value, ILogEventPropertyValueFactory propertyValueFactory, out ScalarValue result)
         {
-            var del = value as Delegate;
-            if (del != null)
+            // These types and their subclasses are property-laden and deep;
+            // most sinks will convert them to strings.
+            if (value is Type || value is MemberInfo)
             {
-                result = new ScalarValue(del.ToString());
+                result = new ScalarValue(value);
                 return true;
             }
 

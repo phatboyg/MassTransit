@@ -12,36 +12,18 @@
 // specific language governing permissions and limitations under the License.
 namespace MassTransit.Telemetry
 {
-    public enum LogEventSeverity
+    using System;
+
+
+    /// <summary>
+    /// A property handle allows a property to be removed if it was added or set
+    /// </summary>
+    public interface PropertyHandle :
+        IDisposable
     {
         /// <summary>
-        /// All the things!
+        /// Remove (and restore if the value was replaced) the property
         /// </summary>
-        Verbose,
-
-        /// <summary>
-        /// Enough to know what is happening inside
-        /// </summary>
-        Debug,
-
-        /// <summary>
-        /// Enough to know what is happening outside
-        /// </summary>
-        Information,
-
-        /// <summary>
-        /// Things are in danger of going sideway quickly
-        /// </summary>
-        Warning,
-
-        /// <summary>
-        /// Okay, this is a bad thing - we aren't dead yet but it's coming
-        /// </summary>
-        Error,
-
-        /// <summary>
-        /// Boom, is there a doctor in house?
-        /// </summary>
-        Fatal
+        void Remove();
     }
 }

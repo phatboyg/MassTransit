@@ -10,26 +10,21 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
-namespace MassTransit.Telemetry
+namespace MassTransit.Telemetry.Policies
 {
     using System;
-    using System.Collections.Generic;
+    using Values;
 
 
-    class SimpleScalarConversionPolicy : IScalarConversionPolicy
+    class DelegateDestructuringPolicy :
+        IDestructuringPolicy
     {
-        readonly HashSet<Type> _scalarTypes;
-
-        public SimpleScalarConversionPolicy(IEnumerable<Type> scalarTypes)
+        public bool TryDestructure(object value, ILogEventPropertyValueFactory propertyValueFactory, out TelemetryLogEventPropertyValue result)
         {
-            _scalarTypes = new HashSet<Type>(scalarTypes);
-        }
-
-        public bool TryConvertToScalar(object value, ILogEventPropertyValueFactory propertyValueFactory, out ScalarValue result)
-        {
-            if (_scalarTypes.Contains(value.GetType()))
+            var del = value as Delegate;
+            if (del != null)
             {
-                result = new ScalarValue(value);
+                result = new ScalarValue(del.ToString());
                 return true;
             }
 

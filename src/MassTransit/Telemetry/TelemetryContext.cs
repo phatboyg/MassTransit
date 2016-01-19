@@ -22,29 +22,28 @@ namespace MassTransit.Telemetry
     using Util;
 
 
-    public interface IScalarConversionPolicy
+    class PropertyValueFilter :
+        IFilter<LogEventContext>
     {
-        /// <summary>
-        /// If supported, convert the provided value into an immutable scalar.
-        /// </summary>
-        /// <param name="value">The value to convert.</param>
-        /// <param name="propertyValueFactory">Recursively apply policies to convert additional values.</param>
-        /// <param name="result">The converted value, or null.</param>
-        /// <returns>True if the value could be converted under this policy.</returns>
-        bool TryConvertToScalar(object value, ILogEventPropertyValueFactory propertyValueFactory, out ScalarValue result);
-    }
+        readonly TelemetryLogEventProperty _property;
 
+        public PropertyValueFilter(TelemetryLogEventProperty property)
+        {
+            _property = property;
+        }
 
-    public interface IDestructuringPolicy
-    {
-        /// <summary>
-        /// If supported, destructure the provided value.
-        /// </summary>
-        /// <param name="value">The value to destructure.</param>
-        /// <param name="propertyValueFactory">Recursively apply policies to destructure additional values.</param>
-        /// <param name="result">The destructured value, or null.</param>
-        /// <returns>True if the value could be destructured under this policy.</returns>
-        bool TryDestructure(object value, ILogEventPropertyValueFactory propertyValueFactory, out TelemetryLogEventPropertyValue result);
+        public Task Send(LogEventContext context, IPipe<LogEventContext> next)
+        {
+            context.LogEvent.GetOrAddProperty(_property);
+
+            return next.Send(context);
+        }
+
+        public void Probe(ProbeContext context)
+        {
+            var scope = context.CreateFilterScope("propertyValue");
+            scope.Add("name", _property.Name);
+        }
     }
 
 
@@ -247,6 +246,15 @@ namespace MassTransit.Telemetry
         public void Fatal(Exception exception, string messageTemplate, params object[] propertyValues)
         {
             Write(LogEventSeverity.Fatal, exception, messageTemplate, propertyValues);
+        }
+
+        public ITelemetryContext CreateNestedContext(string propertyName, object propertyValue, bool destructureObjects = false)
+        {
+            var property = _templateParser.CreateProperty(propertyName, propertyValue, destructureObjects);
+
+            var filter = new PropertyValueFilter(property);
+
+            return new TelemetryContext(_output, _minSeverity, );
         }
 
         Task Dispatch(TelemetryLogEvent logEvent)

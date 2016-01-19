@@ -1,4 +1,4 @@
-﻿// Copyright 2007-2016 Chris Patterson, Dru Sellers, Travis Smith, et. al.
+// Copyright 2007-2016 Chris Patterson, Dru Sellers, Travis Smith, et. al.
 //  
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 // this file except in compliance with the License. You may obtain a copy of the 
@@ -10,23 +10,25 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
-namespace MassTransit.Telemetry
+namespace MassTransit.Telemetry.Templates
 {
-    using System.Reflection;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
 
 
-    class EnumScalarConversionPolicy : IScalarConversionPolicy
+    public abstract class MessageTemplateToken
     {
-        public bool TryConvertToScalar(object value, ILogEventPropertyValueFactory propertyValueFactory, out ScalarValue result)
+        protected MessageTemplateToken(int startIndex)
         {
-            if (value.GetType().GetTypeInfo().IsEnum)
-            {
-                result = new ScalarValue(value);
-                return true;
-            }
-
-            result = null;
-            return false;
+            StartIndex = startIndex;
         }
+
+        public int StartIndex { get; }
+
+        public abstract int Length { get; }
+
+        public abstract void Render(IReadOnlyDictionary<string, TelemetryLogEventPropertyValue> properties, TextWriter output,
+            IFormatProvider formatProvider = null);
     }
 }
