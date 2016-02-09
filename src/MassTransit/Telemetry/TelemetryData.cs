@@ -17,6 +17,9 @@ namespace MassTransit.Telemetry
     using System.Collections.Generic;
 
 
+
+
+
     /// <summary>
     /// Stores telemetry data
     /// </summary>

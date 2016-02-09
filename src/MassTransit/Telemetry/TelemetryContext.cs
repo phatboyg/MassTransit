@@ -254,7 +254,7 @@ namespace MassTransit.Telemetry
 
             var filter = new PropertyValueFilter(property);
 
-            return new TelemetryContext(_output, _minSeverity, );
+            return new TelemetryContext(_output, _minSeverity);
         }
 
         Task Dispatch(TelemetryLogEvent logEvent)

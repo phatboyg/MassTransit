@@ -829,8 +829,11 @@
     <Compile Include="SuperExtensions.cs" />
     <Compile Include="Telemetry\Alignment.cs" />
     <Compile Include="Telemetry\AlignmentDirection.cs" />
+    <Compile Include="Telemetry\ContextProperty.cs" />
+    <Compile Include="Telemetry\IContextProperty.cs" />
     <Compile Include="Telemetry\IDestructuringPolicy.cs" />
     <Compile Include="Telemetry\IScalarConversionPolicy.cs" />
+    <Compile Include="Telemetry\IContextPropertyValue.cs" />
     <Compile Include="Telemetry\Policies\ByteArrayScalarConversionPolicy.cs" />
     <Compile Include="Telemetry\CallContextReference.cs" />
     <Compile Include="Telemetry\Policies\DelegateDestructuringPolicy.cs" />
@@ -838,6 +841,7 @@
     <Compile Include="Telemetry\ILogEventPropertyFactory.cs" />
     <Compile Include="Telemetry\ILogEventPropertyValueFactory.cs" />
     <Compile Include="Telemetry\PropertyHandle.cs" />
+    <Compile Include="Telemetry\ContextPropertyValue.cs" />
     <Compile Include="Telemetry\Values\DictionaryValue.cs" />
     <Compile Include="Telemetry\Policies\EnumScalarConversionPolicy.cs" />
     <Compile Include="Telemetry\IMessageTemplateParser.cs" />
