@@ -12,27 +12,20 @@
 // specific language governing permissions and limitations under the License.
 namespace MassTransit.Telemetry
 {
-    using System;
-
-
-    /// <summary>
-    /// A property is a value stored in the context, which can be accessed by name or
-    /// by type. This is the actual property storage element
-    /// </summary>
-    public interface IContextPropertyValue
+    public interface IProperty :
+        IPropertyValue
     {
         /// <summary>
-        /// The property value type
+        /// Property Name
         /// </summary>
-        Type ValueType { get; }
+        string Name { get; }
+    }
 
-        /// <summary>
-        /// Returns the value if it can be assigned to the specified type
-        /// </summary>
-        /// <typeparam name="T">The requested type</typeparam>
-        /// <param name="value">The output value</param>
-        /// <returns></returns>
-        bool TryGetValue<T>(out T value)
-            where T : class;
+
+    public interface IProperty<out T> :
+        IPropertyValue<T>,
+        IProperty
+        where T : class
+    {
     }
 }

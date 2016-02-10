@@ -15,13 +15,10 @@ namespace MassTransit.Telemetry
     using System;
 
 
-    public class ContextPropertyCache
-    {
-        
-    }
-
-
-    public interface IContextPropertyCache
+    /// <summary>
+    /// Supports the reading of the property cache
+    /// </summary>
+    public interface IReadOnlyPropertyCollection
     {
         /// <summary>
         /// Checks if the property exists in the cache
@@ -52,7 +49,7 @@ namespace MassTransit.Telemetry
         /// <typeparam name="T">The property type</typeparam>
         /// <param name="value">The property value</param>
         /// <returns>True if the value was returned, otherwise false</returns>
-        bool TryGetPropertyValue<T>(out IContextPropertyValue value)
+        bool TryGetPropertyValue<T>(out IPropertyValue value)
             where T : class;
 
         /// <summary>
@@ -62,50 +59,7 @@ namespace MassTransit.Telemetry
         /// <param name="name">The property name</param>
         /// <param name="value">The property value</param>
         /// <returns>True if the value was returned, otherwise false</returns>
-        bool TryGetPropertyValue<T>(string name, out IContextPropertyValue value)
+        bool TryGetPropertyValue<T>(string name, out IPropertyValue value)
             where T : class;
-
-        /// <summary>
-        /// Returns an existing payload or creates the payload using the factory method provided
-        /// </summary>
-        /// <typeparam name="TPayload">The payload type</typeparam>
-        /// <param name="payloadFactory">The payload factory is the payload is not present</param>
-        /// <returns>The payload</returns>
-        TPayload GetOrAddPayload<TPayload>(PayloadFactory<TPayload> payloadFactory)
-
-    }
-
-    /// <summary>
-    /// A property within the context
-    /// </summary>
-    public class ContextProperty :
-        IContextProperty
-    {
-        readonly IContextPropertyValue _value;
-
-        public ContextProperty(string name, IContextPropertyValue value)
-        {
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
-            if (!IsValidPropertyName(name))
-                throw new ArgumentException("Property name is not valid.");
-
-            Name = name;
-            _value = value;
-        }
-
-        public string Name { get; }
-
-        public Type ValueType => _value.ValueType;
-
-        public bool TryGetValue<T>(out T value) where T : class
-        {
-            return _value.TryGetValue(out value);
-        }
-
-        public static bool IsValidPropertyName(string name)
-        {
-            return !string.IsNullOrWhiteSpace(name);
-        }
     }
 }

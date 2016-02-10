@@ -1,4 +1,4 @@
-﻿// Copyright 2007-2014 Chris Patterson, Dru Sellers, Travis Smith, et. al.
+﻿// Copyright 2007-2016 Chris Patterson, Dru Sellers, Travis Smith, et. al.
 //  
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 // this file except in compliance with the License. You may obtain a copy of the 
@@ -13,32 +13,33 @@
 namespace MassTransit.Context
 {
     using System;
-    using System.Collections.Concurrent;
+    using Telemetry;
+    using Telemetry.Properties;
     using Util;
 
 
     public class PayloadCache
     {
-        readonly ConcurrentDictionary<Type, CachedPayload> _cache;
+        readonly IPropertyCache _cache;
 
-        public PayloadCache(int capacity = 2)
+        public PayloadCache()
         {
-            _cache = new ConcurrentDictionary<Type, CachedPayload>(2, capacity);
+            _cache = new PropertyCache();
         }
 
         public bool HasPayloadType(Type contextType)
         {
-            return _cache.ContainsKey(contextType);
+            return _cache.HasPropertyType(contextType);
         }
 
         public bool TryGetPayload<TPayload>(out TPayload context)
             where TPayload : class
         {
-            CachedPayload payloadCache;
-            if (_cache.TryGetValue(typeof(TPayload), out payloadCache))
+            IPropertyValue propertyValue;
+            if (_cache.TryGetPropertyValue<TPayload>(out propertyValue))
             {
-                context = payloadCache.GetPayload<TPayload>();
-                return true;
+                if (propertyValue.TryGetValue(out context))
+                    return true;
             }
 
             context = default(TPayload);
@@ -48,22 +49,15 @@ namespace MassTransit.Context
         public TPayload GetOrAddPayload<TPayload>(PayloadFactory<TPayload> payloadFactory)
             where TPayload : class
         {
-            CachedPayload cachedPayload;
-            if (_cache.TryGetValue(typeof(TPayload), out cachedPayload))
-                return cachedPayload.GetPayload<TPayload>();
+            var factory = new Factory<TPayload>(payloadFactory);
 
             try
             {
-                cachedPayload = _cache.GetOrAdd(typeof(TPayload), x =>
-                {
-                    TPayload payload = payloadFactory();
-                    if (payload != default(TPayload))
-                        return new CachedPayload<TPayload>(payload);
+                TPayload payload;
+                if (_cache.GetOrAddProperty<TPayload>(factory).TryGetValue(out payload))
+                    return payload;
 
-                    throw new PayloadNotFoundException("The payload was not found: " + TypeMetadataCache<TPayload>.ShortName);
-                });
-
-                return cachedPayload.GetPayload<TPayload>();
+                throw new PayloadNotFoundException("The payload was not found: " + TypeMetadataCache<TPayload>.ShortName);
             }
             catch (PayloadNotFoundException)
             {
@@ -76,32 +70,25 @@ namespace MassTransit.Context
         }
 
 
-        interface CachedPayload
-        {
-            T GetPayload<T>()
-                where T : class;
-        }
-
-
-        class CachedPayload<TPayload> :
-            CachedPayload
+        class Factory<TPayload> :
+            IContextPropertyFactory
             where TPayload : class
         {
-            readonly TPayload _payload;
+            readonly PayloadFactory<TPayload> _payloadFactory;
 
-            public CachedPayload(TPayload payload)
+            public Factory(PayloadFactory<TPayload> payloadFactory)
             {
-                _payload = payload;
+                _payloadFactory = payloadFactory;
             }
 
-            public T GetPayload<T>()
-                where T : class
+            public IProperty CreateProperty()
             {
-                var payload = this as CachedPayload<T>;
-                if (payload != null)
-                    return payload._payload;
+                var payload = _payloadFactory();
 
-                throw new PayloadException("Payload type mismatch: " + TypeMetadataCache<T>.ShortName);
+                if (payload == default(TPayload))
+                    throw new PayloadNotFoundException("The payload was not found: " + TypeMetadataCache<TPayload>.ShortName);
+
+                return new Property<TPayload>(TypeMetadataCache<TPayload>.ShortName, new PropertyValue<TPayload>(payload));
             }
         }
     }
