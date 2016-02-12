@@ -10,38 +10,27 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
-namespace MassTransit.Telemetry.Properties
+namespace MassTransit.Telemetry.Context.Properties
 {
     using System;
-    using System.Linq;
 
 
-    public class ArrayPropertyCollection :
+    public class SinglePropertyCollection :
         BasePropertyCollection
     {
         readonly IReadOnlyPropertyCollection _parent;
-        readonly IProperty[] _properties;
+        readonly IProperty _property;
 
-        public ArrayPropertyCollection(IReadOnlyPropertyCollection parent, params IProperty[] properties)
+        public SinglePropertyCollection(IProperty property, IReadOnlyPropertyCollection parent = null)
             : base(parent)
         {
-            _properties = properties;
+            _property = property;
             _parent = parent;
-        }
-
-        ArrayPropertyCollection(IReadOnlyPropertyCollection parent, IProperty property, IProperty[] properties)
-            : base(parent)
-        {
-            _parent = parent;
-
-            _properties = new IProperty[properties.Length + 1];
-            _properties[0] = property;
-            Array.Copy(properties, 0, _properties, 1, properties.Length);
         }
 
         public override bool HasPropertyType(Type propertyType)
         {
-            if (_properties.Any(x => propertyType.IsAssignableFrom(x.ValueType)))
+            if (propertyType.IsAssignableFrom(_property.ValueType))
                 return true;
 
             return base.HasPropertyType(propertyType);
@@ -49,7 +38,7 @@ namespace MassTransit.Telemetry.Properties
 
         public override bool HasProperty(string name)
         {
-            if (_properties.Any(x => MatchesPropertyName(x.Name, name)))
+            if (MatchesPropertyName(_property.Name, name))
                 return true;
 
             return base.HasProperty(name);
@@ -58,7 +47,7 @@ namespace MassTransit.Telemetry.Properties
         public override bool HasProperty<T>(string name)
         {
             T propertyValue;
-            if (_properties.Any(x => MatchesPropertyName(x.Name, name) && x.TryGetValue(out propertyValue)))
+            if (MatchesPropertyName(_property.Name, name) && _property.TryGetValue(out propertyValue))
                 return true;
 
             return base.HasProperty<T>(name);
@@ -67,8 +56,9 @@ namespace MassTransit.Telemetry.Properties
         public override bool TryGetPropertyValue<T>(out IPropertyValue value)
         {
             T propertyValue;
-            if ((value = _properties.FirstOrDefault(x => x.TryGetValue(out propertyValue))) != null)
+            if (_property.TryGetValue(out propertyValue))
             {
+                value = _property;
                 return true;
             }
 
@@ -78,8 +68,9 @@ namespace MassTransit.Telemetry.Properties
         public override bool TryGetPropertyValue<T>(string name, out IPropertyValue value)
         {
             T propertyValue;
-            if ((value = _properties.FirstOrDefault(x => MatchesPropertyName(x.Name, name) && x.TryGetValue(out propertyValue))) != null)
+            if (MatchesPropertyName(_property.Name, name) && _property.TryGetValue(out propertyValue))
             {
+                value = _property;
                 return true;
             }
 
@@ -88,7 +79,7 @@ namespace MassTransit.Telemetry.Properties
 
         public override IPropertyCollection Add(IProperty property)
         {
-            return new ArrayPropertyCollection(_parent, property, _properties);
+            return new ArrayPropertyCollection(_parent, property, _property);
         }
     }
 }

@@ -21,32 +21,6 @@ namespace MassTransit.Telemetry
     using Pipeline;
     using Util;
 
-
-    class PropertyValueFilter :
-        IFilter<LogEventContext>
-    {
-        readonly TelemetryLogEventProperty _property;
-
-        public PropertyValueFilter(TelemetryLogEventProperty property)
-        {
-            _property = property;
-        }
-
-        public Task Send(LogEventContext context, IPipe<LogEventContext> next)
-        {
-            context.LogEvent.GetOrAddProperty(_property);
-
-            return next.Send(context);
-        }
-
-        public void Probe(ProbeContext context)
-        {
-            var scope = context.CreateFilterScope("propertyValue");
-            scope.Add("name", _property.Name);
-        }
-    }
-
-
     // Values in Serilog are simplified down into a lowest-common-denominator internal
     // type system so that there is a better chance of code written with one sink in
     // mind working correctly with any other. This technique also makes the programmer
@@ -70,14 +44,15 @@ namespace MassTransit.Telemetry
 
         readonly IPipe<LogEventContext> _output;
         ITelemetryData _data;
-        NewId _operationNewId;
+        readonly DateTimeOffset _started;
 
         public TelemetryContext(IPipe<LogEventContext> output, LogEventSeverity minSeverity)
         {
             _minSeverity = minSeverity;
             _output = output;
-            _operationNewId = NewId.Next();
-            _operationId = _operationNewId.ToGuid();
+
+            _operationId = NewId.NextGuid();
+            _started = DateTimeOffset.Now;
             _elapsed = Stopwatch.StartNew();
 
             Attach();
@@ -126,7 +101,7 @@ namespace MassTransit.Telemetry
         }
 
         public Guid OperationId => _operationId;
-        public DateTime Started => _operationNewId.Timestamp;
+        public DateTimeOffset Started => _started;
         public TimeSpan Elapsed => _elapsed.Elapsed;
 
         void ITelemetryContext.Add<T>(string key, T data)

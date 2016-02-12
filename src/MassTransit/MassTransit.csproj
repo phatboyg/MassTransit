@@ -185,6 +185,7 @@
     <Compile Include="Context\NullablePropertySetCorrelationId.cs" />
     <Compile Include="Context\InMemoryOutboxConsumeContext.cs" />
     <Compile Include="Context\OutboxContext.cs" />
+    <Compile Include="Context\PropertyCacheExtensions.cs" />
     <Compile Include="Context\PropertySetCorrelationId.cs" />
     <Compile Include="Context\PublishRequestContext.cs" />
     <Compile Include="Context\ReceiveContextProxy.cs" />
@@ -829,7 +830,7 @@
     <Compile Include="SuperExtensions.cs" />
     <Compile Include="Telemetry\Alignment.cs" />
     <Compile Include="Telemetry\AlignmentDirection.cs" />
-    <Compile Include="Telemetry\Properties\Property.cs" />
+    <Compile Include="Telemetry\Context\Properties\Property.cs" />
     <Compile Include="Telemetry\PropertyCache.cs" />
     <Compile Include="Telemetry\IPropertyCache.cs" />
     <Compile Include="Telemetry\IProperty.cs" />
@@ -845,13 +846,14 @@
     <Compile Include="Telemetry\Destructuring.cs" />
     <Compile Include="Telemetry\ILogEventPropertyFactory.cs" />
     <Compile Include="Telemetry\ILogEventPropertyValueFactory.cs" />
-    <Compile Include="Telemetry\Properties\ArrayPropertyCollection.cs" />
-    <Compile Include="Telemetry\Properties\BasePropertyCollection.cs" />
-    <Compile Include="Telemetry\Properties\EmptyPropertyCollection.cs" />
-    <Compile Include="Telemetry\Properties\PropertyValue.cs" />
-    <Compile Include="Telemetry\Properties\SinglePropertyCollection.cs" />
+    <Compile Include="Telemetry\Context\Properties\ArrayPropertyCollection.cs" />
+    <Compile Include="Telemetry\Context\Properties\BasePropertyCollection.cs" />
+    <Compile Include="Telemetry\Context\Properties\EmptyPropertyCollection.cs" />
+    <Compile Include="Telemetry\Context\Properties\PropertyValue.cs" />
+    <Compile Include="Telemetry\Context\Properties\SinglePropertyCollection.cs" />
     <Compile Include="Telemetry\PropertyHandle.cs" />
     <Compile Include="Telemetry\PropertyValue.cs" />
+    <Compile Include="Telemetry\PropertyValueFilter.cs" />
     <Compile Include="Telemetry\Values\DictionaryValue.cs" />
     <Compile Include="Telemetry\Policies\EnumScalarConversionPolicy.cs" />
     <Compile Include="Telemetry\IMessageTemplateParser.cs" />

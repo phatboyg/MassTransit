@@ -1,4 +1,4 @@
-namespace MassTransit.Telemetry.Properties
+namespace MassTransit.Telemetry.Context.Properties
 {
     using System;
 

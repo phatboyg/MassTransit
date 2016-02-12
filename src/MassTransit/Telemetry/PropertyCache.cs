@@ -14,7 +14,7 @@ namespace MassTransit.Telemetry
 {
     using System;
     using System.Threading;
-    using Properties;
+    using Context.Properties;
 
 
     public class PropertyCache :
@@ -101,7 +101,7 @@ namespace MassTransit.Telemetry
             return property;
         }
 
-        public IPropertyCache CreateScope()
+        public IPropertyCache CreateChildCache()
         {
             return new PropertyCache(_collection);
         }

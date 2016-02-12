@@ -1,4 +1,4 @@
-// Copyright 2007-2015 Chris Patterson, Dru Sellers, Travis Smith, et. al.
+// Copyright 2007-2016 Chris Patterson, Dru Sellers, Travis Smith, et. al.
 //  
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 // this file except in compliance with the License. You may obtain a copy of the 
@@ -20,6 +20,7 @@ namespace MassTransit.Context
     using System.Threading;
     using System.Threading.Tasks;
     using Serialization;
+    using Telemetry;
     using Util;
 
 
@@ -30,28 +31,25 @@ namespace MassTransit.Context
         readonly CancellationTokenSource _cancellationTokenSource;
         readonly Lazy<ContentType> _contentType;
         readonly Lazy<Headers> _headers;
-        readonly PayloadCache _payloadCache;
         readonly ConcurrentBag<Task> _pendingTasks;
+        readonly IPropertyCache _propertyCache;
         readonly IReceiveObserver _receiveObserver;
         readonly Stopwatch _receiveTimer;
 
         protected BaseReceiveContext(Uri inputAddress, bool redelivered, IReceiveObserver receiveObserver)
         {
-            _receiveTimer = Stopwatch.StartNew();
-
-            _payloadCache = new PayloadCache();
-
             InputAddress = inputAddress;
             Redelivered = redelivered;
             _receiveObserver = receiveObserver;
 
+            _receiveTimer = Stopwatch.StartNew();
+
+            _propertyCache = new PropertyCache();
             _cancellationTokenSource = new CancellationTokenSource();
+            _contentType = new Lazy<ContentType>(GetContentType);
+            _pendingTasks = new ConcurrentBag<Task>();
 
             _headers = new Lazy<Headers>(() => new JsonHeaders(ObjectTypeDeserializer.Instance, HeaderProvider));
-
-            _contentType = new Lazy<ContentType>(GetContentType);
-
-            _pendingTasks = new ConcurrentBag<Task>();
         }
 
         protected abstract IHeaderProvider HeaderProvider { get; }
@@ -66,19 +64,19 @@ namespace MassTransit.Context
 
         public virtual bool HasPayloadType(Type contextType)
         {
-            return _payloadCache.HasPayloadType(contextType);
+            return _propertyCache.HasPayloadType(contextType);
         }
 
         public virtual bool TryGetPayload<TPayload>(out TPayload context)
             where TPayload : class
         {
-            return _payloadCache.TryGetPayload(out context);
+            return _propertyCache.TryGetPayload(out context);
         }
 
         public virtual TPayload GetOrAddPayload<TPayload>(PayloadFactory<TPayload> payloadFactory)
             where TPayload : class
         {
-            return _payloadCache.GetOrAddPayload(payloadFactory);
+            return _propertyCache.GetOrAddPayload(payloadFactory);
         }
 
         public CancellationToken CancellationToken => _cancellationTokenSource.Token;

@@ -17,6 +17,7 @@ namespace MassTransit.Context
     using System.Net.Mime;
     using System.Runtime.Serialization;
     using System.Threading;
+    using Telemetry;
 
 
     public abstract class BaseSendContext<TMessage> :
@@ -24,7 +25,7 @@ namespace MassTransit.Context
         where TMessage : class
     {
         readonly DictionarySendHeaders _headers;
-        readonly PayloadCache _payloadCache;
+        readonly IPropertyCache _propertyCache;
         byte[] _body;
         IMessageSerializer _serializer;
 
@@ -33,7 +34,7 @@ namespace MassTransit.Context
             CancellationToken = cancellationToken;
             Message = message;
 
-            _payloadCache = new PayloadCache();
+            _propertyCache = new PropertyCache();
             _headers = new DictionarySendHeaders();
 
             MessageId = NewId.NextGuid();
@@ -107,7 +108,7 @@ namespace MassTransit.Context
             if (contextType.IsInstanceOfType(this))
                 return true;
 
-            return _payloadCache.HasPayloadType(contextType);
+            return _propertyCache.HasPayloadType(contextType);
         }
 
         public virtual bool TryGetPayload<TPayload>(out TPayload context)
@@ -117,7 +118,7 @@ namespace MassTransit.Context
             if (context != null)
                 return true;
 
-            return _payloadCache.TryGetPayload(out context);
+            return _propertyCache.TryGetPayload(out context);
         }
 
         public virtual TPayload GetOrAddPayload<TPayload>(PayloadFactory<TPayload> payloadFactory)
@@ -127,7 +128,7 @@ namespace MassTransit.Context
             if (context != null)
                 return context;
 
-            return _payloadCache.GetOrAddPayload(payloadFactory);
+            return _propertyCache.GetOrAddPayload(payloadFactory);
         }
 
         public Stream GetBodyStream()

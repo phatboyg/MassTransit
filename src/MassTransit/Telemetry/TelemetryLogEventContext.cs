@@ -15,6 +15,7 @@ namespace MassTransit.Telemetry
     using System;
     using System.Threading;
     using Context;
+    using MassTransit.Context;
 
 
     public sealed class TelemetryLogEventContext :

@@ -36,9 +36,9 @@ namespace MassTransit.Telemetry
             where T : class;
 
         /// <summary>
-        /// Returns a scope from the current cache state
+        /// Returns a child scope from the current cache
         /// </summary>
         /// <returns></returns>
-        IPropertyCache CreateScope();
+        IPropertyCache CreateChildCache();
     }
 }

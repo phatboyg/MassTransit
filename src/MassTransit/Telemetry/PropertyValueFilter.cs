@@ -10,19 +10,33 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
-namespace MassTransit.Telemetry.Properties
+namespace MassTransit.Telemetry
 {
-    public class EmptyPropertyCollection :
-        BasePropertyCollection
+    using System.Threading.Tasks;
+    using Pipeline;
+
+
+    class PropertyValueFilter :
+        IFilter<LogEventContext>
     {
-        public EmptyPropertyCollection(IReadOnlyPropertyCollection parent = null)
-            : base(parent)
+        readonly TelemetryLogEventProperty _property;
+
+        public PropertyValueFilter(TelemetryLogEventProperty property)
         {
+            _property = property;
         }
 
-        public override IPropertyCollection Add(IProperty property)
+        public Task Send(LogEventContext context, IPipe<LogEventContext> next)
         {
-            return new SinglePropertyCollection(property, Parent);
+            context.LogEvent.GetOrAddProperty(_property);
+
+            return next.Send(context);
+        }
+
+        public void Probe(ProbeContext context)
+        {
+            var scope = context.CreateFilterScope("propertyValue");
+            scope.Add("name", _property.Name);
         }
     }
 }

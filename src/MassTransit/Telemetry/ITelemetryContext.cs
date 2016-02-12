@@ -29,7 +29,7 @@ namespace MassTransit.Telemetry
         /// <summary>
         /// When the operation was started
         /// </summary>
-        DateTime Started { get; }
+        DateTimeOffset Started { get; }
 
         /// <summary>
         /// Elapsed time for the operation, thus far
