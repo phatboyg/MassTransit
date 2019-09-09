@@ -46,7 +46,7 @@ namespace MassTransit.Context
         /// Begin a scope for the logger
         /// </summary>
         /// <returns></returns>
-        EnabledScope? BeginScope();
+        EnabledScope? BeginScope(string name);
     }
 
 

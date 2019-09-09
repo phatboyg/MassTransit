@@ -10,11 +10,11 @@ namespace MassTransit.Logging
         readonly IDisposable _scope;
         readonly IDictionary<string, object> _state;
 
-        public EnabledScope(ILogger logger)
+        public EnabledScope(string name, ILogger logger)
         {
             _state = new Dictionary<string, object>();
 
-            _scope = logger.BeginScope(_state);
+            _scope = logger.BeginScope(name, _state);
         }
 
         public void Add(string key, object value)

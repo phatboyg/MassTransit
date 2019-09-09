@@ -77,9 +77,9 @@ namespace MassTransit.Context
 
         public EnabledLogger? Warning => _logger.IsEnabled(LogLevel.Warning) ? new EnabledLogger(_logger, LogLevel.Warning) : default(EnabledLogger?);
 
-        public EnabledScope? BeginScope()
+        public EnabledScope? BeginScope(string name)
         {
-            return new EnabledScope(_logger);
+            return new EnabledScope(name, _logger);
         }
     }
 

@@ -21,7 +21,7 @@ namespace MassTransit.Logging
 
             var startActivity = _source.StartActivity(activity, args);
 
-            var scope = LogContext.BeginScope();
+            var scope = LogContext.BeginScope(_name);
 
             return new StartedActivity(_source, startActivity, scope);
         }
