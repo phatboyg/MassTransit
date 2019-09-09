@@ -112,7 +112,7 @@ namespace MassTransit
         {
             if (_busHandle != null)
             {
-                LogContext.Warning?.Log("StartAsync called, but the bus was already started: {Address} ({Reason})", Address, "Already Started");
+                LogContext.LogWarning("StartAsync called, but the bus was already started: {Address} ({Reason})", Address, "Already Started");
                 return _busHandle;
             }
 
@@ -153,7 +153,7 @@ namespace MassTransit
                 {
                     if (busHandle != null)
                     {
-                        LogContext.Debug?.Log("Bus start faulted, stopping hosts");
+                        LogContext.LogDebug("Bus start faulted, stopping hosts");
 
                         await busHandle.StopAsync(cancellationToken).ConfigureAwait(false);
                     }
@@ -166,7 +166,7 @@ namespace MassTransit
                 }
                 catch (Exception stopException)
                 {
-                    LogContext.Warning?.Log(stopException, "Bus start faulted, and failed to stop started hosts");
+                    LogContext.LogWarning(stopException, "Bus start faulted, and failed to stop started hosts");
                 }
 
                 await _busObservable.StartFaulted(this, ex).ConfigureAwait(false);
@@ -183,7 +183,7 @@ namespace MassTransit
         {
             if (_busHandle == null)
             {
-                LogContext.Warning?.Log("Failed to stop bus: {Address} ({Reason})", Address, "Not Started");
+                LogContext.LogWarning("Failed to stop bus: {Address} ({Reason})", Address, "Not Started");
                 return TaskUtil.Completed;
             }
 
@@ -256,7 +256,7 @@ namespace MassTransit
 
                 try
                 {
-                    LogContext.Debug?.Log("Stopping hosts");
+                    LogContext.LogDebug("Stopping hosts");
 
                     await Task.WhenAll(_hostHandles.Select(x => x.Stop(cancellationToken))).ConfigureAwait(false);
 
@@ -266,7 +266,7 @@ namespace MassTransit
                 {
                     await _busObserver.StopFaulted(_bus, exception).ConfigureAwait(false);
 
-                    LogContext.Warning?.Log(exception, "Bus stop faulted");
+                    LogContext.LogWarning(exception, "Bus stop faulted");
 
                     throw;
                 }

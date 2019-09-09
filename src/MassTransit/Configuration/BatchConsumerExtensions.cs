@@ -21,7 +21,7 @@
         public static void Batch<TMessage>(this IReceiveEndpointConfigurator configurator, Action<IBatchConfigurator<TMessage>> configure)
             where TMessage : class
         {
-            LogContext.Debug?.Log("Configuring batch: {MessageType}", TypeMetadataCache<TMessage>.ShortName);
+            LogContext.LogDebug("Configuring batch: {MessageType}", TypeMetadataCache<TMessage>.ShortName);
 
             var batchConfigurator = new BatchConfigurator<TMessage>(configurator);
 
@@ -40,7 +40,7 @@
             where TConsumer : class, IConsumer<Batch<TMessage>>
             where TMessage : class
         {
-            LogContext.Debug?.Log("Subscribing Batch Consumer: {ConsumerType} (using delegate consumer factory)", TypeMetadataCache<TConsumer>.ShortName);
+            LogContext.LogDebug("Subscribing Batch Consumer: {ConsumerType} (using delegate consumer factory)", TypeMetadataCache<TConsumer>.ShortName);
 
             var delegateConsumerFactory = new DelegateConsumerFactory<TConsumer>(consumerFactoryMethod);
 
@@ -59,7 +59,7 @@
             where TConsumer : class, IConsumer<Batch<TMessage>>
             where TMessage : class
         {
-            LogContext.Debug?.Log("Subscribing Batch Consumer: {ConsumerType} (using supplied consumer factory)", TypeMetadataCache<TConsumer>.ShortName);
+            LogContext.LogDebug("Subscribing Batch Consumer: {ConsumerType} (using supplied consumer factory)", TypeMetadataCache<TConsumer>.ShortName);
 
             configurator.Consumer(consumerFactory);
         }

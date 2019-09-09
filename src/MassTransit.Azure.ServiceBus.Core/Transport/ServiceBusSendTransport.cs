@@ -44,7 +44,7 @@
 
         protected override Task StopSupervisor(StopSupervisorContext context)
         {
-            LogContext.Debug?.Log("Stopping send transport: {Address}", _context.Address);
+            LogContext.LogDebug("Stopping send transport: {Address}", _context.Address);
 
             return base.StopSupervisor(context);
         }
@@ -73,48 +73,46 @@
 
                 var context = new AzureServiceBusSendContext<T>(_message, _cancellationToken);
 
-                var activity = LogContext.IfEnabled(OperationName.Transport.Send)?.StartActivity(new {_context.Address});
-                try
+                using (var activity = LogContext.StartActivity(OperationName.Transport.Send, new {_context.Address}))
                 {
-                    await _pipe.Send(context).ConfigureAwait(false);
-
-                    activity.AddSendContextHeaders(context);
-
-                    CopyIncomingIdentifiersIfPresent(context);
-
-                    if (IsCancelScheduledSend(context, out var sequenceNumber))
+                    try
                     {
-                        await CancelScheduledSend(clientContext, sequenceNumber).ConfigureAwait(false);
+                        await _pipe.Send(context).ConfigureAwait(false);
 
-                        return;
-                    }
+                        activity.AddSendContextHeaders(context);
 
-                    if (context.ScheduledEnqueueTimeUtc.HasValue)
-                    {
-                        var scheduled = await ScheduleSend(clientContext, context).ConfigureAwait(false);
-                        if (scheduled)
+                        CopyIncomingIdentifiersIfPresent(context);
+
+                        if (IsCancelScheduledSend(context, out var sequenceNumber))
+                        {
+                            await CancelScheduledSend(clientContext, sequenceNumber).ConfigureAwait(false);
+
                             return;
+                        }
+
+                        if (context.ScheduledEnqueueTimeUtc.HasValue)
+                        {
+                            var scheduled = await ScheduleSend(clientContext, context).ConfigureAwait(false);
+                            if (scheduled)
+                                return;
+                        }
+
+                        await _context.SendObservers.PreSend(context).ConfigureAwait(false);
+
+                        var brokeredMessage = CreateBrokeredMessage(context);
+
+                        await clientContext.Send(brokeredMessage).ConfigureAwait(false);
+
+                        context.LogSent();
+
+                        await _context.SendObservers.PostSend(context).ConfigureAwait(false);
                     }
+                    catch (Exception ex)
+                    {
+                        await _context.SendObservers.SendFault(context, ex).ConfigureAwait(false);
 
-                    await _context.SendObservers.PreSend(context).ConfigureAwait(false);
-
-                    var brokeredMessage = CreateBrokeredMessage(context);
-
-                    await clientContext.Send(brokeredMessage).ConfigureAwait(false);
-
-                    context.LogSent();
-
-                    await _context.SendObservers.PostSend(context).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    await _context.SendObservers.SendFault(context, ex).ConfigureAwait(false);
-
-                    throw;
-                }
-                finally
-                {
-                    activity?.Stop();
+                        throw;
+                    }
                 }
             }
 
@@ -129,7 +127,7 @@
                 var enqueueTimeUtc = context.ScheduledEnqueueTimeUtc.Value;
                 if (enqueueTimeUtc < now)
                 {
-                    LogContext.Debug?.Log("The scheduled time was in the past, sending: {ScheduledTime}", context.ScheduledEnqueueTimeUtc);
+                    LogContext.LogDebug("The scheduled time was in the past, sending: {ScheduledTime}", context.ScheduledEnqueueTimeUtc);
 
                     return false;
                 }
@@ -148,7 +146,7 @@
                 }
                 catch (ArgumentOutOfRangeException)
                 {
-                    LogContext.Debug?.Log("The scheduled time was rejected by the server, sending: {MessageId}", context.MessageId);
+                    LogContext.LogDebug("The scheduled time was rejected by the server, sending: {MessageId}", context.MessageId);
 
                     return false;
                 }
@@ -160,11 +158,11 @@
                 {
                     await clientContext.CancelScheduledSend(sequenceNumber).ConfigureAwait(false);
 
-                    LogContext.Debug?.Log("Canceled scheduled message {SequenceNumber} {EntityPath}", sequenceNumber, clientContext.EntityPath);
+                    LogContext.LogDebug("Canceled scheduled message {SequenceNumber} {EntityPath}", sequenceNumber, clientContext.EntityPath);
                 }
                 catch (MessageNotFoundException exception)
                 {
-                    LogContext.Warning?.Log(exception, "The scheduled message was not found: {SequenceNumber} {EntityPath}", sequenceNumber,
+                    LogContext.LogWarning(exception, "The scheduled message was not found: {SequenceNumber} {EntityPath}", sequenceNumber,
                         clientContext.EntityPath);
                 }
             }

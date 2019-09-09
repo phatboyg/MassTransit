@@ -66,7 +66,7 @@ namespace MassTransit.HttpTransport.Transport
                 HttpConsumerMetrics metrics = consumer;
                 await _context.TransportObservers.Completed(new ReceiveTransportCompletedEvent(inputAddress, metrics)).ConfigureAwait(false);
 
-                LogContext.Debug?.Log("Consumer completed: {DeliveryCount} received, {ConcurrentDeliveryCount} concurrent", metrics.DeliveryCount,
+                LogContext.LogDebug("Consumer completed: {DeliveryCount} received, {ConcurrentDeliveryCount} concurrent", metrics.DeliveryCount,
                     metrics.ConcurrentDeliveryCount);
             }
         }

@@ -91,7 +91,7 @@ namespace MassTransit.DapperIntegration
                     }
                     else
                     {
-                        LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Used {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                        LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Used {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                             instance.CorrelationId, TypeMetadataCache<T>.ShortName);
 
                         await SendToInstance(context, connection, policy, instance, tableName, next).ConfigureAwait(false);
@@ -101,12 +101,12 @@ namespace MassTransit.DapperIntegration
                 }
                 catch (SagaException sex)
                 {
-                    LogContext.Error?.Log(sex, "SAGA:{SagaType} Exception {MessageType}", TypeMetadataCache<TSaga>.ShortName, TypeMetadataCache<T>.ShortName);
+                    LogContext.LogError(sex, "SAGA:{SagaType} Exception {MessageType}", TypeMetadataCache<TSaga>.ShortName, TypeMetadataCache<T>.ShortName);
                     throw;
                 }
                 catch (Exception ex)
                 {
-                    LogContext.Error?.Log(ex, "SAGA:{SagaType} Exception {MessageType}", TypeMetadataCache<TSaga>.ShortName, TypeMetadataCache<T>.ShortName);
+                    LogContext.LogError(ex, "SAGA:{SagaType} Exception {MessageType}", TypeMetadataCache<TSaga>.ShortName, TypeMetadataCache<T>.ShortName);
 
                     throw new SagaException(ex.Message, typeof(TSaga), typeof(T), correlationId, ex);
                 }
@@ -164,12 +164,12 @@ namespace MassTransit.DapperIntegration
                 }
                 catch (SagaException sex)
                 {
-                    LogContext.Error?.Log(sex, "SAGA:{SagaType} Exception {MessageType}", TypeMetadataCache<TSaga>.ShortName, TypeMetadataCache<T>.ShortName);
+                    LogContext.LogError(sex, "SAGA:{SagaType} Exception {MessageType}", TypeMetadataCache<TSaga>.ShortName, TypeMetadataCache<T>.ShortName);
                     throw;
                 }
                 catch (Exception ex)
                 {
-                    LogContext.Error?.Log(ex, "SAGA:{SagaType} Exception {MessageType}", TypeMetadataCache<TSaga>.ShortName, TypeMetadataCache<T>.ShortName);
+                    LogContext.LogError(ex, "SAGA:{SagaType} Exception {MessageType}", TypeMetadataCache<TSaga>.ShortName, TypeMetadataCache<T>.ShortName);
 
                     throw new SagaException(ex.Message, typeof(TSaga), typeof(T), Guid.Empty, ex);
                 }
@@ -189,7 +189,7 @@ namespace MassTransit.DapperIntegration
             }
             catch (Exception ex)
             {
-                LogContext.Debug?.Log(ex, "SAGA:{SagaType}:{CorrelationId} Dupe {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                LogContext.LogDebug(ex, "SAGA:{SagaType}:{CorrelationId} Dupe {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                     instance.CorrelationId, TypeMetadataCache<T>.ShortName);
             }
         }
@@ -200,7 +200,7 @@ namespace MassTransit.DapperIntegration
         {
             try
             {
-                LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Used {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Used {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                     instance.CorrelationId, TypeMetadataCache<T>.ShortName);
 
                 var sagaConsumeContext = new DapperSagaConsumeContext<TSaga, T>(sqlConnection, context, instance, tableName);
@@ -262,7 +262,7 @@ namespace MassTransit.DapperIntegration
 
             public async Task Send(SagaConsumeContext<TSaga, TMessage> context)
             {
-                LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Added {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Added {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                     context.Saga.CorrelationId, TypeMetadataCache<TMessage>.ShortName);
 
                 var sagaConsumeContext = new DapperSagaConsumeContext<TSaga, TMessage>(_sqlConnection, context, context.Saga, _tableName, false);

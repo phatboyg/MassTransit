@@ -49,11 +49,11 @@ namespace MassTransit.Azure.ServiceBus.Core.Contexts
                 if (_queueClient != null && !_queueClient.IsClosedOrClosing)
                     await _queueClient.CloseAsync().ConfigureAwait(false);
 
-                LogContext.Debug?.Log("Closed client: {InputAddress}", InputAddress);
+                LogContext.LogDebug("Closed client: {InputAddress}", InputAddress);
             }
             catch (Exception exception)
             {
-                LogContext.Warning?.Log(exception, "Close client faulted: {InputAddress}", InputAddress);
+                LogContext.LogWarning(exception, "Close client faulted: {InputAddress}", InputAddress);
             }
         }
 

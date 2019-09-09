@@ -32,7 +32,7 @@ namespace MassTransit.Saga.Factories
 
             TSaga instance = SagaMetadataCache<TSaga>.FactoryMethod(context.CorrelationId.Value);
 
-            LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Created {MessageType}", TypeMetadataCache<TSaga>.ShortName, instance.CorrelationId,
+            LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Created {MessageType}", TypeMetadataCache<TSaga>.ShortName, instance.CorrelationId,
                 TypeMetadataCache<TMessage>.ShortName);
 
             var proxy = new NewSagaConsumeContext<TSaga, TMessage>(context, instance);

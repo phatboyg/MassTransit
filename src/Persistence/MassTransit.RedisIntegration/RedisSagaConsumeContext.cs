@@ -42,7 +42,7 @@ namespace MassTransit.RedisIntegration
 
             IsCompleted = true;
 
-            LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Removed {MessageType}", TypeMetadataCache<TSaga>.ShortName, Saga.CorrelationId,
+            LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Removed {MessageType}", TypeMetadataCache<TSaga>.ShortName, Saga.CorrelationId,
                 TypeMetadataCache<TMessage>.ShortName);
         }
 

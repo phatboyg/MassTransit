@@ -33,7 +33,7 @@ namespace MassTransit.RabbitMqTransport.Hosting
             {
                 var host = configurator.Host(_hostSettings);
 
-                LogContext.Info?.Log("Configuring Host: {Host}", _hostSettings.ToDescription());
+                LogContext.LogInformation("Configuring Host: {Host}", _hostSettings.ToDescription());
 
                 var serviceConfigurator = new RabbitMqServiceConfigurator(configurator, host);
 

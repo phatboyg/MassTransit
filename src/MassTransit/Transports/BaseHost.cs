@@ -88,7 +88,7 @@ namespace MassTransit.Transports
             if (_handle != null)
                 throw new MassTransitException($"The host was already started: {_hostConfiguration.HostAddress}");
 
-            LogContext.Debug?.Log("Starting host: {HostAddress}", _hostConfiguration.HostAddress);
+            LogContext.LogDebug("Starting host: {HostAddress}", _hostConfiguration.HostAddress);
 
             DefaultLogContext = LogContext.Current;
             SendLogContext = LogContext.Current.CreateLogContext(LogCategoryName.Transport.Send);

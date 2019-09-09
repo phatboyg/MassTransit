@@ -45,7 +45,7 @@ namespace MassTransit.QuartzIntegration
 
             var jobKey = new JobKey(correlationId);
 
-            LogContext.Debug?.Log("ScheduleMessage: {Id} at {ScheduledTime}", jobKey, context.Message.ScheduledTime);
+            LogContext.LogDebug("ScheduleMessage: {Id} at {ScheduledTime}", jobKey, context.Message.ScheduledTime);
 
             var jobDetail = await CreateJobDetail(context, context.Message.Destination, jobKey).ConfigureAwait(false);
 
@@ -66,7 +66,7 @@ namespace MassTransit.QuartzIntegration
         {
             var jobKey = new JobKey(context.Message.Schedule.ScheduleId, context.Message.Schedule.ScheduleGroup);
 
-            LogContext.Debug?.Log("Schedule recurring message: {Id}", jobKey);
+            LogContext.LogDebug("Schedule recurring message: {Id}", jobKey);
 
             var jobDetail = await CreateJobDetail(context, context.Message.Destination, jobKey).ConfigureAwait(false);
 

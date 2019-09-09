@@ -33,36 +33,34 @@ namespace MassTransit.Transports.InMemory
 
             var context = new InMemorySendContext<T>(message, cancellationToken);
 
-            var activity = LogContext.IfEnabled(OperationName.Transport.Send)?.StartActivity(new {Exchange = ExchangeName});
-            try
+            using (var activity = LogContext.StartActivity(OperationName.Transport.Send, new {Exchange = ExchangeName}))
             {
-                await pipe.Send(context).ConfigureAwait(false);
+                try
+                {
+                    await pipe.Send(context).ConfigureAwait(false);
 
-                activity.AddSendContextHeaders(context);
+                    activity.AddSendContextHeaders(context);
 
-                var messageId = context.MessageId ?? NewId.NextGuid();
+                    var messageId = context.MessageId ?? NewId.NextGuid();
 
-                await _context.SendObservers.PreSend(context).ConfigureAwait(false);
+                    await _context.SendObservers.PreSend(context).ConfigureAwait(false);
 
-                var transportMessage = new InMemoryTransportMessage(messageId, context.Body, context.ContentType.MediaType, TypeMetadataCache<T>.ShortName);
+                    var transportMessage = new InMemoryTransportMessage(messageId, context.Body, context.ContentType.MediaType, TypeMetadataCache<T>.ShortName);
 
-                await _context.Exchange.Send(transportMessage).ConfigureAwait(false);
+                    await _context.Exchange.Send(transportMessage).ConfigureAwait(false);
 
-                context.LogSent();
+                    context.LogSent();
 
-                await _context.SendObservers.PostSend(context).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                context.LogFaulted(ex);
+                    await _context.SendObservers.PostSend(context).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    context.LogFaulted(ex);
 
-                await _context.SendObservers.SendFault(context, ex).ConfigureAwait(false);
+                    await _context.SendObservers.SendFault(context, ex).ConfigureAwait(false);
 
-                throw;
-            }
-            finally
-            {
-                activity?.Stop();
+                    throw;
+                }
             }
         }
 

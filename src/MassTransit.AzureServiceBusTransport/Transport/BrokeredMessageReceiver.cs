@@ -89,7 +89,7 @@ namespace MassTransit.AzureServiceBusTransport.Transport
                 }
                 catch (Exception exception)
                 {
-                    LogContext.Warning?.Log(exception, "Abandon message faulted: {MessageId", message.MessageId);
+                    LogContext.LogWarning(exception, "Abandon message faulted: {MessageId", message.MessageId);
                 }
 
                 await _receiveEndpointContext.ReceiveObservers.ReceiveFault(context, ex).ConfigureAwait(false);

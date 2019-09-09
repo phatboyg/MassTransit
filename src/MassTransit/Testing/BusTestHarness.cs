@@ -161,7 +161,7 @@
             }
             catch (Exception ex)
             {
-                LogContext.Error?.Log(ex, "Stop bus faulted");
+                LogContext.LogError(ex, "Stop bus faulted");
                 throw;
             }
             finally

@@ -66,7 +66,7 @@ namespace MassTransit.Turnout
 
             var check = new SuperviseJobCommand<T>(jobHandle.JobId, job, utcNow, jobHandle.Status);
 
-            LogContext.Debug?.Log("Scheduled job supervision: {JobId} ({MessageType})", jobHandle.JobId, TypeMetadataCache<T>.ShortName);
+            LogContext.LogDebug("Scheduled job supervision: {JobId} ({MessageType})", jobHandle.JobId, TypeMetadataCache<T>.ShortName);
 
             return context.ScheduleSend(_managementAddress, scheduledTime, check);
         }
@@ -83,7 +83,7 @@ namespace MassTransit.Turnout
                 {
                     try
                     {
-                        LogContext.Debug?.Log("Cancelling job: {JobId}", jobHandle.JobId);
+                        LogContext.LogDebug("Cancelling job: {JobId}", jobHandle.JobId);
 
                         await jobHandle.Cancel().ConfigureAwait(false);
 
@@ -93,7 +93,7 @@ namespace MassTransit.Turnout
                     }
                     catch (Exception ex)
                     {
-                        LogContext.Error?.Log(ex, "Cancel job faulted: {JobId}", jobHandle.JobId);
+                        LogContext.LogError(ex, "Cancel job faulted: {JobId}", jobHandle.JobId);
                     }
                 }
             }

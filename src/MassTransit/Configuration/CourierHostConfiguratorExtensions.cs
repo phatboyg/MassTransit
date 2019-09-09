@@ -82,7 +82,7 @@
             if (factory == null)
                 throw new ArgumentNullException(nameof(factory));
 
-            LogContext.Debug?.Log("Configuring Execute Activity: {ActivityType}, {ArgumentType}", TypeMetadataCache<TActivity>.ShortName,
+            LogContext.LogDebug("Configuring Execute Activity: {ActivityType}, {ArgumentType}", TypeMetadataCache<TActivity>.ShortName,
                 TypeMetadataCache<TArguments>.ShortName);
 
             var specification = new ExecuteActivityHostSpecification<TActivity, TArguments>(factory, compensateAddress);
@@ -102,7 +102,7 @@
             if (factory == null)
                 throw new ArgumentNullException(nameof(factory));
 
-            LogContext.Debug?.Log("Configuring Execute Activity: {ActivityType}, {ArgumentType}", TypeMetadataCache<TActivity>.ShortName,
+            LogContext.LogDebug("Configuring Execute Activity: {ActivityType}, {ArgumentType}", TypeMetadataCache<TActivity>.ShortName,
                 TypeMetadataCache<TArguments>.ShortName);
 
             var specification = new ExecuteActivityHostSpecification<TActivity, TArguments>(factory);
@@ -154,7 +154,7 @@
             if (factory == null)
                 throw new ArgumentNullException(nameof(factory));
 
-            LogContext.Debug?.Log("Configuring Compensate Activity: {ActivityType}, {LogType}", TypeMetadataCache<TActivity>.ShortName,
+            LogContext.LogDebug("Configuring Compensate Activity: {ActivityType}, {LogType}", TypeMetadataCache<TActivity>.ShortName,
                 TypeMetadataCache<TLog>.ShortName);
 
             var specification = new CompensateActivityHostSpecification<TActivity, TLog>(factory);

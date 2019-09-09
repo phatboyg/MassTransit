@@ -51,7 +51,7 @@ namespace MassTransit.HttpTransport.Contexts
 
         public async Task Start(CancellationToken cancellationToken)
         {
-            LogContext.Debug?.Log("Configuring WebHost: {Host}", _configuration.HostAddress);
+            LogContext.LogDebug("Configuring WebHost: {Host}", _configuration.HostAddress);
 
             IPHostEntry entries = await Dns.GetHostEntryAsync(_configuration.Settings.Host).ConfigureAwait(false);
 
@@ -74,21 +74,21 @@ namespace MassTransit.HttpTransport.Contexts
                     .Build();
             }
 
-            LogContext.Debug?.Log("Building WebHost: {Host}", _configuration.HostAddress);
+            LogContext.LogDebug("Building WebHost: {Host}", _configuration.HostAddress);
 
             _webHost = BuildWebHost();
 
-            LogContext.Debug?.Log("Starting WebHost: {Host}", _configuration.HostAddress);
+            LogContext.LogDebug("Starting WebHost: {Host}", _configuration.HostAddress);
 
             try
             {
                 await _webHost.StartAsync(cancellationToken).ConfigureAwait(false);
 
-                LogContext.Debug?.Log("Started WebHost: {Host}", _configuration.HostAddress);
+                LogContext.LogDebug("Started WebHost: {Host}", _configuration.HostAddress);
             }
             catch (Exception exception)
             {
-                LogContext.Error?.Log(exception, "Fault starting WebHost: {Host}", _configuration.HostAddress);
+                LogContext.LogError(exception, "Fault starting WebHost: {Host}", _configuration.HostAddress);
 
                 throw;
             }
@@ -101,7 +101,7 @@ namespace MassTransit.HttpTransport.Contexts
             if (_started)
                 throw new InvalidOperationException("The host has already been started, no additional endpoints may be added.");
 
-            LogContext.Debug?.Log("Adding endpoint handler: {Match}", pathMatch);
+            LogContext.LogDebug("Adding endpoint handler: {Match}", pathMatch);
 
             lock (_endpoints)
             {

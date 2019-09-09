@@ -103,7 +103,7 @@ namespace MassTransit.RabbitMqTransport.Integration
                 {
                     var modelContext = await context.CreateModelContext(_cancellationToken).ConfigureAwait(false);
 
-                    LogContext.Debug?.Log("Created model: {ChannelNumber} {Host}", modelContext.Model.ChannelNumber, context.Description);
+                    LogContext.LogDebug("Created model: {ChannelNumber} {Host}", modelContext.Model.ChannelNumber, context.Description);
 
                     await _asyncContext.Created(modelContext).ConfigureAwait(false);
 

@@ -84,35 +84,35 @@ namespace MassTransit.AmazonSqsTransport.Pipeline
 
         Task Declare(ClientContext context, Topic topic)
         {
-            LogContext.Debug?.Log("Create topic {Topic}", topic);
+            LogContext.LogDebug("Create topic {Topic}", topic);
 
             return context.CreateTopic(topic);
         }
 
         Task Declare(ClientContext context, QueueSubscription subscription)
         {
-            LogContext.Debug?.Log("Binding topic {Topic} to {Queue}", subscription.Source, subscription.Destination);
+            LogContext.LogDebug("Binding topic {Topic} to {Queue}", subscription.Source, subscription.Destination);
 
             return context.CreateQueueSubscription(subscription.Source, subscription.Destination);
         }
 
         Task Declare(ClientContext context, Queue queue)
         {
-            LogContext.Debug?.Log("Create queue {Queue}", queue);
+            LogContext.LogDebug("Create queue {Queue}", queue);
 
             return context.CreateQueue(queue);
         }
 
         Task Delete(ClientContext context, Topic topic)
         {
-            LogContext.Debug?.Log("Delete topic {Topic}", topic);
+            LogContext.LogDebug("Delete topic {Topic}", topic);
 
             return context.DeleteTopic(topic);
         }
 
         Task Delete(ClientContext context, Queue queue)
         {
-            LogContext.Debug?.Log("Delete queue {Queue}", queue);
+            LogContext.LogDebug("Delete queue {Queue}", queue);
 
             return context.DeleteQueue(queue);
         }

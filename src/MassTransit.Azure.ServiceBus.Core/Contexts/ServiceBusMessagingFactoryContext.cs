@@ -25,7 +25,7 @@
         {
             await _messagingFactory.CloseAsync().ConfigureAwait(false);
 
-            LogContext.Debug?.Log("Closed messaging factory: {Host}", _messagingFactory.Address);
+            LogContext.LogDebug("Closed messaging factory: {Host}", _messagingFactory.Address);
         }
 
         MessagingFactory MessagingFactoryContext.MessagingFactory => _messagingFactory;

@@ -49,7 +49,7 @@ namespace MassTransit.ActiveMqTransport.Contexts
 
         Task IAsyncDisposable.DisposeAsync(CancellationToken cancellationToken)
         {
-            LogContext.Debug?.Log("Disconnecting: {Host}", Description);
+            LogContext.LogDebug("Disconnecting: {Host}", Description);
 
             try
             {
@@ -59,10 +59,10 @@ namespace MassTransit.ActiveMqTransport.Contexts
             }
             catch (Exception exception)
             {
-                LogContext.Warning?.Log(exception, "Close Connection Faulted: {Host}", Description);
+                LogContext.LogWarning(exception, "Close Connection Faulted: {Host}", Description);
             }
 
-            LogContext.Debug?.Log("Disconnected: {Host}", Description);
+            LogContext.LogDebug("Disconnected: {Host}", Description);
 
             return TaskUtil.Completed;
         }

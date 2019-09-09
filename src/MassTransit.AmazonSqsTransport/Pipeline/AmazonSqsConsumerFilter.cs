@@ -66,7 +66,7 @@ namespace MassTransit.AmazonSqsTransport.Pipeline
 
                 await _context.TransportObservers.Completed(new ReceiveTransportCompletedEvent(inputAddress, metrics)).ConfigureAwait(false);
 
-                LogContext.Debug?.Log("Consumer completed {InputAddress}: {DeliveryCount} received, {ConcurrentDeliveryCount} concurrent", inputAddress,
+                LogContext.LogDebug("Consumer completed {InputAddress}: {DeliveryCount} received, {ConcurrentDeliveryCount} concurrent", inputAddress,
                     metrics.DeliveryCount, metrics.ConcurrentDeliveryCount);
             }
         }

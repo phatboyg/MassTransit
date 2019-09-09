@@ -311,7 +311,7 @@ namespace Automatonymous
                             {
                                 if (!tokenId.HasValue || (messageTokenId.Value != tokenId.Value))
                                 {
-                                    LogContext.Debug?.Log("SAGA: {CorrelationId} Scheduled message not current: {TokenId}", context.Instance.CorrelationId,
+                                    LogContext.LogDebug("SAGA: {CorrelationId} Scheduled message not current: {TokenId}", context.Instance.CorrelationId,
                                         messageTokenId.Value);
 
                                     return;

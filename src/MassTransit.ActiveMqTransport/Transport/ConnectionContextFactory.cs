@@ -66,13 +66,13 @@
                 if (supervisor.Stopping.IsCancellationRequested)
                     throw new OperationCanceledException($"The connection is stopping and cannot be used: {_configuration.Description}");
 
-                LogContext.Debug?.Log("Connecting: {Host}", _configuration.Description);
+                LogContext.LogDebug("Connecting: {Host}", _configuration.Description);
 
                 connection = _configuration.Settings.CreateConnection();
 
                 connection.Start();
 
-                LogContext.Debug?.Log("Connected: {Host} (client-id: {ClientId}, version: {Version})", _configuration.Description, connection.ClientId,
+                LogContext.LogDebug("Connected: {Host} (client-id: {ClientId}, version: {Version})", _configuration.Description, connection.ClientId,
                     connection.MetaData.NMSVersion);
 
                 var connectionContext = new ActiveMqConnectionContext(connection, _configuration, supervisor.Stopped);
@@ -88,7 +88,7 @@
             }
             catch (NMSConnectionException ex)
             {
-                LogContext.Error?.Log(ex, "ActiveMQ connection failed");
+                LogContext.LogError(ex, "ActiveMQ connection failed");
 
                 await asyncContext.CreateFaulted(ex).ConfigureAwait(false);
 

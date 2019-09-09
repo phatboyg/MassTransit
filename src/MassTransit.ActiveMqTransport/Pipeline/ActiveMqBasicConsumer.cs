@@ -77,37 +77,37 @@ namespace MassTransit.ActiveMqTransport.Pipeline
             context.GetOrAddPayload(() => _session.ConnectionContext);
 
 
-            var activity = LogContext.IfEnabled(OperationName.Transport.Receive)?.StartActivity();
-            activity.AddReceiveContextHeaders(context);
-
-            try
+            using (var activity = LogContext.StartActivity(OperationName.Transport.Receive))
             {
-                if (!_pending.TryAdd(message.NMSMessageId, context))
-                    LogContext.Warning?.Log("Duplicate message: {MessageId}", message.NMSMessageId);
+                activity.AddReceiveContextHeaders(context);
 
-                await _context.ReceiveObservers.PreReceive(context).ConfigureAwait(false);
+                try
+                {
+                    if (!_pending.TryAdd(message.NMSMessageId, context))
+                        LogContext.LogWarning("Duplicate message: {MessageId}", message.NMSMessageId);
 
-                await _context.ReceivePipe.Send(context).ConfigureAwait(false);
+                    await _context.ReceiveObservers.PreReceive(context).ConfigureAwait(false);
 
-                await context.ReceiveCompleted.ConfigureAwait(false);
+                    await _context.ReceivePipe.Send(context).ConfigureAwait(false);
 
-                message.Acknowledge();
+                    await context.ReceiveCompleted.ConfigureAwait(false);
 
-                await _context.ReceiveObservers.PostReceive(context).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                await _context.ReceiveObservers.ReceiveFault(context, ex).ConfigureAwait(false);
-            }
-            finally
-            {
-                activity?.Stop();
+                    message.Acknowledge();
 
-                delivery.Dispose();
+                    await _context.ReceiveObservers.PostReceive(context).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    await _context.ReceiveObservers.ReceiveFault(context, ex).ConfigureAwait(false);
+                }
+                finally
+                {
+                    delivery.Dispose();
 
-                _pending.TryRemove(message.NMSMessageId, out _);
+                    _pending.TryRemove(message.NMSMessageId, out _);
 
-                context.Dispose();
+                    context.Dispose();
+                }
             }
         }
 
@@ -119,7 +119,7 @@ namespace MassTransit.ActiveMqTransport.Pipeline
         {
             if (IsStopping)
             {
-                LogContext.Debug?.Log("Consumer shutdown completed: {InputAddress}", _context.InputAddress);
+                LogContext.LogDebug("Consumer shutdown completed: {InputAddress}", _context.InputAddress);
 
                 _deliveryComplete.TrySetResult(true);
             }
@@ -133,13 +133,13 @@ namespace MassTransit.ActiveMqTransport.Pipeline
             }
             catch (Exception exception)
             {
-                LogContext.Error?.Log(exception, "DeliveryComplete faulted during shutdown: {InputAddress}", _context.InputAddress);
+                LogContext.LogError(exception, "DeliveryComplete faulted during shutdown: {InputAddress}", _context.InputAddress);
             }
         }
 
         protected override async Task StopSupervisor(StopSupervisorContext context)
         {
-            LogContext.Debug?.Log("Stopping consumer: {InputAddress}", _context.InputAddress);
+            LogContext.LogDebug("Stopping consumer: {InputAddress}", _context.InputAddress);
 
             SetCompleted(ActiveAndActualAgentsCompleted(context));
 
@@ -158,7 +158,7 @@ namespace MassTransit.ActiveMqTransport.Pipeline
                 }
                 catch (OperationCanceledException)
                 {
-                    LogContext.Warning?.Log("Stop canceled waiting for message consumers to complete: {InputAddress}", _context.InputAddress);
+                    LogContext.LogWarning("Stop canceled waiting for message consumers to complete: {InputAddress}", _context.InputAddress);
                 }
             }
 
@@ -169,7 +169,7 @@ namespace MassTransit.ActiveMqTransport.Pipeline
             }
             catch (OperationCanceledException)
             {
-                LogContext.Warning?.Log("Stop canceled waiting for consumer shutdown: {InputAddress}", _context.InputAddress);
+                LogContext.LogWarning("Stop canceled waiting for consumer shutdown: {InputAddress}", _context.InputAddress);
             }
         }
     }

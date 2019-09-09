@@ -44,7 +44,7 @@ namespace MassTransit.Azure.ServiceBus.Core.Pipeline
 
         async Task IFilter<ClientContext>.Send(ClientContext context, IPipe<ClientContext> next)
         {
-            LogContext.Debug?.Log("Creating message receiver for {InputAddress}", context.InputAddress);
+            LogContext.LogDebug("Creating message receiver for {InputAddress}", context.InputAddress);
 
             var receiver = CreateMessageReceiver(context, _messageReceiver);
 
@@ -66,7 +66,7 @@ namespace MassTransit.Azure.ServiceBus.Core.Pipeline
 
                 await _transportObserver.Completed(new ReceiveTransportCompletedEvent(context.InputAddress, metrics)).ConfigureAwait(false);
 
-                LogContext.Debug?.Log("Consumer completed {InputAddress}: {DeliveryCount} received, {ConcurrentDeliveryCount} concurrent", context.InputAddress,
+                LogContext.LogDebug("Consumer completed {InputAddress}: {DeliveryCount} received, {ConcurrentDeliveryCount} concurrent", context.InputAddress,
                     metrics.DeliveryCount, metrics.ConcurrentDeliveryCount);
             }
 

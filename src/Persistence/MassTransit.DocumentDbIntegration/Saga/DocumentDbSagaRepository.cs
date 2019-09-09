@@ -177,13 +177,13 @@
             }
             catch (SagaException sex)
             {
-                LogContext.Error?.Log(sex, "SAGA:{SagaType} Exception {MessageType}", TypeMetadataCache<TSaga>.ShortName, TypeMetadataCache<T>.ShortName);
+                LogContext.LogError(sex, "SAGA:{SagaType} Exception {MessageType}", TypeMetadataCache<TSaga>.ShortName, TypeMetadataCache<T>.ShortName);
 
                 throw;
             }
             catch (Exception ex)
             {
-                LogContext.Error?.Log(ex, "SAGA:{SagaType} Exception {MessageType}", TypeMetadataCache<TSaga>.ShortName, TypeMetadataCache<T>.ShortName);
+                LogContext.LogError(ex, "SAGA:{SagaType} Exception {MessageType}", TypeMetadataCache<TSaga>.ShortName, TypeMetadataCache<T>.ShortName);
 
                 throw new SagaException(ex.Message, typeof(TSaga), typeof(T), Guid.Empty, ex);
             }
@@ -198,14 +198,14 @@
                     await _client.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(_databaseName, _collectionName), instance, _requestOptions, true)
                         .ConfigureAwait(false);
 
-                LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Insert {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Insert {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                     instance.CorrelationId, TypeMetadataCache<T>.ShortName);
 
                 return JsonConvert.DeserializeObject<TSaga>(response.Resource.ToString(), _jsonSerializerSettings);
             }
             catch (Exception ex)
             {
-                LogContext.Debug?.Log(ex, "SAGA:{SagaType}:{CorrelationId} Dupe {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                LogContext.LogDebug(ex, "SAGA:{SagaType}:{CorrelationId} Dupe {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                     instance.CorrelationId, TypeMetadataCache<T>.ShortName);
             }
 
@@ -217,7 +217,7 @@
         {
             try
             {
-                LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Used {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Used {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                     instance.CorrelationId, TypeMetadataCache<T>.ShortName);
 
                 SagaConsumeContext<TSaga, T> sagaConsumeContext =

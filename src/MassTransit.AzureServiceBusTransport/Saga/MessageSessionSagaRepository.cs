@@ -59,7 +59,7 @@ namespace MassTransit.AzureServiceBusTransport.Saga
             {
                 SagaConsumeContext<TSaga, T> sagaConsumeContext = new MessageSessionSagaConsumeContext<TSaga, T>(context, sessionContext, saga);
 
-                LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Used {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Used {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                     context.CorrelationId, TypeMetadataCache<T>.ShortName);
 
                 await policy.Existing(sagaConsumeContext, next).ConfigureAwait(false);
@@ -68,7 +68,7 @@ namespace MassTransit.AzureServiceBusTransport.Saga
                 {
                     await WriteSagaState(sessionContext, saga).ConfigureAwait(false);
 
-                    LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Updated {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                    LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Updated {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                         context.CorrelationId, TypeMetadataCache<T>.ShortName);
                 }
             }
@@ -156,7 +156,7 @@ namespace MassTransit.AzureServiceBusTransport.Saga
 
                 var proxy = new MessageSessionSagaConsumeContext<TSaga, TMessage>(context, sessionContext, context.Saga);
 
-                LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Created {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Created {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                     context.Saga.CorrelationId, TypeMetadataCache<TMessage>.ShortName);
 
                 try
@@ -167,13 +167,13 @@ namespace MassTransit.AzureServiceBusTransport.Saga
                     {
                         await _writeSagaState(sessionContext, proxy.Saga).ConfigureAwait(false);
 
-                        LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Saved {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                        LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Saved {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                             context.Saga.CorrelationId, TypeMetadataCache<TMessage>.ShortName);
                     }
                 }
                 catch (Exception)
                 {
-                    LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Removed(Fault) {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                    LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Removed(Fault) {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                         context.Saga.CorrelationId, TypeMetadataCache<TMessage>.ShortName);
 
                     throw;

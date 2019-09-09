@@ -58,11 +58,11 @@ namespace MassTransit.HttpTransport.Clients
 
                 _client.Dispose();
 
-                LogContext.Debug?.Log("Closed client: {Host}", _client.BaseAddress);
+                LogContext.LogDebug("Closed client: {Host}", _client.BaseAddress);
             }
             catch (Exception ex)
             {
-                LogContext.Error?.Log(ex, "Failed to close client: {Host}", _client.BaseAddress);
+                LogContext.LogError(ex, "Failed to close client: {Host}", _client.BaseAddress);
             }
 
             return TaskUtil.Completed;

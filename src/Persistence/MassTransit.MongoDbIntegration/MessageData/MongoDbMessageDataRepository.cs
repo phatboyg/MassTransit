@@ -51,7 +51,7 @@
             var id = await _bucket.UploadFromStreamAsync(filename, stream, options, cancellationToken)
                 .ConfigureAwait(false);
 
-            LogContext.Debug?.Log("MessageData:Put {Id} {FileName}", id, filename);
+            LogContext.LogDebug("MessageData:Put {Id} {FileName}", id, filename);
 
             return _resolver.GetAddress(id);
         }

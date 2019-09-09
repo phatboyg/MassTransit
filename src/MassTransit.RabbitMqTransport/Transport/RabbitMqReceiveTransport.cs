@@ -122,7 +122,7 @@
 
         async Task<RabbitMqConnectionException> ConvertToRabbitMqConnectionException(Exception ex, string message)
         {
-            LogContext.Error?.Log(ex, message);
+            LogContext.LogError(ex, message);
 
             var exception = new RabbitMqConnectionException(message + _host.ConnectionContextSupervisor, ex);
 
@@ -133,7 +133,7 @@
 
         Task NotifyFaulted(RabbitMqConnectionException exception)
         {
-            LogContext.Error?.Log(exception, "RabbitMQ Connect Failed: {Host}", _host.Settings.ToDescription());
+            LogContext.LogError(exception, "RabbitMQ Connect Failed: {Host}", _host.Settings.ToDescription());
 
             return _receiveEndpointContext.TransportObservers.Faulted(new ReceiveTransportFaultedEvent(_inputAddress, exception));
         }

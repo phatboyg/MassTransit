@@ -39,7 +39,7 @@ namespace MassTransit.Turnout
             if (!_registry.TryGetJob(context.Message.JobId, out var jobHandle))
                 throw new JobNotFoundException($"The JobId {context.Message.JobId} was not found.");
 
-            LogContext.Debug?.Log("Cancelling job: {JobId}", jobHandle.JobId);
+            LogContext.LogDebug("Cancelling job: {JobId}", jobHandle.JobId);
 
             await jobHandle.Cancel().ConfigureAwait(false);
 
@@ -74,7 +74,7 @@ namespace MassTransit.Turnout
             }
             else
             {
-                LogContext.Warning?.Log("Cancelled job not found: {JobId}", context.Message.JobId);
+                LogContext.LogWarning("Cancelled job not found: {JobId}", context.Message.JobId);
             }
         }
     }

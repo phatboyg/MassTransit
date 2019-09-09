@@ -47,7 +47,7 @@
 
         public Task DisposeAsync(CancellationToken cancellationToken)
         {
-            LogContext.Debug?.Log("Closing model: {ChannelNumber} {Host}", _model.ChannelNumber, _connectionContext.Description);
+            LogContext.LogDebug("Closing model: {ChannelNumber} {Host}", _model.ChannelNumber, _connectionContext.Description);
 
             try
             {
@@ -61,10 +61,10 @@
 
                         _model.WaitForConfirms(_connectionContext.StopTimeout, out timedOut);
                         if (timedOut)
-                            LogContext.Warning?.Log("Timeout waiting for pending confirms:  {ChannelNumber} {Host}", _model.ChannelNumber,
+                            LogContext.LogWarning("Timeout waiting for pending confirms:  {ChannelNumber} {Host}", _model.ChannelNumber,
                                 _connectionContext.Description);
                         else
-                            LogContext.Debug?.Log("Pending confirms complete:  {ChannelNumber} {Host}", _model.ChannelNumber,
+                            LogContext.LogDebug("Pending confirms complete:  {ChannelNumber} {Host}", _model.ChannelNumber,
                                 _connectionContext.Description);
                     }
                     while (timedOut);
@@ -72,7 +72,7 @@
             }
             catch (Exception ex)
             {
-                LogContext.Error?.Log(ex, "Fault waiting for pending confirms:  {ChannelNumber} {Host}", _model.ChannelNumber,
+                LogContext.LogError(ex, "Fault waiting for pending confirms:  {ChannelNumber} {Host}", _model.ChannelNumber,
                     _connectionContext.Description);
             }
 
@@ -178,7 +178,7 @@
 
         void OnBasicReturn(object model, BasicReturnEventArgs args)
         {
-            LogContext.Debug?.Log("BasicReturn: {ReplyCode}-{ReplyText} {MessageId}", args.ReplyCode, args.ReplyText, args.BasicProperties.MessageId);
+            LogContext.LogDebug("BasicReturn: {ReplyCode}-{ReplyText} {MessageId}", args.ReplyCode, args.ReplyText, args.BasicProperties.MessageId);
 
             if (args.BasicProperties.Headers.TryGetValue("publishId", out var value))
             {

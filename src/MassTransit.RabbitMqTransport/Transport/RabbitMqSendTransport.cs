@@ -52,7 +52,7 @@
 
         protected override Task StopSupervisor(StopSupervisorContext context)
         {
-            LogContext.Debug?.Log("Stopping send transport: {Exchange}", _context.Exchange);
+            LogContext.LogDebug("Stopping send transport: {Exchange}", _context.Exchange);
 
             return base.StopSupervisor(context);
         }
@@ -86,60 +86,58 @@
 
                 var context = new BasicPublishRabbitMqSendContext<T>(properties, _context.Exchange, _message, _cancellationToken);
 
-                var activity = LogContext.IfEnabled(OperationName.Transport.Send)?.StartActivity(new {_context.Exchange});
-                try
+                using (var activity = LogContext.StartActivity(OperationName.Transport.Send, new {_context.Exchange}))
                 {
-                    await _pipe.Send(context).ConfigureAwait(false);
+                    try
+                    {
+                        await _pipe.Send(context).ConfigureAwait(false);
 
-                    activity.AddSendContextHeaders(context);
+                        activity.AddSendContextHeaders(context);
 
-                    byte[] body = context.Body;
+                        byte[] body = context.Body;
 
-                    if (context.TryGetPayload(out PublishContext publishContext))
-                        context.Mandatory = context.Mandatory || publishContext.Mandatory;
+                        if (context.TryGetPayload(out PublishContext publishContext))
+                            context.Mandatory = context.Mandatory || publishContext.Mandatory;
 
-                    if (properties.Headers == null)
-                        properties.Headers = new Dictionary<string, object>();
+                        if (properties.Headers == null)
+                            properties.Headers = new Dictionary<string, object>();
 
-                    properties.ContentType = context.ContentType.MediaType;
+                        properties.ContentType = context.ContentType.MediaType;
 
-                    properties.Headers["Content-Type"] = context.ContentType.MediaType;
+                        properties.Headers["Content-Type"] = context.ContentType.MediaType;
 
-                    SetHeaders(properties.Headers, context.Headers);
+                        SetHeaders(properties.Headers, context.Headers);
 
-                    properties.Persistent = context.Durable;
+                        properties.Persistent = context.Durable;
 
-                    if (context.MessageId.HasValue)
-                        properties.MessageId = context.MessageId.ToString();
+                        if (context.MessageId.HasValue)
+                            properties.MessageId = context.MessageId.ToString();
 
-                    if (context.CorrelationId.HasValue)
-                        properties.CorrelationId = context.CorrelationId.ToString();
+                        if (context.CorrelationId.HasValue)
+                            properties.CorrelationId = context.CorrelationId.ToString();
 
-                    if (context.TimeToLive.HasValue)
-                        properties.Expiration = context.TimeToLive.Value.TotalMilliseconds.ToString("F0", CultureInfo.InvariantCulture);
+                        if (context.TimeToLive.HasValue)
+                            properties.Expiration = context.TimeToLive.Value.TotalMilliseconds.ToString("F0", CultureInfo.InvariantCulture);
 
-                    await _context.SendObservers.PreSend(context).ConfigureAwait(false);
+                        await _context.SendObservers.PreSend(context).ConfigureAwait(false);
 
-                    var publishTask = modelContext.BasicPublishAsync(context.Exchange, context.RoutingKey ?? "", context.Mandatory,
-                        context.BasicProperties, body, context.AwaitAck);
+                        var publishTask = modelContext.BasicPublishAsync(context.Exchange, context.RoutingKey ?? "", context.Mandatory,
+                            context.BasicProperties, body, context.AwaitAck);
 
-                    await publishTask.WithCancellation(context.CancellationToken).ConfigureAwait(false);
+                        await publishTask.WithCancellation(context.CancellationToken).ConfigureAwait(false);
 
-                    context.LogSent();
+                        context.LogSent();
 
-                    await _context.SendObservers.PostSend(context).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    context.LogFaulted(ex);
+                        await _context.SendObservers.PostSend(context).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        context.LogFaulted(ex);
 
-                    await _context.SendObservers.SendFault(context, ex).ConfigureAwait(false);
+                        await _context.SendObservers.SendFault(context, ex).ConfigureAwait(false);
 
-                    throw;
-                }
-                finally
-                {
-                    activity?.Stop();
+                        throw;
+                    }
                 }
             }
 

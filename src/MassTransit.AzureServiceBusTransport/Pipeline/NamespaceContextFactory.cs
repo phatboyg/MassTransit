@@ -85,7 +85,7 @@ namespace MassTransit.AzureServiceBusTransport.Pipeline
                 if (supervisor.Stopping.IsCancellationRequested)
                     throw new OperationCanceledException($"The namespace is stopping and cannot be used: {_serviceUri}");
 
-                LogContext.Debug?.Log("Created NamespaceManager: {ServiceUri}", _serviceUri);
+                LogContext.LogDebug("Created NamespaceManager: {ServiceUri}", _serviceUri);
 
                 var namespaceManager = new NamespaceManager(_serviceUri, _settings);
 
@@ -95,7 +95,7 @@ namespace MassTransit.AzureServiceBusTransport.Pipeline
             }
             catch (Exception ex)
             {
-                LogContext.Error?.Log(ex, "Create NamespaceManager faulted: {ServiceUri}", _serviceUri);
+                LogContext.LogError(ex, "Create NamespaceManager faulted: {ServiceUri}", _serviceUri);
 
                 throw;
             }

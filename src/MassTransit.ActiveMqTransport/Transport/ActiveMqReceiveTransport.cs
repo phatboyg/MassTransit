@@ -110,7 +110,7 @@
 
         async Task<ActiveMqConnectException> ConvertToActiveMqConnectionException(Exception ex, string message)
         {
-            LogContext.Error?.Log(ex, message);
+            LogContext.LogError(ex, message);
 
             var exception = new ActiveMqConnectException(message + _host.ConnectionContextSupervisor, ex);
 
@@ -121,7 +121,7 @@
 
         Task NotifyFaulted(Exception exception)
         {
-            LogContext.Error?.Log(exception, "ActiveMQ Connect Failed: {Host}", _host.Settings.ToDescription());
+            LogContext.LogError(exception, "ActiveMQ Connect Failed: {Host}", _host.Settings.ToDescription());
 
             return _receiveEndpointContext.TransportObservers.Faulted(new ReceiveTransportFaultedEvent(_inputAddress, exception));
         }

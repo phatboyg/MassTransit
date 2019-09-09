@@ -101,7 +101,7 @@ namespace MassTransit.AmazonSqsTransport.Contexts
             // required to preserve backwards compability
             if (queue.EntityName.EndsWith(".fifo", true, CultureInfo.InvariantCulture) && !queue.QueueAttributes.ContainsKey(QueueAttributeName.FifoQueue))
             {
-                LogContext.Warning?.Log("Using '.fifo' suffix without 'FifoQueue' attribute might cause unexpected behavior.");
+                LogContext.LogWarning("Using '.fifo' suffix without 'FifoQueue' attribute might cause unexpected behavior.");
 
                 queue.QueueAttributes[QueueAttributeName.FifoQueue] = true;
             }

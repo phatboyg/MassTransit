@@ -27,7 +27,7 @@
 
         public Task DisposeAsync(CancellationToken cancellationToken = new CancellationToken())
         {
-            LogContext.Debug?.Log("Closed namespace manager: {Host}", _namespaceManager.Address);
+            LogContext.LogDebug("Closed namespace manager: {Host}", _namespaceManager.Address);
 
             return TaskUtil.Completed;
         }
@@ -46,7 +46,7 @@
             {
                 try
                 {
-                    LogContext.Debug?.Log("Creating queue {Queue}", queueDescription.Path);
+                    LogContext.LogDebug("Creating queue {Queue}", queueDescription.Path);
 
                     queueDescription = await _namespaceManager.CreateQueueAsync(queueDescription).ConfigureAwait(false);
                 }
@@ -56,7 +56,7 @@
                 }
             }
 
-            LogContext.Debug?.Log("Queue: {Queue} ({Attributes})", queueDescription.Path,
+            LogContext.LogDebug("Queue: {Queue} ({Attributes})", queueDescription.Path,
                 string.Join(", ",
                     new[]
                     {
@@ -80,7 +80,7 @@
             {
                 try
                 {
-                    LogContext.Debug?.Log("Creating topic {Topic}", topicDescription.Path);
+                    LogContext.LogDebug("Creating topic {Topic}", topicDescription.Path);
 
                     topicDescription = await _namespaceManager.CreateTopicAsync(topicDescription).ConfigureAwait(false);
                 }
@@ -90,7 +90,7 @@
                 }
             }
 
-            LogContext.Debug?.Log("Topic: {Topic} ({Attributes})", topicDescription.Path,
+            LogContext.LogDebug("Topic: {Topic} ({Attributes})", topicDescription.Path,
                 string.Join(", ", new[]
                 {
                     topicDescription.RequiresDuplicateDetection ? "dupe detect" : "",
@@ -124,7 +124,7 @@
 
                 if (!targetForwardTo.Equals(currentForwardTo))
                 {
-                    LogContext.Debug?.Log("Updating subscription: {Subscription} ({Topic} -> {ForwardTo})", subscriptionDescription.SubscriptionName,
+                    LogContext.LogDebug("Updating subscription: {Subscription} ({Topic} -> {ForwardTo})", subscriptionDescription.SubscriptionName,
                         subscriptionDescription.TopicPath, subscriptionDescription.ForwardTo);
 
                     await _namespaceManager.UpdateSubscriptionAsync(description).ConfigureAwait(false);
@@ -136,7 +136,7 @@
                         .ConfigureAwait(false);
                     if (rule.Name == ruleDescription.Name && (rule.Filter != ruleDescription.Filter || rule.Action != ruleDescription.Action))
                     {
-                        LogContext.Debug?.Log("Updating subscription Rule: {Rule} ({DescriptionFilter} -> {Filter})", rule.Name,
+                        LogContext.LogDebug("Updating subscription Rule: {Rule} ({DescriptionFilter} -> {Filter})", rule.Name,
                             ruleDescription.Filter.ToString(), rule.Filter.ToString());
 
                         await _namespaceManager.UpdateRuleAsync(description.TopicPath, description.SubscriptionName, rule).ConfigureAwait(false);
@@ -154,7 +154,7 @@
                 var created = false;
                 try
                 {
-                    LogContext.Debug?.Log("Creating subscription {Subscription} {Topic} -> {ForwardTo}", description.SubscriptionName, description.TopicPath,
+                    LogContext.LogDebug("Creating subscription {Subscription} {Topic} -> {ForwardTo}", description.SubscriptionName, description.TopicPath,
                         description.ForwardTo);
 
                     subscriptionDescription = rule != null
@@ -174,7 +174,7 @@
                         .ConfigureAwait(false);
             }
 
-            LogContext.Debug?.Log("Subscription {Subscription} ({Topic} -> {ForwardTo})", subscriptionDescription.SubscriptionName,
+            LogContext.LogDebug("Subscription {Subscription} ({Topic} -> {ForwardTo})", subscriptionDescription.SubscriptionName,
                 subscriptionDescription.TopicPath, subscriptionDescription.ForwardTo);
 
             return subscriptionDescription;
@@ -190,7 +190,7 @@
             {
             }
 
-            LogContext.Debug?.Log("Subscription Deleted: {Subscription} ({Topic} -> {ForwardTo})", description.SubscriptionName, description.TopicPath,
+            LogContext.LogDebug("Subscription Deleted: {Subscription} ({Topic} -> {ForwardTo})", description.SubscriptionName, description.TopicPath,
                 description.ForwardTo);
         }
     }

@@ -54,31 +54,28 @@ namespace MassTransit.Pipeline.Filters
         [DebuggerNonUserCode]
         async Task IFilter<ConsumeContext<TMessage>>.Send(ConsumeContext<TMessage> context, IPipe<ConsumeContext<TMessage>> next)
         {
-            var activity = LogContext.IfEnabled(OperationName.Consumer.Consume)?.StartActivity(new
+            using (var activity = LogContext.StartActivity(OperationName.Consumer.Consume, new
             {
                 ConsumerType = TypeMetadataCache<TConsumer>.ShortName,
                 MessageType = TypeMetadataCache<TMessage>.ShortName
-            });
-
-            var timer = Stopwatch.StartNew();
-            try
+            }))
             {
-                await Task.Yield();
+                var timer = Stopwatch.StartNew();
+                try
+                {
+                    await Task.Yield();
 
-                await _consumerFactory.Send(context, _consumerPipe).ConfigureAwait(false);
+                    await _consumerFactory.Send(context, _consumerPipe).ConfigureAwait(false);
 
-                await context.NotifyConsumed(timer.Elapsed, TypeMetadataCache<TConsumer>.ShortName).ConfigureAwait(false);
+                    await context.NotifyConsumed(timer.Elapsed, TypeMetadataCache<TConsumer>.ShortName).ConfigureAwait(false);
 
-                await next.Send(context).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                await context.NotifyFaulted(timer.Elapsed, TypeMetadataCache<TConsumer>.ShortName, ex).ConfigureAwait(false);
-                throw;
-            }
-            finally
-            {
-                activity?.Stop();
+                    await next.Send(context).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    await context.NotifyFaulted(timer.Elapsed, TypeMetadataCache<TConsumer>.ShortName, ex).ConfigureAwait(false);
+                    throw;
+                }
             }
         }
     }

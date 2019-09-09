@@ -39,7 +39,7 @@ namespace MassTransit.AzureServiceBusTransport.Contexts
 
         public Task DisposeAsync(CancellationToken cancellationToken = new CancellationToken())
         {
-            LogContext.Debug?.Log("Closed namespace manager: {Host}", _namespaceManager.Address);
+            LogContext.LogDebug("Closed namespace manager: {Host}", _namespaceManager.Address);
 
             return TaskUtil.Completed;
         }
@@ -64,7 +64,7 @@ namespace MassTransit.AzureServiceBusTransport.Contexts
                 var created = false;
                 try
                 {
-                    LogContext.Debug?.Log("Creating queue {Queue}", queueDescription.Path);
+                    LogContext.LogDebug("Creating queue {Queue}", queueDescription.Path);
 
                     queueDescription = await _namespaceManager.CreateQueueAsync(queueDescription).ConfigureAwait(false);
 
@@ -88,7 +88,7 @@ namespace MassTransit.AzureServiceBusTransport.Contexts
                     queueDescription = await _namespaceManager.GetQueueAsync(queueDescription.Path).ConfigureAwait(false);
             }
 
-            LogContext.Debug?.Log("Queue: {Queue} ({Attributes})", queueDescription.Path,
+            LogContext.LogDebug("Queue: {Queue} ({Attributes})", queueDescription.Path,
                 string.Join(", ",
                     new[]
                     {
@@ -119,7 +119,7 @@ namespace MassTransit.AzureServiceBusTransport.Contexts
                 var created = false;
                 try
                 {
-                    LogContext.Debug?.Log("Creating topic {Topic}", topicDescription.Path);
+                    LogContext.LogDebug("Creating topic {Topic}", topicDescription.Path);
 
                     topicDescription = await _namespaceManager.CreateTopicAsync(topicDescription).ConfigureAwait(false);
 
@@ -143,7 +143,7 @@ namespace MassTransit.AzureServiceBusTransport.Contexts
                     topicDescription = await _namespaceManager.GetTopicAsync(topicDescription.Path).ConfigureAwait(false);
             }
 
-            LogContext.Debug?.Log("Topic: {Topic} ({Attributes})", topicDescription.Path,
+            LogContext.LogDebug("Topic: {Topic} ({Attributes})", topicDescription.Path,
                 string.Join(", ",
                     new[] {topicDescription.EnableExpress ? "express" : "", topicDescription.RequiresDuplicateDetection ? "dupe detect" : ""}.Where(x =>
                         !string.IsNullOrWhiteSpace(x))));
@@ -174,7 +174,7 @@ namespace MassTransit.AzureServiceBusTransport.Contexts
 
                 if (!targetForwardTo.Equals(currentForwardTo))
                 {
-                    LogContext.Debug?.Log("Updating subscription: {Subscription} ({Topic} -> {ForwardTo})", subscriptionDescription.Name,
+                    LogContext.LogDebug("Updating subscription: {Subscription} ({Topic} -> {ForwardTo})", subscriptionDescription.Name,
                         subscriptionDescription.TopicPath, subscriptionDescription.ForwardTo);
 
                     await _namespaceManager.UpdateSubscriptionAsync(description).ConfigureAwait(false);
@@ -191,7 +191,7 @@ namespace MassTransit.AzureServiceBusTransport.Contexts
                 var created = false;
                 try
                 {
-                    LogContext.Debug?.Log("Creating subscription {Subscription} {Topic} -> {ForwardTo}", description.Name, description.TopicPath,
+                    LogContext.LogDebug("Creating subscription {Subscription} {Topic} -> {ForwardTo}", description.Name, description.TopicPath,
                         description.ForwardTo);
 
                     subscriptionDescription = rule != null
@@ -212,7 +212,7 @@ namespace MassTransit.AzureServiceBusTransport.Contexts
             }
 
 
-            LogContext.Debug?.Log("Subscription {Subscription} ({Topic} -> {ForwardTo})", subscriptionDescription.Name,
+            LogContext.LogDebug("Subscription {Subscription} ({Topic} -> {ForwardTo})", subscriptionDescription.Name,
                 subscriptionDescription.TopicPath, subscriptionDescription.ForwardTo);
 
             return subscriptionDescription;
@@ -228,7 +228,7 @@ namespace MassTransit.AzureServiceBusTransport.Contexts
             {
             }
 
-            LogContext.Debug?.Log("Subscription Deleted: {Subscription} ({Topic} -> {ForwardTo})", description.Name, description.TopicPath,
+            LogContext.LogDebug("Subscription Deleted: {Subscription} ({Topic} -> {ForwardTo})", description.Name, description.TopicPath,
                 description.ForwardTo);
         }
     }

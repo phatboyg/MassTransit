@@ -5,6 +5,7 @@
     using System.Threading;
     using Context;
     using MassTransit.Saga;
+    using Microsoft.Extensions.Logging;
     using NHibernate;
     using NHibernate.Cfg;
     using NHibernate.Cfg.Loquacious;
@@ -58,7 +59,7 @@
         /// </summary>
         public void UpdateSchema()
         {
-            LogContext.Debug?.Log("Updating schema for connection: {Connection}", Configuration);
+            LogContext.LogDebug("Updating schema for connection: {Connection}", Configuration);
 
             new SchemaUpdate(Configuration).Execute(false, true);
         }

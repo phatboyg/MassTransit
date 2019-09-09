@@ -76,7 +76,7 @@
                 if (supervisor.Stopping.IsCancellationRequested)
                     throw new OperationCanceledException($"The connection is stopping and cannot be used: {_description}");
 
-                LogContext.Debug?.Log("Connecting: {Host}", _description);
+                LogContext.LogDebug("Connecting: {Host}", _description);
 
                 if (_configuration.Settings.ClusterMembers?.Any() ?? false)
                 {
@@ -89,7 +89,7 @@
                     connection = _connectionFactory.Value.CreateConnection(hostNames, _configuration.Settings.ClientProvidedName);
                 }
 
-                LogContext.Debug?.Log("Connected: {Host} (address: {RemoteAddress}, local: {LocalAddress})", _description, connection.Endpoint,
+                LogContext.LogDebug("Connected: {Host} (address: {RemoteAddress}, local: {LocalAddress})", _description, connection.Endpoint,
                     connection.LocalPort);
 
                 var connectionContext = new RabbitMqConnectionContext(connection, _configuration, _description, supervisor.Stopped);
@@ -100,7 +100,7 @@
             }
             catch (ConnectFailureException ex)
             {
-                LogContext.Debug?.Log(ex, "RabbitMQ Connect failed: {Host}", _description);
+                LogContext.LogDebug(ex, "RabbitMQ Connect failed: {Host}", _description);
 
                 connection?.Dispose();
 
@@ -108,7 +108,7 @@
             }
             catch (BrokerUnreachableException ex)
             {
-                LogContext.Debug?.Log(ex, "RabbitMQ unreachable: {Host}", _description);
+                LogContext.LogDebug(ex, "RabbitMQ unreachable: {Host}", _description);
 
                 connection?.Dispose();
 
@@ -116,7 +116,7 @@
             }
             catch (OperationInterruptedException ex)
             {
-                LogContext.Debug?.Log(ex, "RabbitMQ operation interrupted: {Host}", _description);
+                LogContext.LogDebug(ex, "RabbitMQ operation interrupted: {Host}", _description);
 
                 connection?.Dispose();
 

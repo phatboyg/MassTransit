@@ -97,7 +97,7 @@ namespace MassTransit.Host
             }
             catch (BadImageFormatException e)
             {
-                LogContext.Warning?.Log(e, "Assembly Scan failed: {File}", assemblyFile);
+                LogContext.LogWarning(e, "Assembly Scan failed: {File}", assemblyFile);
                 return null;
             }
         }

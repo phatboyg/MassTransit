@@ -87,7 +87,7 @@ namespace MassTransit.WebJobs.EventHubsIntegration
 
         protected override Task StopSupervisor(StopSupervisorContext context)
         {
-            LogContext.Debug?.Log("Stopping Transport: {Address}", _address);
+            LogContext.LogDebug("Stopping Transport: {Address}", _address);
 
             return base.StopSupervisor(context);
         }

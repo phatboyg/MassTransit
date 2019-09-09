@@ -82,7 +82,7 @@ namespace MassTransit.AmazonSqsTransport.Pipeline
                 try
                 {
                     if (!_pending.TryAdd(message.MessageId, context))
-                        LogContext.Error?.Log("Duplicate message: {MessageId}", message.MessageId);
+                        LogContext.LogError("Duplicate message: {MessageId}", message.MessageId);
 
                     await _context.ReceiveObservers.PreReceive(context).ConfigureAwait(false);
 
@@ -115,7 +115,7 @@ namespace MassTransit.AmazonSqsTransport.Pipeline
         {
             if (IsStopping)
             {
-                LogContext.Debug?.Log("Consumer shutdown completed: {InputAddress}", _context.InputAddress);
+                LogContext.LogDebug("Consumer shutdown completed: {InputAddress}", _context.InputAddress);
 
                 _deliveryComplete.TrySetResult(true);
             }
@@ -129,13 +129,13 @@ namespace MassTransit.AmazonSqsTransport.Pipeline
             }
             catch (Exception exception)
             {
-                LogContext.Error?.Log(exception, "DeliveryComplete faulted during shutdown: {InputAddress}", _context.InputAddress);
+                LogContext.LogError(exception, "DeliveryComplete faulted during shutdown: {InputAddress}", _context.InputAddress);
             }
         }
 
         protected override async Task StopSupervisor(StopSupervisorContext context)
         {
-            LogContext.Debug?.Log("Stopping consumer: {InputAddress}", _context.InputAddress);
+            LogContext.LogDebug("Stopping consumer: {InputAddress}", _context.InputAddress);
 
             SetCompleted(ActiveAndActualAgentsCompleted(context));
 
@@ -154,7 +154,7 @@ namespace MassTransit.AmazonSqsTransport.Pipeline
                 }
                 catch (OperationCanceledException)
                 {
-                    LogContext.Warning?.Log("Stop canceled waiting for message consumers to complete: {InputAddress}", _context.InputAddress);
+                    LogContext.LogWarning("Stop canceled waiting for message consumers to complete: {InputAddress}", _context.InputAddress);
                 }
             }
         }

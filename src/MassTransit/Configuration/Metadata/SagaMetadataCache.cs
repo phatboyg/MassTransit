@@ -94,7 +94,7 @@ namespace MassTransit.Metadata
             }
             catch (Exception ex)
             {
-                LogContext.Error?.Log(ex, "Generate constructor instance factory faulted: {SagaType}", TypeMetadataCache<TSaga>.ShortName);
+                LogContext.LogError(ex, "Generate constructor instance factory faulted: {SagaType}", TypeMetadataCache<TSaga>.ShortName);
             }
         }
 
@@ -115,7 +115,7 @@ namespace MassTransit.Metadata
             }
             catch (Exception ex)
             {
-                LogContext.Error?.Log(ex, "Generate property instance factory faulted: {SagaType}", TypeMetadataCache<TSaga>.ShortName);
+                LogContext.LogError(ex, "Generate property instance factory faulted: {SagaType}", TypeMetadataCache<TSaga>.ShortName);
             }
         }
 

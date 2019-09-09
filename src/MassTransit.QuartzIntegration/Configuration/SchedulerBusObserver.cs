@@ -39,7 +39,7 @@
 
         public async Task PostStart(IBus bus, Task<BusReady> busReady)
         {
-            LogContext.Debug?.Log("Quartz Scheduler Starting: {InputAddress} ({Name}/{InstanceId})", _schedulerEndpointAddress, _scheduler.SchedulerName,
+            LogContext.LogDebug("Quartz Scheduler Starting: {InputAddress} ({Name}/{InstanceId})", _schedulerEndpointAddress, _scheduler.SchedulerName,
                 _scheduler.SchedulerInstanceId);
 
             await busReady.ConfigureAwait(false);
@@ -47,7 +47,7 @@
             _scheduler.JobFactory = new MassTransitJobFactory(bus);
             await _scheduler.Start().ConfigureAwait(false);
 
-            LogContext.Debug?.Log("Quartz Scheduler Started: {InputAddress} ({Name}/{InstanceId})", _schedulerEndpointAddress, _scheduler.SchedulerName,
+            LogContext.LogDebug("Quartz Scheduler Started: {InputAddress} ({Name}/{InstanceId})", _schedulerEndpointAddress, _scheduler.SchedulerName,
                 _scheduler.SchedulerInstanceId);
         }
 
@@ -60,7 +60,7 @@
         {
             await _scheduler.Standby().ConfigureAwait(false);
 
-            LogContext.Debug?.Log("Quartz Scheduler Paused: {InputAddress} ({Name}/{InstanceId})", _schedulerEndpointAddress, _scheduler.SchedulerName,
+            LogContext.LogDebug("Quartz Scheduler Paused: {InputAddress} ({Name}/{InstanceId})", _schedulerEndpointAddress, _scheduler.SchedulerName,
                 _scheduler.SchedulerInstanceId);
         }
 
@@ -68,7 +68,7 @@
         {
             await _scheduler.Shutdown().ConfigureAwait(false);
 
-            LogContext.Debug?.Log("Quartz Scheduler Stopped: {InputAddress} ({Name}/{InstanceId})", _schedulerEndpointAddress, _scheduler.SchedulerName,
+            LogContext.LogDebug("Quartz Scheduler Stopped: {InputAddress} ({Name}/{InstanceId})", _schedulerEndpointAddress, _scheduler.SchedulerName,
                 _scheduler.SchedulerInstanceId);
         }
 

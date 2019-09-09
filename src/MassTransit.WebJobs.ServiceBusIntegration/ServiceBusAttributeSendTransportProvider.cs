@@ -34,7 +34,7 @@
 
             IAsyncCollector<Message> collector = await _binder.BindAsync<IAsyncCollector<Message>>(serviceBusQueue, _cancellationToken).ConfigureAwait(false);
 
-            LogContext.Debug?.Log("Creating Send Transport: {Queue}", queueOrTopicName);
+            LogContext.LogDebug("Creating Send Transport: {Queue}", queueOrTopicName);
 
             var sendEndpointContext = new CollectorMessageSendEndpointContext(queueOrTopicName, collector, _cancellationToken);
 

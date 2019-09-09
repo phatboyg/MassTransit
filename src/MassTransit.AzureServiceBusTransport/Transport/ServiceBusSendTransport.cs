@@ -61,7 +61,7 @@ namespace MassTransit.AzureServiceBusTransport.Transport
 
         protected override Task StopSupervisor(StopSupervisorContext context)
         {
-            LogContext.Debug?.Log("Stopping send transport: {Address}", _address);
+            LogContext.LogDebug("Stopping send transport: {Address}", _address);
 
             return base.StopSupervisor(context);
         }
@@ -137,7 +137,7 @@ namespace MassTransit.AzureServiceBusTransport.Transport
                 var enqueueTimeUtc = context.ScheduledEnqueueTimeUtc.Value;
                 if (enqueueTimeUtc < now)
                 {
-                    LogContext.Debug?.Log("The scheduled time was in the past, sending: {ScheduledTime}", context.ScheduledEnqueueTimeUtc);
+                    LogContext.LogDebug("The scheduled time was in the past, sending: {ScheduledTime}", context.ScheduledEnqueueTimeUtc);
 
                     return false;
                 }
@@ -156,7 +156,7 @@ namespace MassTransit.AzureServiceBusTransport.Transport
                 }
                 catch (ArgumentOutOfRangeException)
                 {
-                    LogContext.Debug?.Log("The scheduled time was rejected by the server, sending: {MessageId}", context.MessageId);
+                    LogContext.LogDebug("The scheduled time was rejected by the server, sending: {MessageId}", context.MessageId);
 
                     return false;
                 }
@@ -168,11 +168,11 @@ namespace MassTransit.AzureServiceBusTransport.Transport
                 {
                     await clientContext.CancelScheduledSend(sequenceNumber).ConfigureAwait(false);
 
-                    LogContext.Debug?.Log("Canceled scheduled message {SequenceNumber} {EntityPath}", sequenceNumber, clientContext.EntityPath);
+                    LogContext.LogDebug("Canceled scheduled message {SequenceNumber} {EntityPath}", sequenceNumber, clientContext.EntityPath);
                 }
                 catch (MessageNotFoundException exception)
                 {
-                    LogContext.Warning?.Log(exception, "The scheduled message was not found: {SequenceNumber} {EntityPath}", sequenceNumber,
+                    LogContext.LogWarning(exception, "The scheduled message was not found: {SequenceNumber} {EntityPath}", sequenceNumber,
                         clientContext.EntityPath);
                 }
             }

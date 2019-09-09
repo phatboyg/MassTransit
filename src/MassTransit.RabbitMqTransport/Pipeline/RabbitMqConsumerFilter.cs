@@ -65,7 +65,7 @@ namespace MassTransit.RabbitMqTransport.Pipeline
                 RabbitMqDeliveryMetrics metrics = consumer;
                 await _receiveEndpointContext.TransportObservers.Completed(new ReceiveTransportCompletedEvent(inputAddress, metrics)).ConfigureAwait(false);
 
-                LogContext.Debug?.Log("Consumer completed {ConsumerTag}: {DeliveryCount} received, {ConcurrentDeliveryCount} concurrent", metrics.ConsumerTag,
+                LogContext.LogDebug("Consumer completed {ConsumerTag}: {DeliveryCount} received, {ConcurrentDeliveryCount} concurrent", metrics.ConsumerTag,
                     metrics.DeliveryCount, metrics.ConcurrentDeliveryCount);
             }
         }

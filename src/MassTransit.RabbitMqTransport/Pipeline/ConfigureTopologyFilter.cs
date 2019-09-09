@@ -57,28 +57,28 @@ namespace MassTransit.RabbitMqTransport.Pipeline
 
         Task Declare(ModelContext context, Exchange exchange)
         {
-            LogContext.Debug?.Log("Declare exchange {Exchange}", exchange);
+            LogContext.LogDebug("Declare exchange {Exchange}", exchange);
 
             return context.ExchangeDeclare(exchange.ExchangeName, exchange.ExchangeType, exchange.Durable, exchange.AutoDelete, exchange.ExchangeArguments);
         }
 
         Task Declare(ModelContext context, Queue queue)
         {
-            LogContext.Debug?.Log("Declare queue {Queue}", queue);
+            LogContext.LogDebug("Declare queue {Queue}", queue);
 
             return context.QueueDeclare(queue.QueueName, queue.Durable, queue.Exclusive, queue.AutoDelete, queue.QueueArguments);
         }
 
         Task Bind(ModelContext context, ExchangeToExchangeBinding binding)
         {
-            LogContext.Debug?.Log("Bind exchange to exchange {Binding}", binding);
+            LogContext.LogDebug("Bind exchange to exchange {Binding}", binding);
 
             return context.ExchangeBind(binding.Destination.ExchangeName, binding.Source.ExchangeName, binding.RoutingKey, binding.Arguments);
         }
 
         Task Bind(ModelContext context, ExchangeToQueueBinding binding)
         {
-            LogContext.Debug?.Log("Bind exchange to queue {Binding}", binding);
+            LogContext.LogDebug("Bind exchange to queue {Binding}", binding);
 
             return context.QueueBind(binding.Destination.QueueName, binding.Source.ExchangeName, binding.RoutingKey, binding.Arguments);
         }

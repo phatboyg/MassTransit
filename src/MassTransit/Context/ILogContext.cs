@@ -8,6 +8,8 @@ namespace MassTransit.Context
     /// </summary>
     public interface ILogContext
     {
+        ILogger Logger { get; }
+
         /// <summary>
         /// The log context for all message movement, sent, received, etc.
         /// </summary>
@@ -17,8 +19,9 @@ namespace MassTransit.Context
         /// If enabled, returns a valid source which can be used
         /// </summary>
         /// <param name="name"></param>
+        /// <param name="args"></param>
         /// <returns>A valid source, or null</returns>
-        EnabledDiagnosticSource? IfEnabled(string name);
+        IActivityScope BeginActivity(string name, object args = default);
 
         /// <summary>
         /// Creates a new ILogger instance using the full name of the given type.
@@ -32,14 +35,6 @@ namespace MassTransit.Context
         /// <param name="categoryName">The category name for messages produced by the logger.</param>
         /// <returns>The <see cref="T:Microsoft.Extensions.Logging.ILogger" />.</returns>
         ILogContext CreateLogContext(string categoryName);
-
-        EnabledLogger? IfEnabled(LogLevel level);
-        EnabledLogger? Critical { get; }
-        EnabledLogger? Debug { get; }
-        EnabledLogger? Error { get; }
-        EnabledLogger? Info { get; }
-        EnabledLogger? Trace { get; }
-        EnabledLogger? Warning { get; }
     }
 
 

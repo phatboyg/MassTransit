@@ -58,61 +58,61 @@
 
             context.TryGetPayload<MessageLockContext>(out var lockContext);
 
-            var activity = LogContext.IfEnabled(OperationName.Transport.Receive)?.StartActivity();
-            activity.AddReceiveContextHeaders(context);
-
-            try
+            using (var activity = LogContext.StartActivity(OperationName.Transport.Receive))
             {
-                await _receiveEndpointContext.ReceiveObservers.PreReceive(context).ConfigureAwait(false);
-
-                if (message.SystemProperties.LockedUntilUtc <= DateTime.UtcNow)
-                    throw new MessageLockExpiredException(_inputAddress, $"The message lock expired: {message.MessageId}");
-
-                if (message.ExpiresAtUtc < DateTime.UtcNow)
-                    throw new MessageTimeToLiveExpiredException(_inputAddress, $"The message TTL expired: {message.MessageId}");
-
-                await _receiveEndpointContext.ReceivePipe.Send(context).ConfigureAwait(false);
-
-                await context.ReceiveCompleted.ConfigureAwait(false);
-
-                if (lockContext != null)
-                    await lockContext.Complete().ConfigureAwait(false);
-
-                await _receiveEndpointContext.ReceiveObservers.PostReceive(context).ConfigureAwait(false);
-            }
-            catch (SessionLockLostException ex)
-            {
-                LogContext.Warning?.Log(ex, "Session Lock Lost: {MessageId", message.MessageId);
-
-                await _receiveEndpointContext.ReceiveObservers.ReceiveFault(context, ex).ConfigureAwait(false);
-            }
-            catch (MessageLockLostException ex)
-            {
-                LogContext.Warning?.Log(ex, "Session Lock Lost: {MessageId", message.MessageId);
-
-                await _receiveEndpointContext.ReceiveObservers.ReceiveFault(context, ex).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                await _receiveEndpointContext.ReceiveObservers.ReceiveFault(context, ex).ConfigureAwait(false);
-
-                if (lockContext == null)
-                    throw;
+                activity.AddReceiveContextHeaders(context);
 
                 try
                 {
-                    await lockContext.Abandon(ex).ConfigureAwait(false);
-                }
-                catch (Exception exception)
-                {
-                    LogContext.Warning?.Log(exception, "Abandon message faulted: {MessageId", message.MessageId);
-                }
-            }
-            finally
-            {
-                activity?.Stop();
+                    await _receiveEndpointContext.ReceiveObservers.PreReceive(context).ConfigureAwait(false);
 
-                context.Dispose();
+                    if (message.SystemProperties.LockedUntilUtc <= DateTime.UtcNow)
+                        throw new MessageLockExpiredException(_inputAddress, $"The message lock expired: {message.MessageId}");
+
+                    if (message.ExpiresAtUtc < DateTime.UtcNow)
+                        throw new MessageTimeToLiveExpiredException(_inputAddress, $"The message TTL expired: {message.MessageId}");
+
+                    await _receiveEndpointContext.ReceivePipe.Send(context).ConfigureAwait(false);
+
+                    await context.ReceiveCompleted.ConfigureAwait(false);
+
+                    if (lockContext != null)
+                        await lockContext.Complete().ConfigureAwait(false);
+
+                    await _receiveEndpointContext.ReceiveObservers.PostReceive(context).ConfigureAwait(false);
+                }
+                catch (SessionLockLostException ex)
+                {
+                    LogContext.LogWarning(ex, "Session Lock Lost: {MessageId", message.MessageId);
+
+                    await _receiveEndpointContext.ReceiveObservers.ReceiveFault(context, ex).ConfigureAwait(false);
+                }
+                catch (MessageLockLostException ex)
+                {
+                    LogContext.LogWarning(ex, "Session Lock Lost: {MessageId", message.MessageId);
+
+                    await _receiveEndpointContext.ReceiveObservers.ReceiveFault(context, ex).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    await _receiveEndpointContext.ReceiveObservers.ReceiveFault(context, ex).ConfigureAwait(false);
+
+                    if (lockContext == null)
+                        throw;
+
+                    try
+                    {
+                        await lockContext.Abandon(ex).ConfigureAwait(false);
+                    }
+                    catch (Exception exception)
+                    {
+                        LogContext.LogWarning(exception, "Abandon message faulted: {MessageId", message.MessageId);
+                    }
+                }
+                finally
+                {
+                    context.Dispose();
+                }
             }
         }
 

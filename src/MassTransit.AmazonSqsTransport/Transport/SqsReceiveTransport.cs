@@ -118,7 +118,7 @@ namespace MassTransit.AmazonSqsTransport.Transport
 
         async Task<AmazonSqsConnectException> ConvertToAmazonSqsConnectionException(Exception ex, string message)
         {
-            LogContext.Error?.Log(ex, message);
+            LogContext.LogError(ex, message);
 
             var exception = new AmazonSqsConnectException(message + _host.ConnectionContextSupervisor, ex);
 
@@ -129,7 +129,7 @@ namespace MassTransit.AmazonSqsTransport.Transport
 
         Task NotifyFaulted(Exception exception)
         {
-            LogContext.Error?.Log(exception, "AmazonSQS Connect Failed: {Host}", _host.Address);
+            LogContext.LogError(exception, "AmazonSQS Connect Failed: {Host}", _host.Address);
 
             return _receiveEndpointContext.TransportObservers.Faulted(new ReceiveTransportFaultedEvent(_inputAddress, exception));
         }

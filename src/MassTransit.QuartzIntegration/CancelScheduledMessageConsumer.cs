@@ -25,9 +25,9 @@ namespace MassTransit.QuartzIntegration
             var deletedJob = await _scheduler.DeleteJob(jobKey, context.CancellationToken).ConfigureAwait(false);
 
             if (deletedJob)
-                LogContext.Debug?.Log("Cancelled Scheduled Message: {Id} at {Timestamp}", jobKey, context.Message.Timestamp);
+                LogContext.LogDebug("Cancelled Scheduled Message: {Id} at {Timestamp}", jobKey, context.Message.Timestamp);
             else
-                LogContext.Debug?.Log("CancelScheduledMessage: no message found for {Id}", jobKey);
+                LogContext.LogDebug("CancelScheduledMessage: no message found for {Id}", jobKey);
         }
 
         public async Task Consume(ConsumeContext<CancelScheduledRecurringMessage> context)
@@ -44,12 +44,12 @@ namespace MassTransit.QuartzIntegration
 
             if (unscheduledJob)
             {
-                LogContext.Debug?.Log("CancelRecurringScheduledMessage: {ScheduleId}/{ScheduleGroup} at {Timestamp}", context.Message.ScheduleId,
+                LogContext.LogDebug("CancelRecurringScheduledMessage: {ScheduleId}/{ScheduleGroup} at {Timestamp}", context.Message.ScheduleId,
                     context.Message.ScheduleGroup, context.Message.Timestamp);
             }
             else
             {
-                LogContext.Debug?.Log("CancelRecurringScheduledMessage: no message found {ScheduleId}/{ScheduleGroup}", context.Message.ScheduleId,
+                LogContext.LogDebug("CancelRecurringScheduledMessage: no message found {ScheduleId}/{ScheduleGroup}", context.Message.ScheduleId,
                     context.Message.ScheduleGroup);
             }
         }

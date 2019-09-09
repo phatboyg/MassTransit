@@ -24,13 +24,6 @@ namespace MassTransit.Context
             Current = new BusLogContext(new SingleLoggerFactory(logger), source ?? Cached.Default.Value);
         }
 
-        public static ILogContext CreateLogContext(string categoryName)
-        {
-            var current = Current ?? (Current = CreateDefaultLogContext());
-
-            return current.CreateLogContext(categoryName);
-        }
-
         public static void SetCurrentIfNull(ILogContext context)
         {
             if (Current == null)
@@ -42,15 +35,6 @@ namespace MassTransit.Context
             return true;
         }
 
-        static ILogContext CreateDefaultLogContext()
-        {
-            var source = Cached.Default.Value;
-
-            var loggerFactory = NullLoggerFactory.Instance;
-
-            return new BusLogContext(loggerFactory, source);
-        }
-
 
         static class Cached
         {
@@ -59,13 +43,64 @@ namespace MassTransit.Context
         }
 
 
-        public static EnabledDiagnosticSource? IfEnabled(string name) => Current?.IfEnabled(name);
+        class NoopActivityScope : IActivityScope
+        {
+            readonly string _operationName;
+            readonly Activity _current;
 
-        public static EnabledLogger? Critical => Current?.Critical;
-        public static EnabledLogger? Debug => Current?.Debug;
-        public static EnabledLogger? Error => Current?.Error;
-        public static EnabledLogger? Info => Current?.Info;
-        public static EnabledLogger? Trace => Current?.Trace;
-        public static EnabledLogger? Warning => Current?.Warning;
+            public NoopActivityScope(string operationName)
+            {
+                _operationName = operationName;
+                _current = new Activity(_operationName);
+            }
+
+            public void Dispose()
+            {
+            }
+
+            Activity IActivityScope.Current => _current;
+        }
+
+        public static IActivityScope StartActivity(string name, object args = null) => Current?.BeginActivity(name, args) ?? new NoopActivityScope(name);
+
+        public static void LogDebug(string message, params object[] args)
+        {
+            Current?.LogDebug(message, args);
+        }
+
+        public static void LogDebug(Exception exception, string message, params object[] args)
+        {
+            Current?.LogDebug(exception, message, args);
+        }
+
+        public static void LogInformation(string message, params object[] args)
+        {
+            Current?.LogInformation(message, args);
+        }
+
+        public static void LogInformation(Exception exception, string message, params object[] args)
+        {
+            Current?.LogInformation(exception, message, args);
+        }
+
+        public static void LogWarning(string message, params object[] args)
+        {
+            Current?.LogWarning(message, args);
+        }
+
+        public static void LogWarning(Exception exception, string message, params object[] args)
+        {
+            Current?.LogWarning(exception, message, args);
+        }
+
+        public static void LogError(string message, params object[] args)
+        {
+            Current?.LogError(message, args);
+        }
+
+        public static void LogError(Exception exception, string message, params object[] args)
+        {
+            Current?.LogError(exception, message, args);
+        }
     }
 }

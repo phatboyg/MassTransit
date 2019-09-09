@@ -59,14 +59,14 @@ namespace MassTransit.AzureServiceBusTransport.Transport
 
         public Task OnCloseSessionAsync(MessageSession session)
         {
-            LogContext.Debug?.Log("Session closed: {SessionId} ({InputAddress})", session.SessionId, _context.InputAddress);
+            LogContext.LogDebug("Session closed: {SessionId} ({InputAddress})", session.SessionId, _context.InputAddress);
 
             return TaskUtil.Completed;
         }
 
         public Task OnSessionLostAsync(Exception exception)
         {
-            LogContext.Debug?.Log("Session lost: {SessionId} ({InputAddress})", _session.SessionId, _context.InputAddress);
+            LogContext.LogDebug("Session lost: {SessionId} ({InputAddress})", _session.SessionId, _context.InputAddress);
 
             return TaskUtil.Completed;
         }
@@ -81,7 +81,7 @@ namespace MassTransit.AzureServiceBusTransport.Transport
             }
             catch (Exception exception)
             {
-                LogContext.Error?.Log(exception, "Abandon message faulted during shutdown: {InputAddress}", _context.InputAddress);
+                LogContext.LogError(exception, "Abandon message faulted during shutdown: {InputAddress}", _context.InputAddress);
             }
         }
     }

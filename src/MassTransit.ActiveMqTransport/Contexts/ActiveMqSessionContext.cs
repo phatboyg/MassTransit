@@ -34,7 +34,7 @@
 
         public async Task DisposeAsync(CancellationToken cancellationToken)
         {
-            LogContext.Debug?.Log("Closing session: {Host}", _connectionContext.Description);
+            LogContext.LogDebug("Closing session: {Host}", _connectionContext.Description);
 
             if (_session != null)
             {
@@ -46,7 +46,7 @@
                 }
                 catch (Exception ex)
                 {
-                    LogContext.Warning?.Log(ex, "Close session faulted: {Host}", _connectionContext.Description);
+                    LogContext.LogWarning(ex, "Close session faulted: {Host}", _connectionContext.Description);
                 }
 
                 _session.Dispose();

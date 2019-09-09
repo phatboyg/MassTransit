@@ -43,18 +43,18 @@ namespace MassTransit.Azure.ServiceBus.Core.Contexts
 
         public async Task CloseAsync(CancellationToken cancellationToken)
         {
-            LogContext.Debug?.Log("Closing client: {InputAddress}", InputAddress);
+            LogContext.LogDebug("Closing client: {InputAddress}", InputAddress);
 
             try
             {
                 if (_subscriptionClient != null && !_subscriptionClient.IsClosedOrClosing)
                     await _subscriptionClient.CloseAsync().ConfigureAwait(false);
 
-                LogContext.Debug?.Log("Closed client: {InputAddress}", InputAddress);
+                LogContext.LogDebug("Closed client: {InputAddress}", InputAddress);
             }
             catch (Exception exception)
             {
-                LogContext.Warning?.Log(exception, "Close client faulted: {InputAddress}", InputAddress);
+                LogContext.LogWarning(exception, "Close client faulted: {InputAddress}", InputAddress);
             }
         }
 

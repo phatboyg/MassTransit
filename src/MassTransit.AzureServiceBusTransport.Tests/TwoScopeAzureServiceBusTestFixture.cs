@@ -105,7 +105,7 @@ namespace MassTransit.AzureServiceBusTransport.Tests
             }
             catch (Exception ex)
             {
-                LogContext.Error?.Log(ex, "SecondBus Stop failed");
+                LogContext.LogError(ex, "SecondBus Stop failed");
             }
             finally
             {

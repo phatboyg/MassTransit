@@ -49,13 +49,13 @@ namespace MassTransit.AmazonSqsTransport.Pipeline
             {
                 await context.PurgeQueue(queueName, context.CancellationToken).ConfigureAwait(false);
 
-                LogContext.Debug?.Log("Purged queue {QueueName}", queueName);
+                LogContext.LogDebug("Purged queue {QueueName}", queueName);
 
                 _queueAlreadyPurged = true;
             }
             else
             {
-                LogContext.Debug?.Log("Queue {QueueName} was purged at startup, skipping", queueName);
+                LogContext.LogDebug("Queue {QueueName} was purged at startup, skipping", queueName);
             }
         }
     }

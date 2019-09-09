@@ -106,7 +106,7 @@ namespace MassTransit.RedisIntegration
         {
             try
             {
-                LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Used {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Used {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                     instance.CorrelationId, TypeMetadataCache<T>.ShortName);
 
                 var sagaConsumeContext = new RedisSagaConsumeContext<TSaga, T>(sagas, context, instance);
@@ -132,14 +132,14 @@ namespace MassTransit.RedisIntegration
             {
                 await sagas.Put(instance.CorrelationId, instance).ConfigureAwait(false);
 
-                LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Insert {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Insert {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                     instance.CorrelationId, TypeMetadataCache<T>.ShortName);
 
                 return true;
             }
             catch (Exception ex)
             {
-                LogContext.Debug?.Log(ex, "SAGA:{SagaType}:{CorrelationId} Dupe {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                LogContext.LogDebug(ex, "SAGA:{SagaType}:{CorrelationId} Dupe {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                     instance.CorrelationId, TypeMetadataCache<T>.ShortName);
 
                 return false;
@@ -200,7 +200,7 @@ namespace MassTransit.RedisIntegration
 
             public async Task Send(SagaConsumeContext<TSaga, TMessage> context)
             {
-                LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Added {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Added {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                     context.Saga.CorrelationId, TypeMetadataCache<TMessage>.ShortName);
 
                 SagaConsumeContext<TSaga, TMessage> proxy = new RedisSagaConsumeContext<TSaga, TMessage>(_sagas, context, context.Saga);

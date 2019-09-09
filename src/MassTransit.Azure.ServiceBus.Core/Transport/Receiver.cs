@@ -50,12 +50,12 @@
         protected Task ExceptionHandler(ExceptionReceivedEventArgs args)
         {
             if (!(args.Exception is OperationCanceledException))
-                LogContext.Error?.Log(args.Exception, "Exception on Receiver {InputAddress} during {Action}", _context.InputAddress,
+                LogContext.LogError(args.Exception, "Exception on Receiver {InputAddress} during {Action}", _context.InputAddress,
                     args.ExceptionReceivedContext.Action);
 
             if (Tracker.ActiveDeliveryCount == 0)
             {
-                LogContext.Debug?.Log("Receiver shutdown completed: {InputAddress}", _context.InputAddress);
+                LogContext.LogDebug("Receiver shutdown completed: {InputAddress}", _context.InputAddress);
 
                 _deliveryComplete.TrySetResult(true);
 
@@ -75,7 +75,7 @@
 
         protected override async Task StopSupervisor(StopSupervisorContext context)
         {
-            LogContext.Debug?.Log("Stopping receiver: {InputAddress}", _context.InputAddress);
+            LogContext.LogDebug("Stopping receiver: {InputAddress}", _context.InputAddress);
 
             SetCompleted(ActiveAndActualAgentsCompleted(context));
 
@@ -95,7 +95,7 @@
                 }
                 catch (OperationCanceledException)
                 {
-                    LogContext.Warning?.Log("Stop canceled waiting for message consumers to complete: {InputAddress}", _context.InputAddress);
+                    LogContext.LogWarning("Stop canceled waiting for message consumers to complete: {InputAddress}", _context.InputAddress);
                 }
         }
 
@@ -131,7 +131,7 @@
             }
             catch (Exception exception)
             {
-                LogContext.Error?.Log(exception, "Abandon message faulted during shutdown: {InputAddress}", _context.InputAddress);
+                LogContext.LogError(exception, "Abandon message faulted during shutdown: {InputAddress}", _context.InputAddress);
             }
         }
     }

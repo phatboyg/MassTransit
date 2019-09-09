@@ -106,7 +106,7 @@ namespace MassTransit.HttpTransport.Transport
 
         protected override async Task StopAgent(StopContext context)
         {
-            LogContext.Debug?.Log("Stopping Consumer: {InputAddress}", _context.InputAddress);
+            LogContext.LogDebug("Stopping Consumer: {InputAddress}", _context.InputAddress);
 
             SetCompleted(ActiveAndActualAgentsCompleted(context));
 
@@ -123,7 +123,7 @@ namespace MassTransit.HttpTransport.Transport
                 }
                 catch (OperationCanceledException)
                 {
-                    LogContext.Warning?.Log("Stop canceled waiting for consumer cancellation: {InputAddress}", _context.InputAddress);
+                    LogContext.LogWarning("Stop canceled waiting for consumer cancellation: {InputAddress}", _context.InputAddress);
                 }
             }
         }

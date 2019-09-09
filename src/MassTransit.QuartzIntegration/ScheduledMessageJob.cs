@@ -50,7 +50,7 @@ namespace MassTransit.QuartzIntegration
             }
             catch (Exception ex)
             {
-                LogContext.Error?.Log(ex, "Failed to send scheduled message, type: {MessageType}, destination: {DestinationAddress}", MessageType, Destination);
+                LogContext.LogError(ex, "Failed to send scheduled message, type: {MessageType}, destination: {DestinationAddress}", MessageType, Destination);
 
                 throw new JobExecutionException(ex, context.RefireCount < 5);
             }

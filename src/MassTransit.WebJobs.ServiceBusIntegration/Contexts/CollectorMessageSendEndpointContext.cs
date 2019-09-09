@@ -40,14 +40,14 @@ namespace MassTransit.WebJobs.ServiceBusIntegration.Contexts
 
         public Task Send(Message message)
         {
-            LogContext.Debug?.Log("Sending message: {MessageId}", message.MessageId);
+            LogContext.LogDebug("Sending message: {MessageId}", message.MessageId);
 
             return _collector.AddAsync(message, _cancellationToken);
         }
 
         public async Task<long> ScheduleSend(Message message, DateTime scheduleEnqueueTimeUtc)
         {
-            LogContext.Debug?.Log("Scheduling message: {MessageId} for delivery at {ScheduledTime}", message.MessageId, scheduleEnqueueTimeUtc);
+            LogContext.LogDebug("Scheduling message: {MessageId} for delivery at {ScheduledTime}", message.MessageId, scheduleEnqueueTimeUtc);
 
             message.ScheduledEnqueueTimeUtc = scheduleEnqueueTimeUtc;
 

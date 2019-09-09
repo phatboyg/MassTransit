@@ -96,7 +96,7 @@ namespace MassTransit.RabbitMqTransport.Transport
         {
             LogContext.SetCurrentIfNull(DefaultLogContext);
 
-            LogContext.Debug?.Log("Connect receive endpoint: {Queue}", queueName);
+            LogContext.LogDebug("Connect receive endpoint: {Queue}", queueName);
 
             var configuration = _hostConfiguration.CreateReceiveEndpointConfiguration(queueName);
 

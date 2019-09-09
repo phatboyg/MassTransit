@@ -43,7 +43,7 @@ namespace MassTransit.Conductor.Client
 
         public async Task Consume(ConsumeContext<Down<TMessage>> context)
         {
-            LogContext.Debug?.Log("Endpoint Down received: (service-address: {ServiceAddress}, endpoint-address: {EndpointAddress}, client-id: {ClientId})",
+            LogContext.LogDebug("Endpoint Down received: (service-address: {ServiceAddress}, endpoint-address: {EndpointAddress}, client-id: {ClientId})",
                 context.Message.ServiceAddress, context.Message.Endpoint.EndpointAddress, ClientId);
 
             try
@@ -63,7 +63,7 @@ namespace MassTransit.Conductor.Client
 
         public async Task Consume(ConsumeContext<Up<TMessage>> context)
         {
-            LogContext.Debug?.Log("Endpoint Up received: (service-address: {ServiceAddress}, endpoint-address: {EndpointAddress}, client-id: {ClientId})",
+            LogContext.LogDebug("Endpoint Up received: (service-address: {ServiceAddress}, endpoint-address: {EndpointAddress}, client-id: {ClientId})",
                 context.Message.ServiceAddress, context.Message.Endpoint.EndpointAddress, ClientId);
 
             _distribution.Add(context.Message.Endpoint);
@@ -108,7 +108,7 @@ namespace MassTransit.Conductor.Client
 
         public async Task Link(CancellationToken cancellationToken)
         {
-            LogContext.Debug?.Log("Requesting Link to {MessageType} (client-id: {ClientId})", TypeMetadataCache<TMessage>.ShortName, ClientId);
+            LogContext.LogDebug("Requesting Link to {MessageType} (client-id: {ClientId})", TypeMetadataCache<TMessage>.ShortName, ClientId);
 
             using (RequestHandle<Link<TMessage>> request = _clientFactory.CreateRequestClient<Link<TMessage>>().Create(new {ClientId}, cancellationToken))
             {
@@ -118,7 +118,7 @@ namespace MassTransit.Conductor.Client
 
                 await _index.Get(response.Message.Endpoint.EndpointId, id => Task.FromResult(response.Message.Endpoint)).ConfigureAwait(false);
 
-                LogContext.Debug?.Log("Linked to {InstanceAddress} for {MessageType} (client-id: {ClientId})",
+                LogContext.LogDebug("Linked to {InstanceAddress} for {MessageType} (client-id: {ClientId})",
                     response.Message.Endpoint.InstanceAddress, TypeMetadataCache<TMessage>.ShortName, ClientId);
             }
         }

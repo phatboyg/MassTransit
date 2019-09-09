@@ -90,7 +90,7 @@
                         }
                         catch (Exception ex)
                         {
-                            LogContext.Error?.Log(ex, "Receive transport faulted: {InputAddress}", _context.InputAddress);
+                            LogContext.LogError(ex, "Receive transport faulted: {InputAddress}", _context.InputAddress);
 
                             await _context.TransportObservers.Faulted(new ReceiveTransportFaultedEvent(_context.InputAddress, ex))
                                 .ConfigureAwait(false);

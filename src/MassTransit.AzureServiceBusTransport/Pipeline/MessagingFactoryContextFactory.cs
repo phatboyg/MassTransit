@@ -92,7 +92,7 @@ namespace MassTransit.AzureServiceBusTransport.Pipeline
 
                 messagingFactory.RetryPolicy = _retryPolicy;
 
-                LogContext.Debug?.Log("Connected: {Host}", _serviceUri);
+                LogContext.LogDebug("Connected: {Host}", _serviceUri);
 
                 var messagingFactoryContext = new ServiceBusMessagingFactoryContext(messagingFactory, supervisor.Stopped);
 
@@ -100,7 +100,7 @@ namespace MassTransit.AzureServiceBusTransport.Pipeline
             }
             catch (Exception ex)
             {
-                LogContext.Error?.Log(ex, "Connect failed: {Host}", _serviceUri);
+                LogContext.LogError(ex, "Connect failed: {Host}", _serviceUri);
 
                 throw;
             }

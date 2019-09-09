@@ -29,7 +29,7 @@
             if (sagaRepository == null)
                 throw new ArgumentNullException(nameof(sagaRepository));
 
-            LogContext.Debug?.Log("Subscribing Saga: {SagaType}", TypeMetadataCache<T>.ShortName);
+            LogContext.LogDebug("Subscribing Saga: {SagaType}", TypeMetadataCache<T>.ShortName);
 
             var sagaConfigurator = new SagaConfigurator<T>(sagaRepository, configurator);
 
@@ -54,7 +54,7 @@
             if (sagaRepository == null)
                 throw new ArgumentNullException(nameof(sagaRepository));
 
-            LogContext.Debug?.Log("Connecting Saga: {SagaType}", TypeMetadataCache<T>.ShortName);
+            LogContext.LogDebug("Connecting Saga: {SagaType}", TypeMetadataCache<T>.ShortName);
 
             ISagaSpecification<T> specification = SagaConnectorCache<T>.Connector.CreateSagaSpecification<T>();
             foreach (IPipeSpecification<SagaConsumeContext<T>> pipeSpecification in pipeSpecifications)

@@ -47,7 +47,7 @@ namespace MassTransit.Turnout
             var removed = _jobs.TryRemove(jobId, out jobHandle);
             if (removed)
             {
-                LogContext.Debug?.Log("Removed job: {JobId} ({JobStatus})", jobId, jobHandle.Status);
+                LogContext.LogDebug("Removed job: {JobId} ({JobStatus})", jobId, jobHandle.Status);
 
                 return true;
             }

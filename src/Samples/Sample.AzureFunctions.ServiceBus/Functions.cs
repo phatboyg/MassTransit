@@ -20,7 +20,7 @@
         {
             LogContext.ConfigureCurrentLogContext(logger);
 
-            LogContext.Info?.Log("Creating brokered message receiver");
+            LogContext.LogInformation("Creating brokered message receiver");
 
             var handler = Bus.Factory.CreateBrokeredMessageReceiver(binder, cfg =>
             {
@@ -40,7 +40,7 @@
         {
             LogContext.ConfigureCurrentLogContext(logger);
 
-            LogContext.Info?.Log("Creating event hub receiver");
+            LogContext.LogInformation("Creating event hub receiver");
 
             var handler = Bus.Factory.CreateEventDataReceiver(binder, cfg =>
             {
@@ -61,7 +61,7 @@
     {
         public Task Consume(ConsumeContext<SubmitOrder> context)
         {
-            LogContext.Debug?.Log("Processing Order: {OrderNumber}", context.Message.OrderNumber);
+            LogContext.LogDebug("Processing Order: {OrderNumber}", context.Message.OrderNumber);
 
             context.Publish<OrderReceived>(new
             {
@@ -79,7 +79,7 @@
     {
         public async Task Consume(ConsumeContext<OrderReceived> context)
         {
-            LogContext.Debug?.Log("Received Order: {OrderNumber}", context.Message.OrderNumber);
+            LogContext.LogDebug("Received Order: {OrderNumber}", context.Message.OrderNumber);
         }
     }
 

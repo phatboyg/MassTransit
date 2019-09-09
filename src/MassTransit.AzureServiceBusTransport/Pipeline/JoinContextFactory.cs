@@ -122,7 +122,7 @@ namespace MassTransit.AzureServiceBusTransport.Pipeline
                 }
                 catch (Exception exception)
                 {
-                    LogContext.Warning?.Log(exception, "Join faulted");
+                    LogContext.LogWarning(exception, "Join faulted");
                 }
             }
 

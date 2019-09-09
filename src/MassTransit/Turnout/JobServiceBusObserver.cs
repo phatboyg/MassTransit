@@ -45,11 +45,11 @@ namespace MassTransit.Turnout
 
         public async Task PostStart(IBus bus, Task<BusReady> busReady)
         {
-            LogContext.Debug?.Log("Job Service starting: {InputAddress}", _jobService.InputAddress);
+            LogContext.LogDebug("Job Service starting: {InputAddress}", _jobService.InputAddress);
 
             await busReady.ConfigureAwait(false);
 
-            LogContext.Info?.Log("Job Service started: {InputAddress}", _jobService.InputAddress);
+            LogContext.LogInformation("Job Service started: {InputAddress}", _jobService.InputAddress);
         }
 
         public Task StartFaulted(IBus bus, Exception exception)
@@ -59,11 +59,11 @@ namespace MassTransit.Turnout
 
         public async Task PreStop(IBus bus)
         {
-            LogContext.Debug?.Log("Job Service shutting down: {InputAddress}", _jobService.InputAddress);
+            LogContext.LogDebug("Job Service shutting down: {InputAddress}", _jobService.InputAddress);
 
             await _jobService.Stop().ConfigureAwait(false);
 
-            LogContext.Info?.Log("Job Service shut down: {InputAddress}", _jobService.InputAddress);
+            LogContext.LogInformation("Job Service shut down: {InputAddress}", _jobService.InputAddress);
         }
 
         public Task PostStop(IBus bus)

@@ -27,50 +27,47 @@ namespace MassTransit.Courier.Hosts
 
         public async Task Send(ConsumeContext<RoutingSlip> context, IPipe<ConsumeContext<RoutingSlip>> next)
         {
-            var activity = LogContext.IfEnabled(OperationName.Courier.Compensate)?.StartActivity(new
+            using (var activity = LogContext.StartActivity(OperationName.Courier.Compensate, new
             {
                 ActivityType = TypeMetadataCache<TActivity>.ShortName,
                 LogType = TypeMetadataCache<TLog>.ShortName
-            });
-
-            var timer = Stopwatch.StartNew();
-            try
+            }))
             {
-                await Task.Yield();
-
-                CompensateContext<TLog> compensateContext = new HostCompensateContext<TLog>(HostMetadataCache.Host, context);
-
-                LogContext.Debug?.Log("Compensate Activity: {TrackingNumber} ({Activity}, {Host})", compensateContext.TrackingNumber,
-                    TypeMetadataCache<TActivity>.ShortName, context.ReceiveContext.InputAddress);
-
+                var timer = Stopwatch.StartNew();
                 try
                 {
-                    var result = await _activityFactory.Compensate(compensateContext, _compensatePipe).Result().ConfigureAwait(false);
+                    await Task.Yield();
 
-                    await result.Evaluate().ConfigureAwait(false);
+                    CompensateContext<TLog> compensateContext = new HostCompensateContext<TLog>(HostMetadataCache.Host, context);
+
+                    LogContext.LogDebug("Compensate Activity: {TrackingNumber} ({Activity}, {Host})", compensateContext.TrackingNumber,
+                        TypeMetadataCache<TActivity>.ShortName, context.ReceiveContext.InputAddress);
+
+                    try
+                    {
+                        var result = await _activityFactory.Compensate(compensateContext, _compensatePipe).Result().ConfigureAwait(false);
+
+                        await result.Evaluate().ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        var result = compensateContext.Failed(ex);
+
+                        await result.Evaluate().ConfigureAwait(false);
+                    }
+
+                    await context.NotifyConsumed(timer.Elapsed, TypeMetadataCache<TActivity>.ShortName).ConfigureAwait(false);
+
+                    await next.Send(context).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
-                    var result = compensateContext.Failed(ex);
+                    await context.NotifyFaulted(timer.Elapsed, TypeMetadataCache<TActivity>.ShortName, ex).ConfigureAwait(false);
 
-                    await result.Evaluate().ConfigureAwait(false);
+                    LogContext.LogError(ex, "Activity {Activity} compensation faulted", TypeMetadataCache<TActivity>.ShortName);
+
+                    throw;
                 }
-
-                await context.NotifyConsumed(timer.Elapsed, TypeMetadataCache<TActivity>.ShortName).ConfigureAwait(false);
-
-                await next.Send(context).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                await context.NotifyFaulted(timer.Elapsed, TypeMetadataCache<TActivity>.ShortName, ex).ConfigureAwait(false);
-
-                LogContext.Error?.Log(ex, "Activity {Activity} compensation faulted", TypeMetadataCache<TActivity>.ShortName);
-
-                throw;
-            }
-            finally
-            {
-                activity?.Stop();
             }
         }
 

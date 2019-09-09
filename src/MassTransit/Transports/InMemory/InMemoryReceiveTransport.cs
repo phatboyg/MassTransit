@@ -60,32 +60,32 @@ namespace MassTransit.Transports.InMemory
             var context = new InMemoryReceiveContext(_inputAddress, message, _receiveEndpointContext);
             var delivery = _tracker.BeginDelivery();
 
-            var activity = LogContext.IfEnabled(OperationName.Transport.Receive)?.StartActivity();
-            activity.AddReceiveContextHeaders(context);
-
-            try
+            using (var activity = LogContext.StartActivity(OperationName.Transport.Receive))
             {
-                await _receiveEndpointContext.ReceiveObservers.PreReceive(context).ConfigureAwait(false);
+                activity.AddReceiveContextHeaders(context);
 
-                await _receiveEndpointContext.ReceivePipe.Send(context).ConfigureAwait(false);
+                try
+                {
+                    await _receiveEndpointContext.ReceiveObservers.PreReceive(context).ConfigureAwait(false);
 
-                await context.ReceiveCompleted.ConfigureAwait(false);
+                    await _receiveEndpointContext.ReceivePipe.Send(context).ConfigureAwait(false);
 
-                await _receiveEndpointContext.ReceiveObservers.PostReceive(context).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                await _receiveEndpointContext.ReceiveObservers.ReceiveFault(context, ex).ConfigureAwait(false);
+                    await context.ReceiveCompleted.ConfigureAwait(false);
 
-                message.DeliveryCount++;
-            }
-            finally
-            {
-                activity?.Stop();
+                    await _receiveEndpointContext.ReceiveObservers.PostReceive(context).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    await _receiveEndpointContext.ReceiveObservers.ReceiveFault(context, ex).ConfigureAwait(false);
 
-                delivery.Dispose();
+                    message.DeliveryCount++;
+                }
+                finally
+                {
+                    delivery.Dispose();
 
-                context.Dispose();
+                    context.Dispose();
+                }
             }
         }
 

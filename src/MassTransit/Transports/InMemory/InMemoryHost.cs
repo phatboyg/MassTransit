@@ -43,7 +43,7 @@ namespace MassTransit.Transports.InMemory
         {
             LogContext.SetCurrentIfNull(DefaultLogContext);
 
-            LogContext.Debug?.Log("Create receive transport: {Queue}", queueName);
+            LogContext.LogDebug("Create receive transport: {Queue}", queueName);
 
             var queue = _messageFabric.GetQueue(queueName);
 
@@ -76,7 +76,7 @@ namespace MassTransit.Transports.InMemory
         {
             LogContext.SetCurrentIfNull(DefaultLogContext);
 
-            LogContext.Debug?.Log("Connect receive endpoint: {Queue}", queueName);
+            LogContext.LogDebug("Connect receive endpoint: {Queue}", queueName);
 
             var configuration = _hostConfiguration.CreateReceiveEndpointConfiguration(queueName);
 
@@ -97,7 +97,7 @@ namespace MassTransit.Transports.InMemory
 
             return await _index.Get(queueName, async key =>
             {
-                LogContext.Debug?.Log("Create send transport: {Exchange}", queueName);
+                LogContext.LogDebug("Create send transport: {Exchange}", queueName);
 
                 var exchange = _messageFabric.GetExchange(queueName);
 

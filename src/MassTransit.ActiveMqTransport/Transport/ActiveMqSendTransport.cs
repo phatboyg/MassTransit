@@ -61,7 +61,7 @@ namespace MassTransit.ActiveMqTransport.Transport
 
         protected override Task StopSupervisor(StopSupervisorContext context)
         {
-            LogContext.Debug?.Log("Stopping send transport: {EntityName}", _context.EntityName);
+            LogContext.LogDebug("Stopping send transport: {EntityName}", _context.EntityName);
 
             return base.StopSupervisor(context);
         }
@@ -95,62 +95,60 @@ namespace MassTransit.ActiveMqTransport.Transport
 
                 var context = new TransportActiveMqSendContext<T>(_message, _cancellationToken);
 
-                var activity = LogContext.IfEnabled(OperationName.Transport.Send)?.StartActivity(new
+                using (var activity = LogContext.StartActivity(OperationName.Transport.Send, new
                 {
                     _context.EntityName,
                     _context.DestinationType
-                });
-                try
+                }))
                 {
-                    await _pipe.Send(context).ConfigureAwait(false);
+                    try
+                    {
+                        await _pipe.Send(context).ConfigureAwait(false);
 
-                    activity.AddSendContextHeaders(context);
+                        activity.AddSendContextHeaders(context);
 
-                    byte[] body = context.Body;
+                        byte[] body = context.Body;
 
-                    var transportMessage = sessionContext.Session.CreateBytesMessage();
+                        var transportMessage = sessionContext.Session.CreateBytesMessage();
 
-                    transportMessage.Properties.SetHeaders(context.Headers);
+                        transportMessage.Properties.SetHeaders(context.Headers);
 
-                    transportMessage.Properties["Content-Type"] = context.ContentType.MediaType;
+                        transportMessage.Properties["Content-Type"] = context.ContentType.MediaType;
 
-                    transportMessage.NMSDeliveryMode = context.Durable ? MsgDeliveryMode.Persistent : MsgDeliveryMode.NonPersistent;
+                        transportMessage.NMSDeliveryMode = context.Durable ? MsgDeliveryMode.Persistent : MsgDeliveryMode.NonPersistent;
 
-                    if (context.MessageId.HasValue)
-                        transportMessage.NMSMessageId = context.MessageId.ToString();
+                        if (context.MessageId.HasValue)
+                            transportMessage.NMSMessageId = context.MessageId.ToString();
 
-                    if (context.CorrelationId.HasValue)
-                        transportMessage.NMSCorrelationID = context.CorrelationId.ToString();
+                        if (context.CorrelationId.HasValue)
+                            transportMessage.NMSCorrelationID = context.CorrelationId.ToString();
 
-                    if (context.TimeToLive.HasValue)
-                        transportMessage.NMSTimeToLive = context.TimeToLive.Value;
+                        if (context.TimeToLive.HasValue)
+                            transportMessage.NMSTimeToLive = context.TimeToLive.Value;
 
-                    if (context.Priority.HasValue)
-                        transportMessage.NMSPriority = context.Priority.Value;
+                        if (context.Priority.HasValue)
+                            transportMessage.NMSPriority = context.Priority.Value;
 
-                    transportMessage.Content = body;
+                        transportMessage.Content = body;
 
-                    await _context.SendObservers.PreSend(context).ConfigureAwait(false);
+                        await _context.SendObservers.PreSend(context).ConfigureAwait(false);
 
-                    var publishTask = Task.Run(() => producer.Send(transportMessage), context.CancellationToken);
+                        var publishTask = Task.Run(() => producer.Send(transportMessage), context.CancellationToken);
 
-                    await publishTask.UntilCompletedOrCanceled(context.CancellationToken).ConfigureAwait(false);
+                        await publishTask.UntilCompletedOrCanceled(context.CancellationToken).ConfigureAwait(false);
 
-                    context.LogSent();
+                        context.LogSent();
 
-                    await _context.SendObservers.PostSend(context).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    context.LogFaulted(ex);
+                        await _context.SendObservers.PostSend(context).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        context.LogFaulted(ex);
 
-                    await _context.SendObservers.SendFault(context, ex).ConfigureAwait(false);
+                        await _context.SendObservers.SendFault(context, ex).ConfigureAwait(false);
 
-                    throw;
-                }
-                finally
-                {
-                    activity?.Stop();
+                        throw;
+                    }
                 }
             }
 

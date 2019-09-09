@@ -44,7 +44,7 @@ namespace MassTransit.Host
 
         void IBusServiceConfigurator.Configure(IServiceConfigurator configurator)
         {
-            LogContext.Info?.Log("Configuring Service: {ServiceName}", TypeMetadataCache.GetShortName(_serviceSpecification.GetType()));
+            LogContext.LogInformation("Configuring Service: {ServiceName}", TypeMetadataCache.GetShortName(_serviceSpecification.GetType()));
 
             _serviceSpecification.Configure(configurator);
 
@@ -54,14 +54,14 @@ namespace MassTransit.Host
                 int consumerLimit;
                 GetEndpointSettings(specification, out queueName, out consumerLimit);
 
-                LogContext.Info?.Log("Configuring Endpoint: {EndpointName} (queue-name: {Queue}, consumer-limit: {ConsumerLimit})",
+                LogContext.LogInformation("Configuring Endpoint: {EndpointName} (queue-name: {Queue}, consumer-limit: {ConsumerLimit})",
                     TypeMetadataCache.GetShortName(_serviceSpecification.GetType()), queueName, consumerLimit);
 
                 configurator.ReceiveEndpoint(queueName, consumerLimit, x =>
                 {
                     specification.Configure(x);
 
-                    LogContext.Info?.Log("Configured Endpoint: {EndpointName} (address: {InputAddress})",
+                    LogContext.LogInformation("Configured Endpoint: {EndpointName} (address: {InputAddress})",
                         TypeMetadataCache.GetShortName(_serviceSpecification.GetType()), x.InputAddress);
                 });
             }

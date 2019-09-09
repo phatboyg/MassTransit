@@ -64,7 +64,7 @@ namespace MassTransit.RabbitMqTransport.Pipeline
         {
             LogContext.Current = _context.LogContext;
 
-            LogContext.Debug?.Log("Consumer Ok: {InputAddress} - {ConsumerTag}", _context.InputAddress, consumerTag);
+            LogContext.LogDebug("Consumer Ok: {InputAddress} - {ConsumerTag}", _context.InputAddress, consumerTag);
 
             _consumerTag = consumerTag;
 
@@ -80,7 +80,7 @@ namespace MassTransit.RabbitMqTransport.Pipeline
         {
             LogContext.Current = _context.LogContext;
 
-            LogContext.Debug?.Log("Consumer Cancel Ok: {InputAddress} - {ConsumerTag}", _context.InputAddress, consumerTag);
+            LogContext.LogDebug("Consumer Cancel Ok: {InputAddress} - {ConsumerTag}", _context.InputAddress, consumerTag);
 
             _deliveryComplete.TrySetResult(true);
             SetCompleted(TaskUtil.Completed);
@@ -95,7 +95,7 @@ namespace MassTransit.RabbitMqTransport.Pipeline
         {
             LogContext.Current = _context.LogContext;
 
-            LogContext.Debug?.Log("Consumer Canceled: {InputAddress} - {ConsumerTag}", _context.InputAddress, consumerTag);
+            LogContext.LogDebug("Consumer Canceled: {InputAddress} - {ConsumerTag}", _context.InputAddress, consumerTag);
 
             foreach (var context in _pending.Values)
                 context.Cancel();
@@ -110,7 +110,7 @@ namespace MassTransit.RabbitMqTransport.Pipeline
         {
             LogContext.Current = _context.LogContext;
 
-            LogContext.Debug?.Log(
+            LogContext.LogDebug(
                 "Consumer Model Shutdown: {InputAddress} - {ConsumerTag}, Concurrent Peak: {MaxConcurrentDeliveryCount}, {ReplyCode}-{ReplyText}",
                 _context.InputAddress, _consumerTag, _tracker.MaxConcurrentDeliveryCount, reason.ReplyCode, reason.ReplyText);
 
@@ -138,45 +138,45 @@ namespace MassTransit.RabbitMqTransport.Pipeline
             context.GetOrAddPayload(() => _model);
             context.GetOrAddPayload(() => _model.ConnectionContext);
 
-            var activity = LogContext.IfEnabled(OperationName.Transport.Receive)?.StartActivity();
-            activity.AddReceiveContextHeaders(context);
-
-            try
+            using (var activity = LogContext.StartActivity(OperationName.Transport.Receive))
             {
-                if (!_pending.TryAdd(deliveryTag, context))
-                    LogContext.Warning?.Log("Duplicate BasicDeliver: {DeliveryTag}", deliveryTag);
-
-                await _context.ReceiveObservers.PreReceive(context).ConfigureAwait(false);
-
-                await _context.ReceivePipe.Send(context).ConfigureAwait(false);
-
-                await context.ReceiveCompleted.ConfigureAwait(false);
-
-                _model.BasicAck(deliveryTag, false);
-
-                await _context.ReceiveObservers.PostReceive(context).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                await _context.ReceiveObservers.ReceiveFault(context, ex).ConfigureAwait(false);
+                activity.AddReceiveContextHeaders(context);
 
                 try
                 {
-                    _model.BasicNack(deliveryTag, false, true);
+                    if (!_pending.TryAdd(deliveryTag, context))
+                        LogContext.LogWarning("Duplicate BasicDeliver: {DeliveryTag}", deliveryTag);
+
+                    await _context.ReceiveObservers.PreReceive(context).ConfigureAwait(false);
+
+                    await _context.ReceivePipe.Send(context).ConfigureAwait(false);
+
+                    await context.ReceiveCompleted.ConfigureAwait(false);
+
+                    _model.BasicAck(deliveryTag, false);
+
+                    await _context.ReceiveObservers.PostReceive(context).ConfigureAwait(false);
                 }
-                catch (Exception ackEx)
+                catch (Exception ex)
                 {
-                    LogContext.Error?.Log(ackEx, "Message NACK failed: {DeliveryTag}", deliveryTag);
+                    await _context.ReceiveObservers.ReceiveFault(context, ex).ConfigureAwait(false);
+
+                    try
+                    {
+                        _model.BasicNack(deliveryTag, false, true);
+                    }
+                    catch (Exception ackEx)
+                    {
+                        LogContext.LogError(ackEx, "Message NACK failed: {DeliveryTag}", deliveryTag);
+                    }
                 }
-            }
-            finally
-            {
-                activity?.Stop();
+                finally
+                {
+                    delivery.Dispose();
 
-                delivery.Dispose();
-
-                _pending.TryRemove(deliveryTag, out _);
-                context.Dispose();
+                    _pending.TryRemove(deliveryTag, out _);
+                    context.Dispose();
+                }
             }
         }
 
@@ -194,7 +194,7 @@ namespace MassTransit.RabbitMqTransport.Pipeline
         {
             if (IsStopping)
             {
-                LogContext.Debug?.Log("Consumer shutdown completed: {InputAddress}", _context.InputAddress);
+                LogContext.LogDebug("Consumer shutdown completed: {InputAddress}", _context.InputAddress);
 
                 _deliveryComplete.TrySetResult(true);
             }
@@ -210,14 +210,14 @@ namespace MassTransit.RabbitMqTransport.Pipeline
             }
             catch (Exception exception)
             {
-                LogContext.Error?.Log(exception, "Message NACK faulted during shutdown: {InputAddress} - {ConsumerTag}", _context.InputAddress,
+                LogContext.LogError(exception, "Message NACK faulted during shutdown: {InputAddress} - {ConsumerTag}", _context.InputAddress,
                     _consumerTag);
             }
         }
 
         protected override async Task StopSupervisor(StopSupervisorContext context)
         {
-            LogContext.Debug?.Log("Stopping Consumer: {InputAddress} - {ConsumerTag}", _context.InputAddress, _consumerTag);
+            LogContext.LogDebug("Stopping Consumer: {InputAddress} - {ConsumerTag}", _context.InputAddress, _consumerTag);
 
             SetCompleted(ActiveAndActualAgentsCompleted(context));
 
@@ -248,7 +248,7 @@ namespace MassTransit.RabbitMqTransport.Pipeline
                 }
                 catch (OperationCanceledException)
                 {
-                    LogContext.Warning?.Log("Stop canceled waiting for message consumers to complete: {InputAddress} - {ConsumerTag}",
+                    LogContext.LogWarning("Stop canceled waiting for message consumers to complete: {InputAddress} - {ConsumerTag}",
                         _context.InputAddress, _consumerTag);
                 }
             }
@@ -259,7 +259,7 @@ namespace MassTransit.RabbitMqTransport.Pipeline
             }
             catch (OperationCanceledException)
             {
-                LogContext.Warning?.Log("Stop canceled waiting for consumer cancellation: {InputAddress} - {ConsumerTag}", _context.InputAddress,
+                LogContext.LogWarning("Stop canceled waiting for consumer cancellation: {InputAddress} - {ConsumerTag}", _context.InputAddress,
                     _consumerTag);
             }
         }

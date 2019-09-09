@@ -19,7 +19,7 @@ namespace MassTransit.Conductor.Consumers
 
         public async Task Consume(ConsumeContext<Link<T>> context)
         {
-            LogContext.Debug?.Log("Linking Client: {Id}", context.Message.ClientId);
+            LogContext.LogDebug("Linking Client: {Id}", context.Message.ClientId);
 
             await _messageEndpoint.Link(context.Message.ClientId, context.SourceAddress).ConfigureAwait(false);
 

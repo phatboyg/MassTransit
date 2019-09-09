@@ -91,7 +91,7 @@ namespace MassTransit.AzureServiceBusTransport.Pipeline
 
                         await _context.RenewLockAsync().ConfigureAwait(false);
 
-                        LogContext.Debug?.Log("Renewed Lock: {MessageId}", _context.MessageId);
+                        LogContext.LogDebug("Renewed Lock: {MessageId}", _context.MessageId);
 
                         delay = _delay;
                     }
@@ -105,14 +105,14 @@ namespace MassTransit.AzureServiceBusTransport.Pipeline
                         _source.Cancel();
                         _completed.TrySetException(exception);
 
-                        LogContext.Warning?.Log(exception, "Lost Message Lock: {MessageId}", _context.MessageId);
+                        LogContext.LogWarning(exception, "Lost Message Lock: {MessageId}", _context.MessageId);
                     }
                     catch (SessionLockLostException exception)
                     {
                         _source.Cancel();
                         _completed.TrySetException(exception);
 
-                        LogContext.Warning?.Log(exception, "Lost Message Lock: {MessageId}", _context.MessageId);
+                        LogContext.LogWarning(exception, "Lost Message Lock: {MessageId}", _context.MessageId);
                     }
                     catch (MessagingException exception)
                     {
@@ -126,14 +126,14 @@ namespace MassTransit.AzureServiceBusTransport.Pipeline
                     {
                         delay = TimeSpan.Zero;
 
-                        LogContext.Warning?.Log(exception, "Renew Lock Timeout (will retry): {MessageId}", _context.MessageId);
+                        LogContext.LogWarning(exception, "Renew Lock Timeout (will retry): {MessageId}", _context.MessageId);
                     }
                     catch (Exception exception)
                     {
                         _source.Cancel();
                         _completed.TrySetException(exception);
 
-                        LogContext.Warning?.Log(exception, "Renew Lock Timeout: {MessageId}", _context.MessageId);
+                        LogContext.LogWarning(exception, "Renew Lock Timeout: {MessageId}", _context.MessageId);
                     }
                 }
 

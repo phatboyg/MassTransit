@@ -42,7 +42,7 @@
             }
             while (string.IsNullOrWhiteSpace(_lastHost));
 
-            LogContext.Debug?.Log("Returning next host: {Host}", _lastHost);
+            LogContext.LogDebug("Returning next host: {Host}", _lastHost);
 
             Interlocked.Increment(ref _nextHostIndex);
 

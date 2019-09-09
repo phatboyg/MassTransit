@@ -9,12 +9,12 @@ namespace MassTransit.Azure.ServiceBus.Core.Topology
         {
             foreach (var topic in topology.Topics)
             {
-                LogContext.Info?.Log("Topic: {Topic}", topic.TopicDescription.Path);
+                LogContext.LogInformation("Topic: {Topic}", topic.TopicDescription.Path);
             }
 
             foreach (var subscription in topology.Subscriptions)
             {
-                LogContext.Info?.Log("Subscription: {Subscription}, topic: {Topic}", subscription.SubscriptionDescription.SubscriptionName,
+                LogContext.LogInformation("Subscription: {Subscription}, topic: {Topic}", subscription.SubscriptionDescription.SubscriptionName,
                     subscription.SubscriptionDescription.TopicPath);
             }
         }

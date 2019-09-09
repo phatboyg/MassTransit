@@ -39,7 +39,7 @@
             }
             catch (Exception e)
             {
-                LogContext.Warning?.Log(e, "Failed to write message");
+                LogContext.LogWarning(e, "Failed to write message");
             }
         }
     }

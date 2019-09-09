@@ -13,17 +13,14 @@ namespace MassTransit.Context
 
         public BaseLogContext(ILogContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
-            _context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public ILogContext Messages => _context.Messages;
 
-        public EnabledDiagnosticSource? IfEnabled(string name)
+        public IActivityScope BeginActivity(string name, object args = default)
         {
-            return _context.IfEnabled(name);
+            return _context.BeginActivity(name, args);
         }
 
         public ILogContext<T> CreateLogContext<T>()
@@ -36,39 +33,6 @@ namespace MassTransit.Context
             return _context.CreateLogContext(categoryName);
         }
 
-        public EnabledLogger? IfEnabled(LogLevel level)
-        {
-            return _context.IfEnabled(level);
-        }
-
-        public EnabledLogger? Critical
-        {
-            get { return _context.Critical; }
-        }
-
-        public EnabledLogger? Debug
-        {
-            get { return _context.Debug; }
-        }
-
-        public EnabledLogger? Error
-        {
-            get { return _context.Error; }
-        }
-
-        public EnabledLogger? Info
-        {
-            get { return _context.Info; }
-        }
-
-        public EnabledLogger? Trace
-        {
-            get { return _context.Trace; }
-        }
-
-        public EnabledLogger? Warning
-        {
-            get { return _context.Warning; }
-        }
+        public ILogger Logger => _context.Logger;
     }
 }

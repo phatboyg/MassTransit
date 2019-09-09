@@ -44,7 +44,7 @@ namespace MassTransit.Steward.Core.Agents
                     "An exception occurred sending message {0} to {1}", string.Join(",", context.DispatchTypes),
                     context.Destination);
 
-                LogContext.Error?.Log(ex, message);
+                LogContext.LogError(ex, message);
 
                 throw new DispatchException(message, ex);
             }

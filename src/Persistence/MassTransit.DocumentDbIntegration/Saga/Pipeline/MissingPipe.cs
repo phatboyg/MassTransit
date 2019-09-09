@@ -43,7 +43,7 @@
 
         public async Task Send(SagaConsumeContext<TSaga, TMessage> context)
         {
-            LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Added {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+            LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Added {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                 context.Saga.CorrelationId, TypeMetadataCache<TMessage>.ShortName);
 
             SagaConsumeContext<TSaga, TMessage> proxy =

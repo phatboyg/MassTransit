@@ -246,7 +246,7 @@ namespace MassTransit.RabbitMqTransport.Tests
 
             public Consumer()
             {
-                LogContext.Info?.Log("Creating consumer");
+                LogContext.LogInformation("Creating consumer");
             }
 
             public Task Consume(ConsumeContext<PingMessage> context)

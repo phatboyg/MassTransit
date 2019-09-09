@@ -51,18 +51,18 @@ namespace MassTransit.AzureServiceBusTransport.Contexts
 
         async Task IAsyncDisposable.DisposeAsync(CancellationToken cancellationToken)
         {
-            LogContext.Debug?.Log("Closing client: {InputAddress}", InputAddress);
+            LogContext.LogDebug("Closing client: {InputAddress}", InputAddress);
 
             try
             {
                 if (_client != null && !_client.IsClosed)
                     await _client.CloseAsync().ConfigureAwait(false);
 
-                LogContext.Debug?.Log("Closed client: {InputAddress}", InputAddress);
+                LogContext.LogDebug("Closed client: {InputAddress}", InputAddress);
             }
             catch (Exception exception)
             {
-                LogContext.Warning?.Log(exception, "Close client faulted: {InputAddress}", InputAddress);
+                LogContext.LogWarning(exception, "Close client faulted: {InputAddress}", InputAddress);
             }
         }
     }

@@ -45,7 +45,7 @@
                         }
                         catch (Exception ex)
                         {
-                            LogContext.Warning?.Log(ex, "Failed to remove one or more subscriptions from the endpoint.");
+                            LogContext.LogWarning(ex, "Failed to remove one or more subscriptions from the endpoint.");
                         }
                     });
             }).ConfigureAwait(false);

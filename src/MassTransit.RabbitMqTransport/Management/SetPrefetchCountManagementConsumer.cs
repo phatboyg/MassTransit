@@ -40,11 +40,11 @@
                             context.Message.PrefetchCount
                         }).ConfigureAwait(false);
 
-                        LogContext.Debug?.Log("Set Prefetch Count: (queue: {QueueName}, count: {PrefetchCount})", _queueName, context.Message.PrefetchCount);
+                        LogContext.LogDebug("Set Prefetch Count: (queue: {QueueName}, count: {PrefetchCount})", _queueName, context.Message.PrefetchCount);
                     }
                     catch (Exception exception)
                     {
-                        LogContext.Error?.Log(exception, "Set Prefetch Count failed: (queue: {QueueName}, count: {PrefetchCount})", _queueName,
+                        LogContext.LogError(exception, "Set Prefetch Count failed: (queue: {QueueName}, count: {PrefetchCount})", _queueName,
                             context.Message.PrefetchCount);
 
                         throw;

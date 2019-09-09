@@ -73,7 +73,7 @@ namespace MassTransit.Conductor.Client
                 }
                 catch (Exception exception)
                 {
-                    LogContext.Warning?.Log(exception, "MessageClient Dispose faulted: (client-id: {ClientId})", _clientId);
+                    LogContext.LogWarning(exception, "MessageClient Dispose faulted: (client-id: {ClientId})", _clientId);
                 }
             }
 

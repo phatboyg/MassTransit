@@ -189,7 +189,7 @@ namespace MassTransit.Registration
                     if (endpoint.Consumers != null)
                         foreach (var consumer in endpoint.Consumers)
                         {
-                            LogContext.Debug?.Log("Configuring consumer {ConsumerType} on {Endpoint}", TypeMetadataCache.GetShortName(consumer.ConsumerType),
+                            LogContext.LogDebug("Configuring consumer {ConsumerType} on {Endpoint}", TypeMetadataCache.GetShortName(consumer.ConsumerType),
                                 endpoint.Name);
 
                             ConfigureConsumer(consumer.ConsumerType, cfg);
@@ -198,7 +198,7 @@ namespace MassTransit.Registration
                     if (endpoint.Sagas != null)
                         foreach (var saga in endpoint.Sagas)
                         {
-                            LogContext.Debug?.Log("Configuring saga {SagaType} on {Endpoint}", TypeMetadataCache.GetShortName(saga.SagaType), endpoint.Name);
+                            LogContext.LogDebug("Configuring saga {SagaType} on {Endpoint}", TypeMetadataCache.GetShortName(saga.SagaType), endpoint.Name);
 
                             ConfigureSaga(saga.SagaType, cfg);
                         }
@@ -213,10 +213,10 @@ namespace MassTransit.Registration
                             {
                                 configurator.ReceiveEndpoint(compensateDefinition, endpointNameFormatter, compensateEndpointConfigurator =>
                                 {
-                                    LogContext.Debug?.Log("Configuring receive endpoint {Endpoint}", ToEndpointString(compensateEndpointName,
+                                    LogContext.LogDebug("Configuring receive endpoint {Endpoint}", ToEndpointString(compensateEndpointName,
                                     compensateDefinition));
 
-                                    LogContext.Debug?.Log("Configuring activity {ActivityType} on {ExecuteEndpoint} / {CompensateEndpoint}",
+                                    LogContext.LogDebug("Configuring activity {ActivityType} on {ExecuteEndpoint} / {CompensateEndpoint}",
                                         TypeMetadataCache.GetShortName(activity.ActivityType), endpoint.Name, compensateEndpointName);
 
                                     ConfigureActivity(activity.ActivityType, cfg, compensateEndpointConfigurator);
@@ -226,7 +226,7 @@ namespace MassTransit.Registration
                             {
                                 configurator.ReceiveEndpoint(compensateEndpointName, compensateEndpointConfigurator =>
                                 {
-                                    LogContext.Debug?.Log("Configuring activity {ActivityType} on {ExecuteEndpoint} / {CompensateEndpoint}",
+                                    LogContext.LogDebug("Configuring activity {ActivityType} on {ExecuteEndpoint} / {CompensateEndpoint}",
                                         TypeMetadataCache.GetShortName(activity.ActivityType), endpoint.Name, compensateEndpointName);
 
                                     ConfigureActivity(activity.ActivityType, cfg, compensateEndpointConfigurator);
@@ -237,7 +237,7 @@ namespace MassTransit.Registration
                     if (endpoint.ExecuteActivities != null)
                         foreach (var activity in endpoint.ExecuteActivities)
                         {
-                            LogContext.Debug?.Log("Configuring activity {ActivityType} on {ExecuteEndpoint}",
+                            LogContext.LogDebug("Configuring activity {ActivityType} on {ExecuteEndpoint}",
                                 TypeMetadataCache.GetShortName(activity.ActivityType), endpoint.Name);
 
                             ConfigureExecuteActivity(activity.ActivityType, cfg);

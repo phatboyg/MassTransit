@@ -96,7 +96,7 @@ namespace MassTransit.Conductor.Server
             }
             catch (Exception exception)
             {
-                LogContext.Warning?.Log(exception, "Failed to notify service endpoint up: {InstanceAddress}", EndpointInfo.InstanceAddress);
+                LogContext.LogWarning(exception, "Failed to notify service endpoint up: {InstanceAddress}", EndpointInfo.InstanceAddress);
             }
         }
 
@@ -108,7 +108,7 @@ namespace MassTransit.Conductor.Server
             }
             catch (Exception exception)
             {
-                LogContext.Warning?.Log(exception, "Failed to notify service endpoint down: {InstanceAddress}", EndpointInfo.InstanceAddress);
+                LogContext.LogWarning(exception, "Failed to notify service endpoint down: {InstanceAddress}", EndpointInfo.InstanceAddress);
             }
         }
 

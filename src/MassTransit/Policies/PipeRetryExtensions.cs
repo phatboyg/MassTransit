@@ -164,7 +164,7 @@ namespace MassTransit.Policies
                 }
                 catch (Exception ex)
                 {
-                    LogContext.Warning?.Log(ex, "Repeating until cancelled: {Cancelled}", cancellationToken.IsCancellationRequested);
+                    LogContext.LogWarning(ex, "Repeating until cancelled: {Cancelled}", cancellationToken.IsCancellationRequested);
                 }
             }
         }

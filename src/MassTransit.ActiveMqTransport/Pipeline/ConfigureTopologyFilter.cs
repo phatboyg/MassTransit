@@ -64,28 +64,28 @@ namespace MassTransit.ActiveMqTransport.Pipeline
 
         Task Declare(SessionContext context, Topic topic)
         {
-            LogContext.Debug?.Log("Get topic {Topic}", topic);
+            LogContext.LogDebug("Get topic {Topic}", topic);
 
             return context.GetTopic(topic.EntityName);
         }
 
         Task Declare(SessionContext context, Queue queue)
         {
-            LogContext.Debug?.Log("Get queue {Queue}", queue);
+            LogContext.LogDebug("Get queue {Queue}", queue);
 
             return context.GetQueue(queue.EntityName);
         }
 
         Task Delete(SessionContext context, Topic topic)
         {
-            LogContext.Debug?.Log("Delete Topic {Topic}", topic);
+            LogContext.LogDebug("Delete Topic {Topic}", topic);
 
             return context.DeleteTopic(topic.EntityName);
         }
 
         Task Delete(SessionContext context, Queue queue)
         {
-            LogContext.Debug?.Log("Delete Queue {Queue}", queue);
+            LogContext.LogDebug("Delete Queue {Queue}", queue);
 
             return context.DeleteQueue(queue.EntityName);
         }

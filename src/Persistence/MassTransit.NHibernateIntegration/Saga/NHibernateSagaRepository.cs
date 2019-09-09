@@ -77,7 +77,7 @@ namespace MassTransit.NHibernateIntegration.Saga
                     }
                     else
                     {
-                        LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Used {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                        LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Used {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                             instance.CorrelationId, TypeMetadataCache<T>.ShortName);
 
                         var sagaConsumeContext = new NHibernateSagaConsumeContext<TSaga, T>(session, context, instance);
@@ -93,7 +93,7 @@ namespace MassTransit.NHibernateIntegration.Saga
                 }
                 catch (Exception ex)
                 {
-                    LogContext.Error?.Log(ex, "SAGA:{SagaType}:{CorrelationId} Exception {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                    LogContext.LogError(ex, "SAGA:{SagaType}:{CorrelationId} Exception {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                         instance?.CorrelationId, TypeMetadataCache<T>.ShortName);
 
                     if (transaction.IsActive)
@@ -132,7 +132,7 @@ namespace MassTransit.NHibernateIntegration.Saga
                 }
                 catch (SagaException sex)
                 {
-                    LogContext.Error?.Log(sex, "SAGA:{SagaType} Exception {MessageType}", TypeMetadataCache<TSaga>.ShortName, TypeMetadataCache<T>.ShortName);
+                    LogContext.LogError(sex, "SAGA:{SagaType} Exception {MessageType}", TypeMetadataCache<TSaga>.ShortName, TypeMetadataCache<T>.ShortName);
 
                     if (transaction.IsActive)
                         await transaction.RollbackAsync().ConfigureAwait(false);
@@ -141,7 +141,7 @@ namespace MassTransit.NHibernateIntegration.Saga
                 }
                 catch (Exception ex)
                 {
-                    LogContext.Error?.Log(ex, "SAGA:{SagaType} Exception {MessageType}", TypeMetadataCache<TSaga>.ShortName, TypeMetadataCache<T>.ShortName);
+                    LogContext.LogError(ex, "SAGA:{SagaType} Exception {MessageType}", TypeMetadataCache<TSaga>.ShortName, TypeMetadataCache<T>.ShortName);
 
                     if (transaction.IsActive)
                         await transaction.RollbackAsync().ConfigureAwait(false);
@@ -162,12 +162,12 @@ namespace MassTransit.NHibernateIntegration.Saga
 
                 inserted = true;
 
-                LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Insert {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Insert {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                     instance.CorrelationId, TypeMetadataCache<T>.ShortName);
             }
             catch (GenericADOException ex)
             {
-                LogContext.Debug?.Log(ex, "SAGA:{SagaType}:{CorrelationId} Dupe {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                LogContext.LogDebug(ex, "SAGA:{SagaType}:{CorrelationId} Dupe {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                     instance.CorrelationId, TypeMetadataCache<T>.ShortName);
             }
 
@@ -180,7 +180,7 @@ namespace MassTransit.NHibernateIntegration.Saga
         {
             try
             {
-                LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Used {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Used {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                     instance.CorrelationId, TypeMetadataCache<T>.ShortName);
 
                 var sagaConsumeContext = new NHibernateSagaConsumeContext<TSaga, T>(session, context, instance);
@@ -222,7 +222,7 @@ namespace MassTransit.NHibernateIntegration.Saga
 
             public async Task Send(SagaConsumeContext<TSaga, TMessage> context)
             {
-                LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Added {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+                LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Added {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                     context.Saga.CorrelationId, TypeMetadataCache<TMessage>.ShortName);
 
                 SagaConsumeContext<TSaga, TMessage> proxy = new NHibernateSagaConsumeContext<TSaga, TMessage>(_session, context, context.Saga);

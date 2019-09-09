@@ -30,7 +30,7 @@
             await _session.DeleteAsync(Saga).ConfigureAwait(false);
             IsCompleted = true;
 
-            LogContext.Debug?.Log("SAGA:{SagaType}:{CorrelationId} Removed {MessageType}", TypeMetadataCache<TSaga>.ShortName,
+            LogContext.LogDebug("SAGA:{SagaType}:{CorrelationId} Removed {MessageType}", TypeMetadataCache<TSaga>.ShortName,
                 Saga.CorrelationId, TypeMetadataCache<TMessage>.ShortName);
         }
 

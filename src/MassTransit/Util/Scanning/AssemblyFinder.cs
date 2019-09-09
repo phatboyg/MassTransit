@@ -57,7 +57,7 @@ namespace MassTransit.Util.Scanning
 
         public static IEnumerable<Assembly> FindAssemblies(string assemblyPath, AssemblyLoadFailure loadFailure, bool includeExeFiles, AssemblyFilter filter)
         {
-            LogContext.Debug?.Log("Scanning assembly directory: {Path}", assemblyPath);
+            LogContext.LogDebug("Scanning assembly directory: {Path}", assemblyPath);
 
             IEnumerable<string> dllFiles = Directory.EnumerateFiles(assemblyPath, "*.dll", SearchOption.AllDirectories).ToList();
             IEnumerable<string> files = dllFiles;
@@ -77,7 +77,7 @@ namespace MassTransit.Util.Scanning
                 var filterName = Path.GetFileName(file);
                 if (!filter(filterName))
                 {
-                    LogContext.Debug?.Log("Filtered assembly: {File}", file);
+                    LogContext.LogDebug("Filtered assembly: {File}", file);
 
                     continue;
                 }
@@ -89,7 +89,7 @@ namespace MassTransit.Util.Scanning
                 }
                 catch (BadImageFormatException exception)
                 {
-                    LogContext.Warning?.Log(exception, "Assembly Scan failed: {Name}", name);
+                    LogContext.LogWarning(exception, "Assembly Scan failed: {Name}", name);
 
                     continue;
                 }
@@ -115,7 +115,7 @@ namespace MassTransit.Util.Scanning
                     }
                     catch (BadImageFormatException exception)
                     {
-                        LogContext.Warning?.Log(exception, "Assembly Scan failed: {Name}", name);
+                        LogContext.LogWarning(exception, "Assembly Scan failed: {Name}", name);
 
                         continue;
                     }

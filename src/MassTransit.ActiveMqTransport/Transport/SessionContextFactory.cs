@@ -49,7 +49,7 @@
                 {
                     var session = await connectionContext.CreateSession(cancellationToken).ConfigureAwait(false);
 
-                    LogContext.Debug?.Log("Created session: {Host}", connectionContext.Description);
+                    LogContext.LogDebug("Created session: {Host}", connectionContext.Description);
 
                     var sessionContext = new ActiveMqSessionContext(connectionContext, session, cancellationToken);
 
@@ -79,7 +79,7 @@
                 }
                 catch (Exception exception)
                 {
-                    LogContext.Error?.Log(exception, "Create session failed: {Host}", connectionContext.Description);
+                    LogContext.LogError(exception, "Create session failed: {Host}", connectionContext.Description);
 
                     await asyncContext.CreateFaulted(exception).ConfigureAwait(false);
                 }

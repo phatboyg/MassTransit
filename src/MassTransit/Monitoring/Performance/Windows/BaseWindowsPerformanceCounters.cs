@@ -61,7 +61,7 @@ namespace MassTransit.Monitoring.Performance.Windows
             }
             catch (SecurityException exception)
             {
-                LogContext.Warning?.Log(exception, "Unable to create performance counter category (Category: {Category})" +
+                LogContext.LogWarning(exception, "Unable to create performance counter category (Category: {Category})" +
                     "\nTry running the program in the Administrator role to set these up." +
                     "\n**Hey, this just means you aren't admin or don't have/want perf counter support**", _categoryName);
             }

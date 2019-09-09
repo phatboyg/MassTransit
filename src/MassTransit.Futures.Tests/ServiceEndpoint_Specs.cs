@@ -358,7 +358,7 @@ namespace MassTransit.Tests
         {
             public async Task Consume(ConsumeContext<DeployPayload> context)
             {
-                LogContext.Info?.Log("Deploying Payload: {Target}", context.Message.Target);
+                LogContext.LogInformation("Deploying Payload: {Target}", context.Message.Target);
 
                 await context.RespondAsync<PayloadDeployed>(new { });
             }

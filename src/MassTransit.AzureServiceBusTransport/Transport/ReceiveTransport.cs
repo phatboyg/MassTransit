@@ -104,7 +104,7 @@ namespace MassTransit.AzureServiceBusTransport.Transport
                         }
                         catch (Exception ex)
                         {
-                            LogContext.Error?.Log(ex, "Receive transport faulted: {InputAddress}", _context.InputAddress);
+                            LogContext.LogError(ex, "Receive transport faulted: {InputAddress}", _context.InputAddress);
 
                             await _context.TransportObservers.Faulted(new ReceiveTransportFaultedEvent(inputAddress, ex)).ConfigureAwait(false);
 

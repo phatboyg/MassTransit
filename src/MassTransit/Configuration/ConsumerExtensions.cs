@@ -31,7 +31,7 @@
             if (consumerFactory == null)
                 throw new ArgumentNullException(nameof(consumerFactory));
 
-            LogContext.Debug?.Log("Subscribing Consumer: {ConsumerType} (using supplied consumer factory)", TypeMetadataCache<TConsumer>.ShortName);
+            LogContext.LogDebug("Subscribing Consumer: {ConsumerType} (using supplied consumer factory)", TypeMetadataCache<TConsumer>.ShortName);
 
             var consumerConfigurator = new ConsumerConfigurator<TConsumer>(consumerFactory, configurator);
 
@@ -57,7 +57,7 @@
             if (consumerFactory == null)
                 throw new ArgumentNullException(nameof(consumerFactory));
 
-            LogContext.Debug?.Log("Connecting Consumer: {ConsumerType} (using supplied consumer factory)", TypeMetadataCache<TConsumer>.ShortName);
+            LogContext.LogDebug("Connecting Consumer: {ConsumerType} (using supplied consumer factory)", TypeMetadataCache<TConsumer>.ShortName);
 
             IConsumerSpecification<TConsumer> specification = ConsumerConnectorCache<TConsumer>.Connector.CreateConsumerSpecification<TConsumer>();
             foreach (IPipeSpecification<ConsumerConsumeContext<TConsumer>> pipeSpecification in pipeSpecifications)
@@ -81,7 +81,7 @@
             if (configurator == null)
                 throw new ArgumentNullException(nameof(configurator));
 
-            LogContext.Debug?.Log("Subscribing Consumer: {ConsumerType} (using default constructor)", TypeMetadataCache<TConsumer>.ShortName);
+            LogContext.LogDebug("Subscribing Consumer: {ConsumerType} (using default constructor)", TypeMetadataCache<TConsumer>.ShortName);
 
             var consumerFactory = new DefaultConstructorConsumerFactory<TConsumer>();
 
@@ -106,7 +106,7 @@
             if (connector == null)
                 throw new ArgumentNullException(nameof(connector));
 
-            LogContext.Debug?.Log("Connecting Consumer: {ConsumerType} (using default constructor)", TypeMetadataCache<TConsumer>.ShortName);
+            LogContext.LogDebug("Connecting Consumer: {ConsumerType} (using default constructor)", TypeMetadataCache<TConsumer>.ShortName);
 
             return ConnectConsumer(connector, new DefaultConstructorConsumerFactory<TConsumer>(), pipeSpecifications);
         }
@@ -128,7 +128,7 @@
             if (consumerFactoryMethod == null)
                 throw new ArgumentNullException(nameof(consumerFactoryMethod));
 
-            LogContext.Debug?.Log("Subscribing Consumer: {ConsumerType} (using delegate consumer factory)", TypeMetadataCache<TConsumer>.ShortName);
+            LogContext.LogDebug("Subscribing Consumer: {ConsumerType} (using delegate consumer factory)", TypeMetadataCache<TConsumer>.ShortName);
 
             var delegateConsumerFactory = new DelegateConsumerFactory<TConsumer>(consumerFactoryMethod);
 
@@ -156,7 +156,7 @@
             if (consumerFactoryMethod == null)
                 throw new ArgumentNullException(nameof(consumerFactoryMethod));
 
-            LogContext.Debug?.Log("Connecting Consumer: {ConsumerType} (using delegate consumer factory)", TypeMetadataCache<TConsumer>.ShortName);
+            LogContext.LogDebug("Connecting Consumer: {ConsumerType} (using delegate consumer factory)", TypeMetadataCache<TConsumer>.ShortName);
 
             var consumerFactory = new DelegateConsumerFactory<TConsumer>(consumerFactoryMethod);
 
@@ -179,7 +179,7 @@
             if (consumerFactory == null)
                 throw new ArgumentNullException(nameof(consumerFactory));
 
-            LogContext.Debug?.Log("Subscribing Consumer: {ConsumerType} (by type, using object consumer factory)",
+            LogContext.LogDebug("Subscribing Consumer: {ConsumerType} (by type, using object consumer factory)",
                 TypeMetadataCache.GetShortName(consumerType));
 
             var configuratorType = typeof(UntypedConsumerConfigurator<>).MakeGenericType(consumerType);
@@ -206,7 +206,7 @@
             if (!consumerType.HasInterface<IConsumer>())
                 throw new ArgumentException("The consumer type must implement an IConsumer interface");
 
-            LogContext.Debug?.Log("Connecting Consumer: {ConsumerType} (by type, using object consumer factory)", TypeMetadataCache.GetShortName(consumerType));
+            LogContext.LogDebug("Connecting Consumer: {ConsumerType} (by type, using object consumer factory)", TypeMetadataCache.GetShortName(consumerType));
 
             return ConsumerConnectorCache.Connect(connector, consumerType, objectFactory);
         }

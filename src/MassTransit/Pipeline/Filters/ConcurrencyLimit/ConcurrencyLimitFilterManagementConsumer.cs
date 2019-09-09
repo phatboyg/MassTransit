@@ -57,11 +57,11 @@ namespace MassTransit.Pipeline.Filters.ConcurrencyLimit
                             context.Message.ConcurrencyLimit
                         }).ConfigureAwait(false);
 
-                        LogContext.Debug?.Log("Set Consumer Limit: {ConcurrencyLimit} ({CommandId})", context.Message.ConcurrencyLimit, context.Message.Id);
+                        LogContext.LogDebug("Set Consumer Limit: {ConcurrencyLimit} ({CommandId})", context.Message.ConcurrencyLimit, context.Message.Id);
                     }
                     catch (Exception exception)
                     {
-                        LogContext.Error?.Log(exception, "Set Consumer Limit failed: {ConcurrencyLimit} ({CommandId})", context.Message.ConcurrencyLimit,
+                        LogContext.LogError(exception, "Set Consumer Limit failed: {ConcurrencyLimit} ({CommandId})", context.Message.ConcurrencyLimit,
                             context.Message.Id);
 
                         throw;

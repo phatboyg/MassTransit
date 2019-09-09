@@ -8,23 +8,9 @@ namespace MassTransit
 
     public static class DiagnosticSourceExtensions
     {
-        public static EnabledDiagnosticSource? IfEnabled(this DiagnosticSource source, string name)
+        public static void AddSendContextHeaders(this IActivityScope activityScope, SendContext context)
         {
-            return source.IsEnabled(name) ? new EnabledDiagnosticSource(source, name) : default(EnabledDiagnosticSource?);
-        }
-
-        public static void IfEnabled(this DiagnosticSource source, Activity activity, object args = null)
-        {
-            if (activity != null)
-                source.StopActivity(activity, args);
-        }
-
-        public static StartedActivity? AddSendContextHeaders(this StartedActivity? startedActivity, SendContext context)
-        {
-            if (!startedActivity.HasValue)
-                return startedActivity;
-
-            var activity = startedActivity.Value.Activity;
+            var activity = activityScope.Current;
 
             context.Headers.Set(DiagnosticHeaders.ActivityId, activity.Id);
 
@@ -44,16 +30,11 @@ namespace MassTransit
                 activity.AddBaggage(DiagnosticHeaders.CorrelationId, context.CorrelationId.Value.ToString());
             if (context.ConversationId.HasValue)
                 activity.AddBaggage(DiagnosticHeaders.CorrelationConversationId, context.ConversationId.Value.ToString());
-
-            return startedActivity;
         }
 
-        public static StartedActivity? AddReceiveContextHeaders(this StartedActivity? startedActivity, ReceiveContext context)
+        public static void AddReceiveContextHeaders(this IActivityScope activityScope, ReceiveContext context)
         {
-            if (!startedActivity.HasValue)
-                return startedActivity;
-
-            var activity = startedActivity.Value.Activity;
+            var activity = activityScope.Current;
 
             activity.AddTag(DiagnosticHeaders.InputAddress, context.InputAddress.ToString());
 
@@ -61,11 +42,9 @@ namespace MassTransit
                 activity.AddTag(DiagnosticHeaders.MessageId, messageIdHeader.ToString());
 
             context.AddOrUpdatePayload(() => activity, _ => activity);
-
-            return startedActivity;
         }
 
-        public static Activity AddConsumeContextHeaders(this Activity activity, ConsumeContext context)
+        public static void AddConsumeContextHeaders(this Activity activity, ConsumeContext context)
         {
             if (context.MessageId.HasValue)
                 activity.AddTag(DiagnosticHeaders.MessageId, context.MessageId.Value.ToString());
@@ -106,8 +85,6 @@ namespace MassTransit
                         activity.AddBaggage(value.Key, value.Value);
                 }
             }
-
-            return activity;
         }
     }
 }

@@ -41,13 +41,13 @@ namespace MassTransit.RabbitMqTransport.Pipeline
             {
                 var purgedMessageCount = await context.QueuePurge(queueName).ConfigureAwait(false);
 
-                LogContext.Debug?.Log("Purged {MessageCount} messages from queue {QueueName}", purgedMessageCount, queueName);
+                LogContext.LogDebug("Purged {MessageCount} messages from queue {QueueName}", purgedMessageCount, queueName);
 
                 _queueAlreadyPurged = true;
             }
             else
             {
-                LogContext.Debug?.Log("Queue {QueueName} was purged at startup, skipping", queueName);
+                LogContext.LogDebug("Queue {QueueName} was purged at startup, skipping", queueName);
             }
         }
     }

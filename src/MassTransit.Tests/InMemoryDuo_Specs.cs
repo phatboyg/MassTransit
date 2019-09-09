@@ -74,7 +74,7 @@ namespace MassTransit.Tests
                 if (GetVirtualHost(context.SourceAddress) != GetVirtualHost(context.ReceiveContext.InputAddress))
                     return TaskUtil.Completed;
 
-                LogContext.Info?.Log("Forwarding message: {MessageId} from {SourceAddress}", context.MessageId, context.SourceAddress);
+                LogContext.LogInformation("Forwarding message: {MessageId} from {SourceAddress}", context.MessageId, context.SourceAddress);
 
                 IPipe<SendContext> contextPipe = context.CreateCopyContextPipe();
 

@@ -36,7 +36,7 @@ namespace MassTransit.AzureServiceBusTransport.Pipeline
 
         protected override SendEndpointContext CreateClientContext(NamespaceContext leftContext, MessagingFactoryContext rightContext)
         {
-            LogContext.Debug?.Log("Creating Queue Client: {Queue}", _settings.EntityPath);
+            LogContext.LogDebug("Creating Queue Client: {Queue}", _settings.EntityPath);
 
             var queueClient = rightContext.MessagingFactory.CreateQueueClient(_settings.EntityPath, ReceiveMode.PeekLock);
 

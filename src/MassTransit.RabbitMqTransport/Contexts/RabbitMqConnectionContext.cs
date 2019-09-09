@@ -67,11 +67,11 @@ namespace MassTransit.RabbitMqTransport.Contexts
         {
             _connection.ConnectionShutdown -= OnConnectionShutdown;
 
-            LogContext.Debug?.Log("Disconnecting: {Host}", Description);
+            LogContext.LogDebug("Disconnecting: {Host}", Description);
 
             _connection.Cleanup(200, "Connection Disposed");
 
-            LogContext.Debug?.Log("Disconnected: {Host}", Description);
+            LogContext.LogDebug("Disconnected: {Host}", Description);
 
             return TaskUtil.Completed;
         }

@@ -53,31 +53,28 @@ namespace MassTransit.Pipeline.Filters
         [DebuggerNonUserCode]
         async Task IFilter<ConsumeContext<TMessage>>.Send(ConsumeContext<TMessage> context, IPipe<ConsumeContext<TMessage>> next)
         {
-            var activity = LogContext.IfEnabled(OperationName.Consumer.Handle)?.StartActivity(new {MessageType = TypeMetadataCache<TMessage>.ShortName});
-
-            Stopwatch timer = Stopwatch.StartNew();
-            try
+            using (var activity = LogContext.StartActivity(OperationName.Consumer.Handle, new {MessageType = TypeMetadataCache<TMessage>.ShortName}))
             {
-                await Task.Yield();
+                Stopwatch timer = Stopwatch.StartNew();
+                try
+                {
+                    await Task.Yield();
 
-                await _handler(context).ConfigureAwait(false);
+                    await _handler(context).ConfigureAwait(false);
 
-                await context.NotifyConsumed(timer.Elapsed, TypeMetadataCache<MessageHandler<TMessage>>.ShortName).ConfigureAwait(false);
+                    await context.NotifyConsumed(timer.Elapsed, TypeMetadataCache<MessageHandler<TMessage>>.ShortName).ConfigureAwait(false);
 
-                Interlocked.Increment(ref _completed);
+                    Interlocked.Increment(ref _completed);
 
-                await next.Send(context).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                await context.NotifyFaulted(timer.Elapsed, TypeMetadataCache<MessageHandler<TMessage>>.ShortName, ex).ConfigureAwait(false);
+                    await next.Send(context).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    await context.NotifyFaulted(timer.Elapsed, TypeMetadataCache<MessageHandler<TMessage>>.ShortName, ex).ConfigureAwait(false);
 
-                Interlocked.Increment(ref _faulted);
-                throw;
-            }
-            finally
-            {
-                activity?.Stop();
+                    Interlocked.Increment(ref _faulted);
+                    throw;
+                }
             }
         }
     }
