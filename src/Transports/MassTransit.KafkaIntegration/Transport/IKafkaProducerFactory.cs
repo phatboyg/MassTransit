@@ -7,5 +7,7 @@ namespace MassTransit.KafkaIntegration.Transport
         IDisposable
     {
         Uri TopicAddress { get; }
+
+        void OnStart();
     }
 }

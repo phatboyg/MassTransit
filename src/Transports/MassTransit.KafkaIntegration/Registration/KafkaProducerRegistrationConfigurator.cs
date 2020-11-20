@@ -3,6 +3,7 @@ namespace MassTransit.KafkaIntegration.Registration
     using System;
     using System.Collections.Generic;
     using Confluent.Kafka;
+    using Transport;
 
 
     public class KafkaProducerRegistrationConfigurator<TKey, TValue> :
@@ -14,6 +15,7 @@ namespace MassTransit.KafkaIntegration.Registration
         readonly ProducerConfig _producerConfig;
         readonly string _topic;
         ISerializer<TKey> _keySerializer;
+        KafkaKeyResolver<TKey, TValue> _resolver;
         ISerializer<TValue> _valueSerializer;
 
         public KafkaProducerRegistrationConfigurator(string topic, ProducerConfig producerConfig = null)
@@ -30,9 +32,25 @@ namespace MassTransit.KafkaIntegration.Registration
                 _configurations.Add(x => x.SetValueSerializer(_valueSerializer));
 
             if (_producerConfig != null)
-                configurator.TopicProducer<TKey, TValue>(_topic, _producerConfig, c => _configurations.ForEach(x => x(c)));
+            {
+                configurator.TopicProducer<TKey, TValue>(_topic, _producerConfig, c =>
+                {
+                    if (_resolver != null)
+                        c.RoutePublishedMessages(_resolver);
+
+                    _configurations.ForEach(x => x(c));
+                });
+            }
             else
-                configurator.TopicProducer<TKey, TValue>(_topic, c => _configurations.ForEach(x => x(c)));
+            {
+                configurator.TopicProducer<TKey, TValue>(_topic, c =>
+                {
+                    if (_resolver != null)
+                        c.RoutePublishedMessages(_resolver);
+
+                    _configurations.ForEach(x => x(c));
+                });
+            }
         }
 
         public IKafkaProducerRegistrationConfigurator<TKey, TValue> SetKeySerializer(ISerializer<TKey> serializer)
@@ -50,6 +68,12 @@ namespace MassTransit.KafkaIntegration.Registration
         public IKafkaProducerRegistrationConfigurator<TKey, TValue> Configure(Action<IKafkaProducerConfigurator> configure)
         {
             _configurations.Add(configure ?? throw new ArgumentNullException(nameof(configure)));
+            return this;
+        }
+
+        public IKafkaProducerRegistrationConfigurator<TKey, TValue> RoutePublishedMessages(KafkaKeyResolver<TKey, TValue> resolver)
+        {
+            _resolver = resolver;
             return this;
         }
     }

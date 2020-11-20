@@ -2,6 +2,7 @@ namespace MassTransit.KafkaIntegration.Registration
 {
     using System;
     using Confluent.Kafka;
+    using Transport;
 
 
     public interface IKafkaProducerRegistrationConfigurator<TKey, TValue>
@@ -28,5 +29,12 @@ namespace MassTransit.KafkaIntegration.Registration
         IKafkaProducerRegistrationConfigurator<TKey, TValue> SetValueSerializer(ISerializer<TValue> serializer);
 
         IKafkaProducerRegistrationConfigurator<TKey, TValue> Configure(Action<IKafkaProducerConfigurator> configure);
+
+        /// <summary>
+        /// Connect a publish observer to the bus and produce a message for each published message matching the
+        /// producer message type.
+        /// </summary>
+        /// <returns></returns>
+        IKafkaProducerRegistrationConfigurator<TKey, TValue> RoutePublishedMessages(KafkaKeyResolver<TKey, TValue> resolver);
     }
 }

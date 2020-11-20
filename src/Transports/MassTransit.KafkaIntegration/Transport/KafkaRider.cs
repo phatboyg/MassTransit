@@ -8,7 +8,6 @@ namespace MassTransit.KafkaIntegration.Transport
     using Confluent.Kafka;
     using Pipeline.Observables;
     using Riders;
-    using Util;
 
 
     public class KafkaRider :
@@ -53,12 +52,14 @@ namespace MassTransit.KafkaIntegration.Transport
             throw new ConfigurationException($"Producer for topic: {topicAddress} is not configured for ${typeof(Message<TKey, TValue>).Name} message");
         }
 
-        protected override Task StartRider(CancellationToken cancellationToken)
+        protected override async Task StartRider(CancellationToken cancellationToken)
         {
-            if (!_endpoints.Any())
-                return TaskUtil.Completed;
+            foreach (var factory in _producerFactories.Values)
+            {
+                factory.OnStart();
+            }
 
-            return Task.WhenAll(_endpoints.Select(endpoint => endpoint.Start(cancellationToken)));
+            await Task.WhenAll(_endpoints.Select(endpoint => endpoint.Start(cancellationToken))).ConfigureAwait(false);
         }
 
         protected override async Task StopRider(CancellationToken cancellationToken)

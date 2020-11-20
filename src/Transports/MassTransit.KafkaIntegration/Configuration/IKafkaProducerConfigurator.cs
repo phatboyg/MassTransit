@@ -3,6 +3,7 @@ namespace MassTransit.KafkaIntegration
     using System;
     using Confluent.Kafka;
     using Serializers;
+    using Transport;
 
 
     public interface IKafkaProducerConfigurator
@@ -197,6 +198,7 @@ namespace MassTransit.KafkaIntegration
 
     public interface IKafkaProducerConfigurator<TKey, TValue> :
         IKafkaProducerConfigurator
+        where TValue : class
     {
         /// <summary>Set the serializer to use to serialize keys.</summary>
         /// <remarks>
@@ -217,5 +219,7 @@ namespace MassTransit.KafkaIntegration
         /// Consume.
         /// </remarks>
         void SetValueSerializer(ISerializer<TValue> serializer);
+
+        void RoutePublishedMessages(KafkaKeyResolver<TKey, TValue> resolver);
     }
 }
