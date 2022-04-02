@@ -7,7 +7,6 @@ namespace MassTransit.QuartzIntegration
     using System.Net.Mime;
     using System.Threading.Tasks;
     using Quartz;
-    using Serialization;
 
 
     public class ScheduledMessageJob :
@@ -23,7 +22,6 @@ namespace MassTransit.QuartzIntegration
         public async Task Execute(IJobExecutionContext context)
         {
             var jobData = context.MergedJobDataMap;
-            var messageContext = new JobDataMessageContext(context, SystemTextJsonMessageSerializer.Instance);
 
             var contentType = new ContentType(jobData.GetString("ContentType"));
             var destinationAddress = new Uri(jobData.GetString("Destination"));
@@ -32,7 +30,7 @@ namespace MassTransit.QuartzIntegration
 
             try
             {
-                var pipe = new ForwardScheduledMessagePipe(contentType, messageContext, body, destinationAddress);
+                var pipe = new ForwardScheduledMessagePipe(contentType, context, body, destinationAddress);
 
                 var endpoint = await _bus.GetSendEndpoint(destinationAddress).ConfigureAwait(false);
 
@@ -62,12 +60,12 @@ namespace MassTransit.QuartzIntegration
             readonly string _body;
             readonly ContentType? _contentType;
             readonly Uri? _destinationAddress;
-            readonly JobDataMessageContext _messageContext;
+            readonly IJobExecutionContext _executionContext;
 
-            public ForwardScheduledMessagePipe(ContentType? contentType, JobDataMessageContext messageContext, string body, Uri? destinationAddress)
+            public ForwardScheduledMessagePipe(ContentType? contentType, IJobExecutionContext executionContext, string body, Uri? destinationAddress)
             {
                 _contentType = contentType;
-                _messageContext = messageContext;
+                _executionContext = executionContext;
                 _body = body;
                 _destinationAddress = destinationAddress;
             }
@@ -76,25 +74,27 @@ namespace MassTransit.QuartzIntegration
             {
                 var deserializer = context.Serialization.GetMessageDeserializer(_contentType);
 
+                var messageContext = new JobDataMessageContext(_executionContext, deserializer);
+
                 var body = deserializer.GetMessageBody(_body);
 
-                var serializerContext = deserializer.Deserialize(body, _messageContext, _destinationAddress);
+                var serializerContext = deserializer.Deserialize(body, messageContext, _destinationAddress);
 
-                if (_messageContext.MessageId.HasValue)
-                    context.MessageId = _messageContext.MessageId;
+                if (messageContext.MessageId.HasValue)
+                    context.MessageId = messageContext.MessageId;
 
-                context.RequestId = _messageContext.RequestId;
-                context.ConversationId = _messageContext.ConversationId;
-                context.CorrelationId = _messageContext.CorrelationId;
-                context.InitiatorId = _messageContext.InitiatorId;
-                context.SourceAddress = _messageContext.SourceAddress;
-                context.ResponseAddress = _messageContext.ResponseAddress;
-                context.FaultAddress = _messageContext.FaultAddress;
+                context.RequestId = messageContext.RequestId;
+                context.ConversationId = messageContext.ConversationId;
+                context.CorrelationId = messageContext.CorrelationId;
+                context.InitiatorId = messageContext.InitiatorId;
+                context.SourceAddress = messageContext.SourceAddress;
+                context.ResponseAddress = messageContext.ResponseAddress;
+                context.FaultAddress = messageContext.FaultAddress;
 
-                if (_messageContext.ExpirationTime.HasValue)
-                    context.TimeToLive = _messageContext.ExpirationTime.Value.ToUniversalTime() - DateTime.UtcNow;
+                if (messageContext.ExpirationTime.HasValue)
+                    context.TimeToLive = messageContext.ExpirationTime.Value.ToUniversalTime() - DateTime.UtcNow;
 
-                foreach (KeyValuePair<string, object> header in _messageContext.Headers.GetAll())
+                foreach (KeyValuePair<string, object> header in messageContext.Headers.GetAll())
                     context.Headers.Set(header.Key, header.Value);
 
                 context.Serializer = serializerContext.GetMessageSerializer();

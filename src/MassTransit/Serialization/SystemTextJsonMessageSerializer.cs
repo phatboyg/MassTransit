@@ -3,26 +3,22 @@ namespace MassTransit.Serialization
 {
     using System;
     using System.Net.Mime;
-    using System.Reflection;
     using System.Runtime.Serialization;
     using System.Text.Encodings.Web;
     using System.Text.Json;
-    using Initializers;
-    using Initializers.TypeConverters;
     using JsonConverters;
-    using Metadata;
 
 
     public class SystemTextJsonMessageSerializer :
         IMessageDeserializer,
-        IMessageSerializer,
-        IObjectDeserializer
+        IMessageSerializer
     {
         public static readonly ContentType JsonContentType = new ContentType("application/vnd.masstransit+json");
 
         public static JsonSerializerOptions Options;
 
         public static readonly SystemTextJsonMessageSerializer Instance = new SystemTextJsonMessageSerializer();
+        readonly IObjectDeserializer _objectDeserializer;
 
         static SystemTextJsonMessageSerializer()
         {
@@ -45,6 +41,8 @@ namespace MassTransit.Serialization
         public SystemTextJsonMessageSerializer(ContentType? contentType = null)
         {
             ContentType = contentType ?? JsonContentType;
+
+            _objectDeserializer = new SystemTextJsonObjectDeserializer(Options);
         }
 
         public ContentType ContentType { get; }
@@ -92,72 +90,27 @@ namespace MassTransit.Serialization
             return new StringMessageBody(text);
         }
 
-        public MessageBody GetMessageBody<T>(SendContext<T> context)
-            where T : class
-        {
-            return new SystemTextJsonMessageBody<T>(context, Options);
-        }
-
         public T? DeserializeObject<T>(object? value, T? defaultValue = default)
             where T : class
         {
-            switch (value)
-            {
-                case null:
-                    return defaultValue;
-                case T returnValue:
-                    return returnValue;
-                case string text:
-                    if (TypeConverterCache.TryGetTypeConverter(out ITypeConverter<T, string>? typeConverter) && typeConverter.TryConvert(text, out var result))
-                        return result;
-                    return GetObject<T>(JsonSerializer.Deserialize<JsonElement>(text));
-                case JsonElement jsonElement:
-                    return GetObject<T>(jsonElement);
-            }
-
-            var element = JsonSerializer.SerializeToElement(value, Options);
-
-            return element.ValueKind == JsonValueKind.Null
-                ? defaultValue
-                : GetObject<T>(element);
+            return _objectDeserializer.DeserializeObject(value, defaultValue);
         }
 
         public T? DeserializeObject<T>(object? value, T? defaultValue = null)
             where T : struct
         {
-            switch (value)
-            {
-                case null:
-                    return defaultValue;
-                case T returnValue:
-                    return returnValue;
-                case string text:
-                    if (TypeConverterCache.TryGetTypeConverter(out ITypeConverter<T, string>? typeConverter) && typeConverter.TryConvert(text, out var result))
-                        return result;
-                    return JsonSerializer.Deserialize<T>(text, Options);
-                case JsonElement jsonElement:
-                    return jsonElement.Deserialize<T>(Options);
-            }
-
-            var element = JsonSerializer.SerializeToElement(value, Options);
-
-            return element.ValueKind == JsonValueKind.Null
-                ? defaultValue
-                : element.Deserialize<T>(Options);
+            return _objectDeserializer.DeserializeObject(value, defaultValue);
         }
 
-        static T? GetObject<T>(JsonElement jsonElement)
+        public MessageBody SerializeObject(object? value)
+        {
+            return _objectDeserializer.SerializeObject(value);
+        }
+
+        public MessageBody GetMessageBody<T>(SendContext<T> context)
             where T : class
         {
-            if (typeof(T).GetTypeInfo().IsInterface && MessageTypeCache<T>.IsValidMessageType)
-            {
-                var messageType = TypeMetadataCache<T>.ImplementationType;
-
-                if (jsonElement.Deserialize(messageType, Options) is T obj)
-                    return obj;
-            }
-
-            return jsonElement.Deserialize<T>(Options);
+            return new SystemTextJsonMessageBody<T>(context, Options);
         }
     }
 }

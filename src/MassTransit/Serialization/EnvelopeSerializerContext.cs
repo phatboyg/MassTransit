@@ -58,6 +58,11 @@ namespace MassTransit.Serialization
             return _deserializer.DeserializeObject(value, defaultValue);
         }
 
+        public MessageBody SerializeObject(object? value)
+        {
+            return _deserializer.SerializeObject(value);
+        }
+
         public abstract bool TryGetMessage<T>(out T? message)
             where T : class;
 

@@ -6,6 +6,7 @@ namespace MassTransit
 
 
     public interface IMessageDeserializer :
+        IObjectDeserializer,
         IProbeSite
     {
         ContentType ContentType { get; }

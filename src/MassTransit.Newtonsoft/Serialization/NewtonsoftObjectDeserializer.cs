@@ -9,9 +9,11 @@ namespace MassTransit.Serialization
         IObjectDeserializer
     {
         readonly JsonSerializer _deserializer;
+        readonly JsonSerializer _serializer;
 
-        public NewtonsoftObjectDeserializer(JsonSerializer deserializer)
+        public NewtonsoftObjectDeserializer(JsonSerializer serializer, JsonSerializer deserializer)
         {
+            _serializer = serializer;
             _deserializer = deserializer;
         }
 
@@ -51,6 +53,11 @@ namespace MassTransit.Serialization
 
             using var jsonReader = token.CreateReader();
             return _deserializer.Deserialize<T>(jsonReader);
+        }
+
+        public MessageBody SerializeObject(object? value)
+        {
+            return new NewtonsoftJsonObjectMessageBody(_serializer, value);
         }
     }
 }

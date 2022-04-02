@@ -13,12 +13,25 @@ namespace MassTransit.Serialization
         IMessageSerializer
     {
         public static readonly ContentType JsonContentType = new ContentType("application/json");
+        readonly IObjectDeserializer _objectDeserializer;
+        readonly JsonSerializerOptions _options;
 
-        readonly RawSerializerOptions _options;
+        readonly RawSerializerOptions _rawOptions;
 
-        public SystemTextJsonRawMessageSerializer(RawSerializerOptions options = RawSerializerOptions.Default)
+        public SystemTextJsonRawMessageSerializer(RawSerializerOptions rawOptions = RawSerializerOptions.Default)
+        {
+            _rawOptions = rawOptions;
+
+            _options = SystemTextJsonMessageSerializer.Options;
+            _objectDeserializer = new SystemTextJsonObjectDeserializer(_options);
+        }
+
+        public SystemTextJsonRawMessageSerializer(JsonSerializerOptions options, RawSerializerOptions rawOptions = RawSerializerOptions.Default)
         {
             _options = options;
+            _rawOptions = rawOptions;
+
+            _objectDeserializer = new SystemTextJsonObjectDeserializer(_options);
         }
 
         public ContentType ContentType => JsonContentType;
@@ -39,14 +52,14 @@ namespace MassTransit.Serialization
         {
             try
             {
-                var jsonElement = JsonSerializer.Deserialize<JsonElement>(body.GetBytes(), SystemTextJsonMessageSerializer.Options);
+                var jsonElement = JsonSerializer.Deserialize<JsonElement>(body.GetBytes(), _options);
 
                 var messageTypes = headers.GetMessageTypes();
 
-                var messageContext = new RawMessageContext(headers, destinationAddress, _options);
+                var messageContext = new RawMessageContext(headers, destinationAddress, _rawOptions);
 
-                var serializerContext = new SystemTextJsonRawSerializerContext(SystemTextJsonMessageSerializer.Instance,
-                    SystemTextJsonMessageSerializer.Options, ContentType, messageContext, messageTypes, _options, jsonElement);
+                var serializerContext = new SystemTextJsonRawSerializerContext(_objectDeserializer, _options, ContentType, messageContext,
+                    messageTypes, _rawOptions, jsonElement);
 
                 return serializerContext;
             }
@@ -65,13 +78,30 @@ namespace MassTransit.Serialization
             return new StringMessageBody(text);
         }
 
+        public T? DeserializeObject<T>(object? value, T? defaultValue = default)
+            where T : class
+        {
+            return _objectDeserializer.DeserializeObject(value, defaultValue);
+        }
+
+        public T? DeserializeObject<T>(object? value, T? defaultValue = null)
+            where T : struct
+        {
+            return _objectDeserializer.DeserializeObject(value, defaultValue);
+        }
+
+        public MessageBody SerializeObject(object? value)
+        {
+            return _objectDeserializer.SerializeObject(value);
+        }
+
         public MessageBody GetMessageBody<T>(SendContext<T> context)
             where T : class
         {
-            if (_options.HasFlag(RawSerializerOptions.AddTransportHeaders))
+            if (_rawOptions.HasFlag(RawSerializerOptions.AddTransportHeaders))
                 SetRawMessageHeaders<T>(context);
 
-            return new SystemTextJsonRawMessageBody<T>(context, SystemTextJsonMessageSerializer.Options);
+            return new SystemTextJsonRawMessageBody<T>(context, _options);
         }
     }
 }

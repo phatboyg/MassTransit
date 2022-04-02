@@ -154,7 +154,11 @@ namespace MassTransit.QuartzIntegration
 
             IEnumerable<KeyValuePair<string, object>> headers = context.Headers.GetAll().ToList();
             if (headers.Any())
-                builder = builder.UsingJobData("HeadersAsJson", JsonSerializer.Serialize(headers, SystemTextJsonMessageSerializer.Options));
+            {
+                var headerBody = context.SerializerContext.SerializeObject(headers);
+
+                builder = builder.UsingJobData("HeadersAsJson", headerBody.GetString());
+            }
 
             var jobDetail = builder
                 .Build();

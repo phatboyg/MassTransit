@@ -3,8 +3,6 @@ namespace MassTransit.HangfireIntegration
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text.Json;
-    using Serialization;
 
 
     public class HangfireScheduledMessageData
@@ -58,7 +56,11 @@ namespace MassTransit.HangfireIntegration
 
             IEnumerable<KeyValuePair<string, object>> headers = context.Headers.GetAll().ToList();
             if (headers.Any())
-                data.HeadersAsJson = JsonSerializer.Serialize(headers, SystemTextJsonMessageSerializer.Options);
+            {
+                var headerBody = context.SerializerContext.SerializeObject(headers);
+
+                data.HeadersAsJson = headerBody.GetString();
+            }
         }
     }
 }

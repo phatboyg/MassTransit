@@ -15,7 +15,7 @@ namespace MassTransit.Serialization
 
         public IMessageDeserializer CreateDeserializer()
         {
-            return new NewtonsoftJsonMessageDeserializer(NewtonsoftJsonMessageSerializer.Deserializer);
+            return new NewtonsoftJsonMessageDeserializer(NewtonsoftJsonMessageSerializer.Serializer, NewtonsoftJsonMessageSerializer.Deserializer);
         }
     }
 }

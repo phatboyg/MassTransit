@@ -8,5 +8,7 @@ namespace MassTransit
 
         T? DeserializeObject<T>(object? value, T? defaultValue = null)
             where T : struct;
+
+        MessageBody SerializeObject(object? value);
     }
 }

@@ -24,11 +24,10 @@ namespace MassTransit.HangfireIntegration
         {
             try
             {
-                var messageContext = new MessageDataMessageContext(messageData, SystemTextJsonMessageSerializer.Instance);
                 var contentType = string.IsNullOrWhiteSpace(messageData.ContentType) ? default : new ContentType(messageData.ContentType);
                 var body = messageData.Body ?? string.Empty;
 
-                var pipe = new ForwardScheduledMessagePipe(contentType, messageContext, body, messageData.Destination);
+                var pipe = new ForwardScheduledMessagePipe(contentType, messageData, body, messageData.Destination);
 
                 var endpoint = await _bus.GetSendEndpoint(messageData.Destination).ConfigureAwait(false);
 
@@ -53,11 +52,10 @@ namespace MassTransit.HangfireIntegration
         {
             try
             {
-                var messageContext = new MessageDataMessageContext(messageData, SystemTextJsonMessageSerializer.Instance);
                 var contentType = string.IsNullOrWhiteSpace(messageData.ContentType) ? default : new ContentType(messageData.ContentType);
                 var body = messageData.Body ?? string.Empty;
 
-                var pipe = new ForwardScheduledMessagePipe(contentType, messageContext, body, messageData.Destination);
+                var pipe = new ForwardScheduledMessagePipe(contentType, messageData, body, messageData.Destination);
 
                 var endpoint = await _bus.GetSendEndpoint(messageData.Destination).ConfigureAwait(false);
 
@@ -84,12 +82,12 @@ namespace MassTransit.HangfireIntegration
             readonly string _body;
             readonly ContentType? _contentType;
             readonly Uri? _destinationAddress;
-            readonly MessageDataMessageContext _messageContext;
+            readonly HangfireScheduledMessageData _messageData;
 
-            public ForwardScheduledMessagePipe(ContentType? contentType, MessageDataMessageContext messageContext, string body, Uri? destinationAddress)
+            public ForwardScheduledMessagePipe(ContentType? contentType, HangfireScheduledMessageData messageData, string body, Uri? destinationAddress)
             {
                 _contentType = contentType;
-                _messageContext = messageContext;
+                _messageData = messageData;
                 _body = body;
                 _destinationAddress = destinationAddress;
             }
@@ -98,23 +96,25 @@ namespace MassTransit.HangfireIntegration
             {
                 var deserializer = context.Serialization.GetMessageDeserializer(_contentType);
 
+                var messageContext = new MessageDataMessageContext(_messageData, deserializer);
+
                 var body = deserializer.GetMessageBody(_body);
 
-                var serializerContext = deserializer.Deserialize(body, _messageContext, _destinationAddress);
+                var serializerContext = deserializer.Deserialize(body, messageContext, _destinationAddress);
 
-                context.MessageId = _messageContext.MessageId;
-                context.RequestId = _messageContext.RequestId;
-                context.ConversationId = _messageContext.ConversationId;
-                context.CorrelationId = _messageContext.CorrelationId;
-                context.InitiatorId = _messageContext.InitiatorId;
-                context.SourceAddress = _messageContext.SourceAddress;
-                context.ResponseAddress = _messageContext.ResponseAddress;
-                context.FaultAddress = _messageContext.FaultAddress;
+                context.MessageId = messageContext.MessageId;
+                context.RequestId = messageContext.RequestId;
+                context.ConversationId = messageContext.ConversationId;
+                context.CorrelationId = messageContext.CorrelationId;
+                context.InitiatorId = messageContext.InitiatorId;
+                context.SourceAddress = messageContext.SourceAddress;
+                context.ResponseAddress = messageContext.ResponseAddress;
+                context.FaultAddress = messageContext.FaultAddress;
 
-                if (_messageContext.ExpirationTime.HasValue)
-                    context.TimeToLive = _messageContext.ExpirationTime.Value.ToUniversalTime() - DateTime.UtcNow;
+                if (messageContext.ExpirationTime.HasValue)
+                    context.TimeToLive = messageContext.ExpirationTime.Value.ToUniversalTime() - DateTime.UtcNow;
 
-                foreach (KeyValuePair<string, object> header in _messageContext.Headers.GetAll())
+                foreach (KeyValuePair<string, object> header in messageContext.Headers.GetAll())
                     context.Headers.Set(header.Key, header.Value);
 
                 context.Serializer = serializerContext.GetMessageSerializer();

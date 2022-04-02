@@ -32,7 +32,7 @@ namespace MassTransit.Tests.Serialization
             if (_serializerType == typeof(NewtonsoftJsonMessageSerializer))
             {
                 Serializer = new NewtonsoftJsonMessageSerializer();
-                Deserializer = new NewtonsoftJsonMessageDeserializer(NewtonsoftJsonMessageSerializer.Deserializer);
+                Deserializer = new NewtonsoftJsonMessageDeserializer(NewtonsoftJsonMessageSerializer.Serializer, NewtonsoftJsonMessageSerializer.Deserializer);
             }
             else if (_serializerType == typeof(SystemTextJsonMessageSerializer))
             {

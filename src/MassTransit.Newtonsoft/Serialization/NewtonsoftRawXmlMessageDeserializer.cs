@@ -24,7 +24,7 @@ namespace MassTransit.Serialization
         {
             _deserializer = deserializer;
             _options = options;
-            _objectDeserializer = new NewtonsoftObjectDeserializer(deserializer);
+            _objectDeserializer = new NewtonsoftObjectDeserializer(NewtonsoftJsonMessageSerializer.Serializer, deserializer);
         }
 
         public void Probe(ProbeContext context)
@@ -90,6 +90,23 @@ namespace MassTransit.Serialization
         public MessageBody GetMessageBody(string text)
         {
             return new StringMessageBody(text);
+        }
+
+        public T? DeserializeObject<T>(object? value, T? defaultValue = default)
+            where T : class
+        {
+            return _objectDeserializer.DeserializeObject(value, defaultValue);
+        }
+
+        public T? DeserializeObject<T>(object? value, T? defaultValue = null)
+            where T : struct
+        {
+            return _objectDeserializer.DeserializeObject(value, defaultValue);
+        }
+
+        public MessageBody SerializeObject(object? value)
+        {
+            return _objectDeserializer.SerializeObject(value);
         }
     }
 }
