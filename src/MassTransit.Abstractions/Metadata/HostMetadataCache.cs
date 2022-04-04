@@ -15,7 +15,11 @@ namespace MassTransit.Metadata
         public static bool IsRunningInContainer =>
             _isRunningInContainer ??= bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"), out var inDocker) && inDocker;
 
+    #if NETFRAMEWORK
+        public static bool IsNetFramework => true;
+    #else
         public static bool IsNetFramework => _isNetFramework ??= RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework");
+    #endif
 
 
         static class Cached
