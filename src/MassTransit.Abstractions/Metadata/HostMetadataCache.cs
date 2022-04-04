@@ -7,8 +7,9 @@ namespace MassTransit.Metadata
     public static class HostMetadataCache
     {
         static bool? _isRunningInContainer;
+    #if !NETFRAMEWORK
         static bool? _isNetFramework;
-
+    #endif
         public static HostInfo Host => Cached.HostInfo;
         public static HostInfo Empty => Cached.EmptyHostInfo;
 

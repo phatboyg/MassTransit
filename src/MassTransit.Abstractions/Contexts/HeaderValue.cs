@@ -83,7 +83,7 @@ namespace MassTransit
                     result = new HeaderValue<string>(key, uri.ToString());
                     return true;
                 case IFormattable formatValue when formatValue.GetType().IsValueType:
-                    result = new HeaderValue<string>(key, formatValue.ToString());
+                    result = new HeaderValue<string>(key, formatValue.ToString()!);
                     return true;
                 default:
                     result = default;

@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="../../signing.props"/>
+  <Import Project="../../signing.props" />
 
   <PropertyGroup Condition=" '$(IsWindows)' == 'true' ">
     <TargetFrameworks>net461;netstandard2.0;net6.0</TargetFrameworks>
@@ -24,10 +24,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Futures\Futures"/>
+    <Folder Include="Futures\Futures" />
   </ItemGroup>
 </Project>
