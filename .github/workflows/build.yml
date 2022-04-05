@@ -100,20 +100,8 @@ jobs:
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '3.1.x'
-
-      - name: Install .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
           dotnet-version: '6.0.x'
 
-      # - name: Test Containers
-      #   uses: zyborg/dotnet-tests-report@v1
-      #   with:
-      #     project_path: tests/MassTransit.Containers.Tests
-      #     report_name: container_tests
-      #     report_title: Container Tests
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test Containers
         run: dotnet test -c Release --logger:"console;verbosity=normal" --filter Category!=Flaky
         working-directory: tests/MassTransit.Containers.Tests
@@ -127,15 +115,9 @@ jobs:
         ports:
           - "61616:61616"
           - "8161:8161"
-        #options: --health-cmd "rabbitmqctl node_health_check" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - name: Check out code
         uses: actions/checkout@v2
-
-      - name: Install .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '3.1.x'
 
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
@@ -172,11 +154,6 @@ jobs:
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '3.1.x'
-
-      - name: Install .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
           dotnet-version: '6.0.x'
 
       - name: Test Azure Service Bus
@@ -199,11 +176,6 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
-
-      - name: Install .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '3.1.x'
 
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
@@ -232,11 +204,6 @@ jobs:
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '3.1.x'
-
-      - name: Install .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
           dotnet-version: '6.0.x'
 
       - name: Test SQS
@@ -250,11 +217,6 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
-
-      - name: Install .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '3.1.x'
 
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
@@ -274,11 +236,6 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
-
-      - name: Install .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '3.1.x'
 
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
@@ -309,11 +266,6 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
-
-      - name: Install .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '3.1.x'
 
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
@@ -389,11 +341,6 @@ jobs:
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '3.1.x'
-
-      - name: Install .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
           dotnet-version: '6.0.x'
 
       - name: Test Marten
@@ -415,11 +362,6 @@ jobs:
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '3.1.x'
-
-      - name: Install .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
           dotnet-version: '6.0.x'
 
       - name: Test MongoDB
@@ -432,11 +374,6 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
-
-      - name: Install .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '3.1.x'
 
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
@@ -463,11 +400,6 @@ jobs:
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '3.1.x'
-
-      - name: Install .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
           dotnet-version: '6.0.x'
 
       - name: Test Redis
@@ -480,11 +412,6 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
-
-      - name: Install .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '3.1.x'
 
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
@@ -505,11 +432,6 @@ jobs:
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '3.1.x'
-
-      - name: Install .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
           dotnet-version: '6.0.x'
 
       - name: Test Quartz
@@ -522,11 +444,6 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
-
-      - name: Install .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '3.1.x'
 
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
@@ -584,11 +501,6 @@ jobs:
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '3.1.x'
-
-      - name: Install .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
           dotnet-version: '6.0.x'
 
       - name: Test Kafka
@@ -602,11 +514,6 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
-
-      - name: Install .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '3.1.x'
 
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
