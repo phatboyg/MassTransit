@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="../../signing.props" />
 
-  <PropertyGroup Condition=" '$(IsWindows)' == 'true' ">
-    <TargetFrameworks>net461;netstandard2.0;net6.0</TargetFrameworks>
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(IsWindows)' == 'false' ">
-    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+  <PropertyGroup Condition=" '$(IsWindows)' == 'true' ">
+    <TargetFrameworks>$(TargetFrameworks);net461</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>

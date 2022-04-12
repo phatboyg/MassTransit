@@ -84,6 +84,50 @@ jobs:
         run: dotnet test -c Release -f net461 --logger:"console;verbosity=normal" --no-build --filter Category!=Flaky
         working-directory: tests/MassTransit.Abstractions.Tests
 
+  test-ubuntu:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 2
+      matrix: 
+        framework: ['netcoreapp3.1', 'net6.0']
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Install .NET Core SDK
+        uses: actions/setup-dotnet@v1
+        if: matrix.framework == 'netcoreapp3.1'
+        with:
+          dotnet-version: '3.1.x'
+
+      - name: Install .NET Core SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Unit Tests
+        run: dotnet test -c Release -f ${{ matrix.framework }} --logger:"console;verbosity=normal" --filter Category!=Flaky
+        working-directory: tests/MassTransit.Tests
+
+  test-windows:
+    name: Unit Tests
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Install .NET Core SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Unit Tests
+        run: dotnet test -c Release -f net461 --logger:"console;verbosity=normal" --filter Category!=Flaky
+        working-directory: tests/MassTransit.Tests
+
   test-containers:
     name: Container Tests
     runs-on: ubuntu-latest
@@ -100,6 +144,7 @@ jobs:
       - name: Test Containers
         run: dotnet test -c Release --logger:"console;verbosity=normal" --filter Category!=Flaky
         working-directory: tests/MassTransit.Containers.Tests
+
   test-activemq:
     name: "Transports: ActiveMQ"
     timeout-minutes: 10
@@ -122,6 +167,7 @@ jobs:
       - name: Test ActiveMQ
         run: dotnet test -c Release --logger:"console;verbosity=normal" --filter Category!=Flaky
         working-directory: tests/MassTransit.ActiveMqTransport.Tests
+
   test-grpc:
     name: "Transports: gRPC"
     timeout-minutes: 10
