@@ -1,7 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>netcoreapp3.1;net6.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(IsWindows)' == 'true' ">
+    <TargetFrameworks>$(TargetFrameworks);net461</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <LangVersion>9</LangVersion>
   </PropertyGroup>
 
@@ -12,7 +19,6 @@
     <PackageReference Include="Shouldly" Version="4.0.3" />
     <ProjectReference Include="..\..\src\MassTransit.TestFramework\MassTransit.TestFramework.csproj" />
     <ProjectReference Include="..\..\src\MassTransit\MassTransit.csproj" />
-
   </ItemGroup>
 
 </Project>

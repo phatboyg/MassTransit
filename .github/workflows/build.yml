@@ -83,17 +83,13 @@ jobs:
         working-directory: tests/MassTransit.Tests
 
       - name: Test Abstractions
-        run: dotnet test -c Release -f ${{ matrix.framework }} --logger:"console;verbosity=normal" --no-build --filter Category!=Flaky
+        run: dotnet test -c Release -f ${{ matrix.framework }} --logger:"console;verbosity=normal" --filter Category!=Flaky
         working-directory: tests/MassTransit.Abstractions.Tests
 
   test-windows:
     name: Unit Tests
     runs-on: windows-latest
     timeout-minutes: 10
-    strategy:
-      max-parallel: 2
-      matrix: 
-        framework: ['net461']
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -104,28 +100,38 @@ jobs:
           dotnet-version: '6.0.x'
 
       - name: Unit Tests
-        run: dotnet test -c Release -f ${{ matrix.framework }} --logger:"console;verbosity=normal" --filter Category!=Flaky
+        run: dotnet test -c Release -f net461 --logger:"console;verbosity=normal" --filter Category!=Flaky
         working-directory: tests/MassTransit.Tests
 
       - name: Test Abstractions
-        run: dotnet test -c Release -f ${{ matrix.framework }} --logger:"console;verbosity=normal" --no-build --filter Category!=Flaky
+        run: dotnet test -c Release -f net461 --logger:"console;verbosity=normal" --filter Category!=Flaky
         working-directory: tests/MassTransit.Abstractions.Tests
 
   test-containers:
     name: Container Tests
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 10
+    strategy:
+      max-parallel: 3
+      matrix: 
+        framework: ['netcoreapp3.1', 'net6.0', 'net461']
     steps:
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Install .NET Core SDK
+      - name: Install .NET Core SDK 3.1
+        uses: actions/setup-dotnet@v1
+        if: matrix.framework == 'netcoreapp3.1'
+        with:
+          dotnet-version: '3.1.x'
+
+      - name: Install .NET Core SDK 6.0
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '6.0.x'
 
       - name: Test Containers
-        run: dotnet test -c Release --logger:"console;verbosity=normal" --filter Category!=Flaky
+        run: dotnet test -c Release -f ${{ matrix.framework }} --logger:"console;verbosity=normal" --filter Category!=Flaky
         working-directory: tests/MassTransit.Containers.Tests
 
   test-activemq:
