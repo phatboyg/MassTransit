@@ -22,9 +22,13 @@ on:
 
 jobs:
   compile:
-    name: Compile and Unit Tests
+    name: Build
     timeout-minutes: 10
-    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 2
+      matrix: 
+        os: ['ubuntu-latest', 'windows-latest']
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -47,42 +51,9 @@ jobs:
         run: dotnet build -c Release --no-restore
         working-directory: ./
 
-      - name: Test
-        run: dotnet test -c Release -f net6.0 --logger:"console;verbosity=normal" --no-build --filter Category!=Flaky
-        working-directory: tests/MassTransit.Tests
-
-      - name: Test Abstractions
-        run: dotnet test -c Release -f net6.0 --logger:"console;verbosity=normal" --no-build --filter Category!=Flaky
-        working-directory: tests/MassTransit.Abstractions.Tests
-
       - name: Test Analyzers
         run: dotnet test -c Release --logger:"console;verbosity=normal" --no-build --filter Category!=Flaky
         working-directory: tests/MassTransit.Analyzers.Tests
-
-  compile-windows:
-    name: Compile on Windows
-    timeout-minutes: 10
-    runs-on: windows-latest
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v2
-
-      - name: Install .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '6.0.x'
-
-      - name: Restore NuGet packages
-        run: dotnet restore
-        working-directory: ./
-
-      - name: Build
-        run: dotnet build -c Release --no-restore
-        working-directory: ./
-
-      - name: Test Abstractions
-        run: dotnet test -c Release -f net461 --logger:"console;verbosity=normal" --no-build --filter Category!=Flaky
-        working-directory: tests/MassTransit.Abstractions.Tests
 
   test-ubuntu:
     name: Unit Tests
@@ -111,10 +82,18 @@ jobs:
         run: dotnet test -c Release -f ${{ matrix.framework }} --logger:"console;verbosity=normal" --filter Category!=Flaky
         working-directory: tests/MassTransit.Tests
 
+      - name: Test Abstractions
+        run: dotnet test -c Release -f ${{ matrix.framework }} --logger:"console;verbosity=normal" --no-build --filter Category!=Flaky
+        working-directory: tests/MassTransit.Abstractions.Tests
+
   test-windows:
     name: Unit Tests
     runs-on: windows-latest
     timeout-minutes: 10
+    strategy:
+      max-parallel: 2
+      matrix: 
+        framework: ['net461']
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -125,8 +104,12 @@ jobs:
           dotnet-version: '6.0.x'
 
       - name: Unit Tests
-        run: dotnet test -c Release -f net461 --logger:"console;verbosity=normal" --filter Category!=Flaky
+        run: dotnet test -c Release -f ${{ matrix.framework }} --logger:"console;verbosity=normal" --filter Category!=Flaky
         working-directory: tests/MassTransit.Tests
+
+      - name: Test Abstractions
+        run: dotnet test -c Release -f ${{ matrix.framework }} --logger:"console;verbosity=normal" --no-build --filter Category!=Flaky
+        working-directory: tests/MassTransit.Abstractions.Tests
 
   test-containers:
     name: Container Tests
@@ -570,6 +553,8 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - compile
+      - test-ubuntu
+      - test-windows
       - test-containers
       - test-activemq
       # - test-azure-service-bus
