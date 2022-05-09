@@ -26,8 +26,10 @@ namespace MassTransit.Transports
         /// <param name="payloads">One or more payloads to add to the receive context</param>
         /// <returns></returns>
         Task Dispatch(byte[] body, IReadOnlyDictionary<string, object> headers, CancellationToken cancellationToken, params object[] payloads);
-
         // TODO convert this to use the MessageBody type for nicer integration, also MessageContext
+
+        Task Dispatch<T>(T message, IReadOnlyDictionary<string, object> headers, CancellationToken cancellationToken, params object[] payloads)
+            where T : class;
     }
 
 

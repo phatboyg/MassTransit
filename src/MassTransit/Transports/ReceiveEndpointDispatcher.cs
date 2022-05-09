@@ -4,8 +4,6 @@ namespace MassTransit.Transports
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using Context;
-    using Courier;
     using Internals;
 
 
@@ -77,6 +75,26 @@ namespace MassTransit.Transports
         public async Task Dispatch(byte[] body, IReadOnlyDictionary<string, object> headers, CancellationToken cancellationToken, params object[] payloads)
         {
             var context = new ReceiveEndpointDispatcherReceiveContext(_context, body, headers, payloads);
+
+            CancellationTokenRegistration registration = default;
+            if (cancellationToken.CanBeCanceled)
+                registration = cancellationToken.Register(context.Cancel);
+
+            try
+            {
+                await _dispatcher.Dispatch(context).ConfigureAwait(false);
+            }
+            finally
+            {
+                registration.Dispose();
+                context.Dispose();
+            }
+        }
+
+        public async Task Dispatch<T>(T message, IReadOnlyDictionary<string, object> headers, CancellationToken cancellationToken, params object[] payloads)
+            where T : class
+        {
+            var context = new ReceiveEndpointDispatcherReceiveContext<T>(_context, message, headers, payloads);
 
             CancellationTokenRegistration registration = default;
             if (cancellationToken.CanBeCanceled)
@@ -176,6 +194,12 @@ namespace MassTransit.Transports
         public Task Dispatch(byte[] body, IReadOnlyDictionary<string, object> headers, CancellationToken cancellationToken, params object[] payloads)
         {
             return _dispatcher.Dispatch(body, headers, cancellationToken, payloads);
+        }
+
+        public Task Dispatch<TMessage>(TMessage message, IReadOnlyDictionary<string, object> headers, CancellationToken cancellationToken, params object[] payloads)
+            where TMessage : class
+        {
+            return _dispatcher.Dispatch(message, headers, cancellationToken, payloads);
         }
     }
 }
