@@ -3,6 +3,7 @@ namespace MassTransitBenchmark.Latency;
 using System;
 using System.Threading.Tasks;
 using BusOutbox;
+using Commands;
 using Confluent.Kafka;
 using Confluent.Kafka.Admin;
 using MassTransit;
@@ -38,9 +39,9 @@ public class KafkaMessageLatencyTransport :
             .Build();
     }
 
-    public Task Send(LatencyTestMessage message)
+    public async Task Send(Guid messageId, string payload)
     {
-        return _producer.Produce(message, _partitionPipe);
+        await _producer.Produce(new LatencyTestMessage(messageId, payload), _partitionPipe).ConfigureAwait(false);
     }
 
     public async Task Start(Action<IReceiveEndpointConfigurator> callback, IReportConsumerMetric reportConsumerMetric)

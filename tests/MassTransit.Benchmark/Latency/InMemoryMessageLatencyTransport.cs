@@ -2,10 +2,12 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Commands;
     using MassTransit;
 
 
-    class InMemoryMessageLatencyTransport : IMessageLatencyTransport
+    class InMemoryMessageLatencyTransport :
+        IMessageLatencyTransport
     {
         readonly InMemoryOptionSet _optionSet;
         readonly IMessageLatencySettings _settings;
@@ -19,9 +21,9 @@
             _settings = settings;
         }
 
-        public Task Send(LatencyTestMessage message)
+        public async Task Send(Guid messageId, string payload)
         {
-            return _targetEndpoint.Send(message);
+            await _targetEndpoint.Send(new LatencyTestMessage(messageId, payload)).ConfigureAwait(false);
         }
 
         public async ValueTask DisposeAsync()
@@ -29,7 +31,7 @@
             await _busControl.StopAsync();
         }
 
-        public async Task Start(Action<IReceiveEndpointConfigurator> callback, IReportConsumerMetric reportConsumerMetric)
+        public async Task Start(Action<IReceiveEndpointConfigurator> callback, IReportConsumerMetric messageMetricCapture)
         {
             _busControl = Bus.Factory.CreateUsingInMemory(x =>
             {

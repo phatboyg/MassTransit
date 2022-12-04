@@ -132,6 +132,15 @@
 
                 transport = new RabbitMqMessageLatencyTransport(rabbitMqOptionSet, settings);
             }
+            else if (optionSet.Transport == ProgramOptionSet.TransportOptions.Nsb)
+            {
+                var rabbitMqOptionSet = new RabbitMqOptionSet();
+                rabbitMqOptionSet.Parse(_remaining);
+
+                rabbitMqOptionSet.ShowOptions();
+
+                transport = new NServiceBusRabbitMqMessageLatencyTransport(rabbitMqOptionSet, settings);
+            }
             else if (optionSet.Transport == ProgramOptionSet.TransportOptions.AmazonSqs)
             {
                 var amazonSqsOptionSet = new AmazonSqsOptionSet();

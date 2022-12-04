@@ -3,6 +3,7 @@ namespace MassTransitBenchmark.BusOutbox;
 using System.Threading;
 using System.Threading.Tasks;
 using Latency;
+using Latency.Commands;
 using MassTransit;
 
 

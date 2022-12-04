@@ -2,6 +2,7 @@ namespace MassTransitBenchmark.Latency
 {
     using System.Threading;
     using System.Threading.Tasks;
+    using Commands;
     using MassTransit;
 
 

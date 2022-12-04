@@ -20,6 +20,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="NServiceBus" Version="7.8.0" />
+    <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.4.0" />
+    <PackageReference Include="NServiceBus.RabbitMQ" Version="7.0.3" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol"/>
   </ItemGroup>
 </Project>

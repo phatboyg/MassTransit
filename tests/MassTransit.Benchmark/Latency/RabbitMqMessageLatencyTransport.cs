@@ -1,8 +1,11 @@
 namespace MassTransitBenchmark.Latency
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
+    using Commands;
     using MassTransit;
+    using Microsoft.Extensions.DependencyInjection;
 
 
     class RabbitMqMessageLatencyTransport :
@@ -15,6 +18,7 @@ namespace MassTransitBenchmark.Latency
         IBusControl _outboundBus;
         Uri _targetAddress;
         ISendEndpoint _targetEndpoint;
+        ServiceProvider _provider;
 
         public RabbitMqMessageLatencyTransport(RabbitMqOptionSet hostSettings, IMessageLatencySettings settings)
         {
@@ -24,33 +28,45 @@ namespace MassTransitBenchmark.Latency
             _split = hostSettings.Split;
         }
 
-        public Task Send(LatencyTestMessage message)
+        public async Task Send(Guid messageId, string payload)
         {
-            return _targetEndpoint.Send(message);
+            await _targetEndpoint.Send(new LatencyTestMessage(messageId, payload)).ConfigureAwait(false);
         }
 
-        public async Task Start(Action<IReceiveEndpointConfigurator> callback, IReportConsumerMetric reportConsumerMetric)
+        public async Task Start(Action<IReceiveEndpointConfigurator> callback, IReportConsumerMetric messageMetricCapture)
         {
-            _busControl = Bus.Factory.CreateUsingRabbitMq(x =>
-            {
-                x.Host(_hostSettings);
-
-                x.ReceiveEndpoint("latency_consumer" + (_settings.Durable ? "" : "_express"), e =>
+            _provider = new ServiceCollection()
+                .AddMassTransit(x =>
                 {
-                    e.PurgeOnStartup = true;
-                    e.Durable = _settings.Durable;
-                    e.PrefetchCount = _settings.PrefetchCount;
+                    x.AddConsumer<MessageLatencyConsumer>();
+                    x.AddSingleton(messageMetricCapture);
 
-                    if (_settings.ConcurrencyLimit > 0)
-                        e.ConcurrentMessageLimit = _settings.ConcurrencyLimit;
+                    x.UsingRabbitMq((context, cfg) =>
+                    {
+                        cfg.Host(_hostSettings);
 
-                    callback(e);
+                        cfg.ReceiveEndpoint("latency_consumer" + (_settings.Durable ? "" : "_express"), e =>
+                        {
+                            e.PurgeOnStartup = true;
+                            e.Durable = _settings.Durable;
+                            e.PrefetchCount = _settings.PrefetchCount;
 
-                    _targetAddress = e.InputAddress;
-                });
-            });
+                            if (_settings.ConcurrencyLimit > 0)
+                                e.ConcurrentMessageLimit = _settings.ConcurrencyLimit;
 
-            await _busControl.StartAsync();
+                            e.ConfigureConsumer<MessageLatencyConsumer>(context);
+
+                            _targetAddress = e.InputAddress;
+                        });
+                    });
+                })
+                .BuildServiceProvider(true);
+
+            _busControl = _provider.GetRequiredService<IBusControl>();
+
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+            await _busControl.StartAsync(timeout.Token);
 
             if (_split)
             {
@@ -61,7 +77,7 @@ namespace MassTransitBenchmark.Latency
                     x.PrefetchCount = _settings.PrefetchCount;
                 });
 
-                await _outboundBus.StartAsync();
+                await _outboundBus.StartAsync(timeout.Token);
 
                 _targetEndpoint = await _outboundBus.GetSendEndpoint(_targetAddress);
             }
@@ -71,10 +87,12 @@ namespace MassTransitBenchmark.Latency
 
         public async ValueTask DisposeAsync()
         {
-            await _busControl.StopAsync();
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+            await _busControl.StopAsync(timeout.Token);
 
             if (_outboundBus != null)
-                await _outboundBus.StopAsync();
+                await _outboundBus.StopAsync(timeout.Token);
         }
     }
 }

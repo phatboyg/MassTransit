@@ -2,6 +2,7 @@ namespace MassTransitBenchmark.Latency
 {
     using System;
     using System.Threading.Tasks;
+    using Commands;
     using MassTransit;
     using MassTransit.Mediator;
 
@@ -17,12 +18,12 @@ namespace MassTransitBenchmark.Latency
             _settings = settings;
         }
 
-        public Task Send(LatencyTestMessage message)
+        public async Task Send(Guid messageId, string payload)
         {
-            return _mediator.Send(message);
+            await _mediator.Send(new LatencyTestMessage(messageId, payload)).ConfigureAwait(false);
         }
 
-        public Task Start(Action<IReceiveEndpointConfigurator> callback, IReportConsumerMetric reportConsumerMetric)
+        public Task Start(Action<IReceiveEndpointConfigurator> callback, IReportConsumerMetric messageMetricCapture)
         {
             _mediator = Bus.Factory.CreateMediator(callback);
 

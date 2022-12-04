@@ -2,6 +2,7 @@ namespace MassTransitBenchmark.Latency
 {
     using System;
     using System.Threading.Tasks;
+    using Commands;
     using MassTransit;
 
 
@@ -24,12 +25,12 @@ namespace MassTransitBenchmark.Latency
             _split = hostSettings.Split;
         }
 
-        public Task Send(LatencyTestMessage message)
+        public async Task Send(Guid messageId, string payload)
         {
-            return _targetEndpoint.Send(message);
+            await _targetEndpoint.Send(new LatencyTestMessage(messageId, payload)).ConfigureAwait(false);
         }
 
-        public async Task Start(Action<IReceiveEndpointConfigurator> callback, IReportConsumerMetric reportConsumerMetric)
+        public async Task Start(Action<IReceiveEndpointConfigurator> callback, IReportConsumerMetric messageMetricCapture)
         {
             _busControl = Bus.Factory.CreateUsingAzureServiceBus(x =>
             {

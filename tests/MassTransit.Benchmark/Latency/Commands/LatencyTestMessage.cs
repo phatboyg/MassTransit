@@ -1,4 +1,4 @@
-namespace MassTransitBenchmark.Latency
+namespace MassTransitBenchmark.Latency.Commands
 {
     using System;
 

@@ -35,9 +35,7 @@
         {
             _capture = new MessageMetricCapture(_settings.MessageCount);
 
-            IReportConsumerMetric report = _capture;
-
-            await _transport.Start(ConfigureReceiveEndpoint, report);
+            await _transport.Start(ConfigureReceiveEndpoint, _capture);
             try
             {
                 Console.WriteLine("Running Message Latency Benchmark");
@@ -136,9 +134,7 @@
                 throw new IndexOutOfRangeException("Too many messages");
 
             for (var i = 0; i < _settings.Clients; i++)
-            {
-                stripes[i] = Task.Run(() => RunStripe((int)messageCount));
-            }
+                stripes[i] = RunStripe((int)messageCount);
 
             await Task.WhenAll(stripes).ConfigureAwait(false);
 
@@ -155,7 +151,7 @@
             for (long i = 0; i < messageCount; i++)
             {
                 var messageId = ids[i].ToGuid();
-                var task = _transport.Send(new LatencyTestMessage(messageId, _payload));
+                var task = _transport.Send(messageId, _payload);
 
                 await _capture.Sent(messageId, task).ConfigureAwait(false);
             }
