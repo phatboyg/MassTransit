@@ -1,18 +1,18 @@
 # Job Consumers
 
-<iframe id="ytplayer" type="text/html" width="640" height="360"
-  src="https://www.youtube.com/embed/nHrbw5cfNVo?autoplay=0">
-</iframe>
+::div
+  :video-player{src="https://www.youtube.com/watch?v=nHrbw5cfNVo"}
+::
 
 When a message is delivered from the message broker to a consumer instance, the message is _locked_ by the broker. Once the consumer completes, MassTransit will acknowledge the message on the broker, removing it from the queue. While the message is locked, it will not be delivered to another consumer – on any bus instance reading from the same queue (competing consumer pattern). However, if the broker connection is lost the message will be unlocked and redelivered to a new consumer instance. The lock timeout is usually long enough for most message consumers, and this rarely is an issue in practice for consumers that complete quickly.
 
 However, there are plenty of use cases where consumers may run for a longer duration, from minutes to even hours. In these situations, a job consumer _may_ be used to decouple the consumer from the broker. A job consumer is a specialized consumer designed to execute _jobs_, defined by implementing the `IJobConsumer<T>` interface where `T` is the job message type. Job consumers may be used for long-running tasks, such as converting a video file, but can really be used for any task. Job consumers have additional requirements, such as a database to store the job messages, manage concurrency and retry, and report job completion or failure. 
 
-::: warning
+::alert{type="success"}
 MassTransit includes a job service that keeps track of each job, assigns jobs to service instances, and schedules job retries when necessary. The job service uses three saga state machines and the default configuration uses an in-memory saga repository, which is **not durable**. When using job consumers for production use cases, configuring durable saga repositories is _highly recommended_ to avoid possible message loss.
 
 Check out the [sample project](https://github.com/MassTransit/Sample-JobConsumers) on GitHub, which includes the Entity Framework configuration for the job service state machines.
-:::
+::
 
 To use job consumers, a _service instance_ must be configured (see below).
 
@@ -20,7 +20,14 @@ To use job consumers, a _service instance_ must be configured (see below).
 
 A job consumer implements the `IJobConsumer<T>` interface, shown below.
 
-<<< @/src/MassTransit.Abstractions/IJobConsumer.cs
+```csharp
+public interface IJobConsumer<in TJob> :
+    IConsumer
+    where TJob : class
+{
+    Task Run(JobContext<TJob> context);
+}
+```
 
 ### Configuration
 
