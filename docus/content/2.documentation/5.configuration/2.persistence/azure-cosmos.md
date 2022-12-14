@@ -1,28 +1,31 @@
-# Azure Cosmos
+# Azure Cosmos DB
 
-DocumentDb is the predecessor of Azure Cosmos DB. Microsoft now refers to the DocumentDb API as the Core (SQL) API. MassTransit supports saga persistence in Cosmos by using both MongoDb API (using the `MassTransit.MongoDb` package) or using the Core (SQL) API (using the `MassTransit.Azure.Cosmos` package).
+[![alt MassTransit on NuGet](https://img.shields.io/nuget/v/MassTransit.Azure.Cosmos.svg)](https://nuget.org/packages/MassTransit.Azure.Cosmos/)
 
-Out of the box, the only additional saga property required to use Cosmos DB is _ETag_, which is managed by Cosmos for optimistic concurrency. Once added to your saga class, when using the container configuration method below, the class is properly configured to map the _CorrelationId_ and _ETag_ properties to the associated `id` and `_etag` properties.
+When using Azure Cosmos DB, no additional saga properties are required. An Azure Cosmos DB document has an `_etag` used for optimistic concurrency, however, the saga instance class does not require it. MassTransit manages the *_etag* property under the hood using a *payload* on the `SagaConsumeContext`.
 
-```cs {10}
+```csharp {10}
 public class OrderState :
-    SagaStateMachineInstance,
-    IVersionedSaga
+    SagaStateMachineInstance
 {
     public Guid CorrelationId { get; set; }
     public string CurrentState { get; set; }
 
     public DateTime? OrderDate { get; set; }
-
-    public string ETag { get; set; }
 }
 ```
 
-## Container Integration
+To obtain the saga instance *_etag* value:
+
+```csharp
+string eTag = context.TryGetPayload<SagaETag>(out var payload) ? payload.ETag : null;
+```
+
+## Configuration
 
 To configure Cosmos DB as the saga repository for a saga, use the code shown below using the _AddMassTransit_ container extension.
 
-```cs {4-10}
+```csharp {4-10}
 container.AddMassTransit(cfg =>
 {
     cfg.AddSagaStateMachine<OrderStateMachine, OrderState>()
@@ -38,7 +41,7 @@ container.AddMassTransit(cfg =>
 
 To use the CosmosDb emulator, specify it in the configuration.
 
-```cs {4-9}
+```csharp {4-9}
 container.AddMassTransit(cfg =>
 {
     cfg.AddSagaStateMachine<OrderStateMachine, OrderState>()
@@ -55,11 +58,13 @@ The container extension will register the saga repository in the container. For 
 
 ## Other Considerations
 
-Cosmos DB requires that any document stored there has a property called `id`, to be used as the document identity. Saga instances have `CorrelationId` for the same purpose, so there are two ways to create your Cosmos DB saga class, which can have different implications depending on your usage. ETag must also be present, which is used for optimistic concurrency. Please never set this property yourself, it managed 100% by Cosmos DB.
+When using Azure Cosmos, documents must have an `id` property which is used as the document's identity. MassTransit saga instance use a `CorrelationId` property to identify the instance. 
+
+So there are two ways to create your Cosmos DB saga class, which can have different implications depending on your usage. ETag must also be present, which is used for optimistic concurrency. Please never set this property yourself, it managed 100% by Cosmos DB.
 
 If event correlation expressions are used which include the _CorrelationId_ property, it's important to add the JSON property names that match what's used in Cosmos DB.
 
-```cs {5,11}
+```csharp {5,11}
 public class OrderState :
     SagaStateMachineInstance,
     IVersionedSaga
