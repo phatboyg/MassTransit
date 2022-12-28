@@ -1,5 +1,6 @@
 export default defineNuxtConfig({
     extends: '@nuxt-themes/docus',
+    css: ['~/assets/css/main.css'],
     colorMode: {
         preference: 'dark'
     },
@@ -15,5 +16,12 @@ export default defineNuxtConfig({
         navigation: {
             fields: ['icon', 'titleTemplate', 'aside']
         }
-    }
+    },
+    postcss: {
+        plugins: {
+            'tailwindcss/nesting': {},
+            tailwindcss: {},
+            autoprefixer: {},
+        },
+    },
 })
