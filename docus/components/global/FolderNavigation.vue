@@ -21,7 +21,9 @@ const grouped = groupContent(navigationTree)
             <div v-for="page in grouped.pages" class="border border-slate-100 rounded px-3 py-4"
                  :class="{'col-span-2': page.title === 'Overview'}"
             >
+                <NuxtLink :to="page._path">
                 {{page.title}}
+                </NuxtLink>
             </div>
         </div>
 
