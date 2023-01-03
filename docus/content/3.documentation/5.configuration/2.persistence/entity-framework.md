@@ -1,10 +1,10 @@
 # Entity Framework
 
-[MassTransit.EntityFrameworkCore](https://www.nuget.org/packages/MassTransit.EntityFrameworkCore)
+[![alt NuGet](https://img.shields.io/nuget/v/MassTransit.EntityFrameworkCore.svg "NuGet")](https://nuget.org/packages/MassTransit.EntityFrameworkCore/)
 
 An example saga instance is shown below, which is orchestrated using an Automatonymous state machine. The _CorrelationId_ will be the primary key, and _CurrentState_ will be used to store the current state of the saga instance. 
 
-```cs
+```csharp
 public class OrderState :
     SagaStateMachineInstance
 {
@@ -20,11 +20,11 @@ public class OrderState :
 
 The instance properties are configured using a _SagaClassMap_. 
 
-::: warning Important
+::alert{type="warning"}
 The `SagaClassMap` has a default mapping for the `CorrelationId` as the primary key. If you create your own mapping, you must follow the same convention, or at least make it a Clustered Index + Unique, otherwise you will likely experience deadlock exceptions and/or performance issues in high throughput scenarios.
-:::
+::
 
-```cs
+```csharp
 public class OrderStateMap : 
     SagaClassMap<OrderState>
 {
@@ -41,7 +41,7 @@ public class OrderStateMap :
 
 Include the instance map in a _DbContext_ class that will be used by the saga repository.
 
-```cs
+```csharp
 public class OrderStateDbContext : 
     SagaDbContext
 {
@@ -57,11 +57,11 @@ public class OrderStateDbContext :
 }
 ```
 
-## Container Integration
+## Configuration
 
 Once the class map and associated _DbContext_ class have been created, the saga repository can be configured with the saga registration, which is done using the configuration method passed to _AddMassTransit_. The following example shows how the repository is configured for using Microsoft Dependency Injection Extensions, which are used by default with Entity Framework Core.
 
-```cs
+```csharp
 services.AddMassTransit(cfg =>
 {
     cfg.AddSagaStateMachine<OrderStateMachine, OrderState>()
@@ -81,13 +81,11 @@ services.AddMassTransit(cfg =>
 });
 ```
 
-### Single DbContext
+### Shared DbContext
 
-> New in 7.0.5
+A single `DbContext` can be registered in the container which can then be used to configure sagas that are mapped by the `DbContext`. For example, [Job Consumers](/advanced/job-consumers) needs three saga repositories, and the Entity Framework Core package includes the `JobServiceSagaDbContext` which can be configured using the `AddSagaRepository` method as shown below.
 
-A single `DbContext` can be registered in the container which can then be used to configure sagas that are mapped by the `DbContext`. For example, [Job Consumers](/advanced/job-consumers) need three saga repositories, and the Entity Framework Core package includes the `JobServiceSagaDbContext` which can be configured using the `AddSagaRepository` method as shown below.
-
-```cs
+```csharp
 services.AddDbContext<JobServiceSagaDbContext>(builder =>
     builder.UseNpgsql(Configuration.GetConnectionString("JobService"), m =>
     {
@@ -124,7 +122,7 @@ The above code using the standard Entity Framework configuration extensions to a
 
 Once configured, the job service sagas can be configured as shown below.
 
-```cs
+```csharp
 cfg.ServiceInstance(options, instance =>
 {
     instance.ConfigureJobServiceEndpoints(js =>
@@ -136,22 +134,21 @@ cfg.ServiceInstance(options, instance =>
 
 The [Job Consumers](https://github.com/MassTransit/Sample-JobConsumers) sample is a working version of this configuration style.
 
-
 ### Multiple DbContext
 
-Multiple `DbContext` can be registered in the container which can then be used to configure sagas that are mapped by the `DbContext` and injected into other components. Calling the ```AddDbContext``` extension method will register a scoped ```DbContext``` by default. For simple scenarios where there is a single ```DbContext``` this will work. However, in scenarios where there is at least one other ```DbContext``` the dotnet command that generates Entity Framework migrations will not work. To resolve this issue, you'll need to perform the following steps:
-1. Make sure that all ```DbContext``` has a constructor that takes ```DbContextOptions<TOptions>``` instead of ```DbContextOptions```.
+Multiple `DbContext` can be registered in the container which can then be used to configure sagas that are mapped by the `DbContext` and injected into other components. Calling the `AddDbContext` extension method will register a scoped `DbContext` by default. For simple scenarios where there is a single `DbContext` this will work. However, in scenarios where there is at least one other `DbContext` the dotnet command that generates Entity Framework migrations will not work. To resolve this issue, you'll need to perform the following steps:
+1. Make sure that all `DbContext` has a constructor that takes `DbContextOptions<TOptions>` instead of `DbContextOptions`.
 
 2. Run the Entity Framework Core command to create your migrations as shown below.
 
-```cs
-dotnet ef migrations add InitialCreate -c JobServiceSagaDbContext
-```
+    ```bash
+    dotnet ef migrations add InitialCreate -c JobServiceSagaDbContext
+    ```
 
 3. Run the Entity Framework Core command to sync with the database as shown below.
  
- ```cs
- dotnet ef database update -c JobServiceSagaDbContext
- ```
+     ```bash
+     dotnet ef database update -c JobServiceSagaDbContext
+     ```
 
 
