@@ -1,18 +1,20 @@
 # Azure Service Bus
 
+[![alt NuGet](https://img.shields.io/nuget/v/MassTransit.Azure.ServiceBus.Core.svg "NuGet")](https://nuget.org/packages/MassTransit.Azure.ServiceBus.Core/)
+
 Azure Service Bus provides a feature called *message sessions*, to process multiple messages at once and to store some state on a temporary basis, which can be retrieved by some key.
 
 The latter give us an ability to use this feature as saga state storage. Using message sessions as saga persistence, you can only use Azure Service Bus for both messaging and saga persistence purposes, without needing any additional infrastructure. You have to explicitly enable message sessions when configuring the endpoint, and use parameterless constructor to instantiate the saga repository.
 
 When using message sessions, concurrency is managed by Azure Service Bus.
 
-::: tip
+::alert{type="success"}
 Message sessions can only be correlated using the CorrelationId, which is copied to the message SessionId. Correlation expressions are not supported when using message sessions.
-:::
+::
 
 Here is the basic sample of how to use the Azure Service Bus message session as saga repository:
 
-```cs
+```csharp
 public class OrderState :
     SagaStateMachineInstance
 {
@@ -27,7 +29,7 @@ public class OrderState :
 
 To configure a message session as the saga repository for a saga, use the code shown below using the _AddMassTransit_ container extension.
 
-```cs {4}
+```csharp
 container.AddMassTransit(cfg =>
 {
     cfg.AddSagaStateMachine<OrderStateMachine, OrderState>()
@@ -37,7 +39,7 @@ container.AddMassTransit(cfg =>
 
 Then, configure the endpoint to require a message session.
 
-```cs
+```csharp
 sbc.ReceiveEndpoint("order-state", ep =>
 {
     ep.RequiresSession = true;
@@ -47,7 +49,7 @@ sbc.ReceiveEndpoint("order-state", ep =>
 
 To configure the receive endpoint without a container, the state machine and instance type can be specified explicitly.
 
-```cs
+```csharp
 var sagaStateMachine = new OrderStateMachine();
 // This gives an Obsolete-warning 
 // var repository = new MessageSessionSagaRepository<OrderState>(); 

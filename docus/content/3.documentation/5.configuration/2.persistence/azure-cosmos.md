@@ -1,6 +1,6 @@
 # Azure Cosmos DB
 
-[![alt MassTransit on NuGet](https://img.shields.io/nuget/v/MassTransit.Azure.Cosmos.svg)](https://nuget.org/packages/MassTransit.Azure.Cosmos/)
+[![alt NuGet](https://img.shields.io/nuget/v/MassTransit.Azure.Cosmos.svg "NuGet")](https://nuget.org/packages/MassTransit.Azure.Cosmos/)
 
 When using Azure Cosmos DB, no additional saga properties are required. An Azure Cosmos DB document has an `_etag` used for optimistic concurrency, however, the saga instance class does not require it. MassTransit manages the *_etag* property under the hood using a *payload* on the `SagaConsumeContext`.
 
