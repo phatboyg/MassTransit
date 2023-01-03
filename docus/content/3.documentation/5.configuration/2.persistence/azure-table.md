@@ -39,7 +39,7 @@ container.AddMassTransit(cfg =>
 });
 ```
 
-The container extension will register the saga repository in the container. For more details on container configuration, review the [container configuration](/usage/containers/) section of the documentation.
+The container extension will register the saga repository in the container.
 
 To configure the saga repository with a specific key formatter, use the code shown below with _KeyFormatter_ configuration extension.
 
