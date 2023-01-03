@@ -1,28 +1,70 @@
 # Redis
 
-> Package: [MassTransit.Redis](https://www.nuget.org/packages/MassTransit.Redis)
+[![alt NuGet](https://img.shields.io/nuget/v/MassTransit.Redis.svg "NuGet")](https://nuget.org/packages/MassTransit.Redis/)
 
 Redis is a very popular key-value store, which is known for being very fast. To support Redis, MassTransit uses the `StackExchange.Redis` library.
 
-::: warning
+::alert{type="warning"}
 Redis only supports event correlation by _CorrelationId_, it does not support queries. If a saga uses expression-based correlation, a _NotImplementedByDesignException_ will be thrown.
-:::
+::
 
 Storing a saga in Redis requires an additional interface, _ISagaVersion_, which has a _Version_ property used for optimistic concurrency. An example saga is shown below.
 
-<<< @/docs/code/sagas/OrderState.cs
+```csharp
+public class OrderState :
+    SagaStateMachineInstance,
+    ISagaVersion
+{
+    public Guid CorrelationId { get; set; }
+    public string CurrentState { get; set; }
+
+    public DateTime? OrderDate { get; set; }
+
+    public int Version { get; set; }
+}
+```
 
 ## Configuration
 
 To configure Redis as the saga repository for a saga, use the code shown below using the _AddMassTransit_ container extension. This will configure Redis to connect to the local Redis instance on the default port using Optimistic concurrency. This will also store the _ConnectionMultiplexer_ in the container as a single instance, which will be disposed by the container.
 
-<<< @/docs/code/sagas/RedisSagaContainer.cs
+```csharp
+services.AddMassTransit(x =>
+{
+    const string configurationString = "127.0.0.1";
+
+    x.AddSagaStateMachine<OrderStateMachine, OrderState>()
+        .RedisRepository(configurationString);
+});
+```
 
 The example below includes all the configuration options, in cases where additional settings are required.
 
-<<< @/docs/code/sagas/RedisSagaContainerConfiguration.cs
+```csharp
+services.AddMassTransit(x =>
+{
+    const string configurationString = "127.0.0.1";
 
-The container extension will register the saga repository in the container. For more details on container configuration, review the [container configuration](/usage/containers/) section of the documentation.
+    x.AddSagaStateMachine<OrderStateMachine, OrderState>()
+        .RedisRepository(r =>
+        {
+            r.DatabaseConfiguration(configurationString);
+
+            // Default is Optimistic
+            r.ConcurrencyMode = ConcurrencyMode.Pessimistic;
+
+            // Optional, prefix each saga instance key with the string specified
+            // resulting dev:c6cfd285-80b2-4c12-bcd3-56a00d994736
+            r.KeyPrefix = "dev";
+
+            // Optional, to customize the lock key
+            r.LockSuffix = "-lockage";
+
+            // Optional, the default is 30 seconds
+            r.LockTimeout = TimeSpan.FromSeconds(90);
+        });;
+});
+```
 
 ## Concurrency
 

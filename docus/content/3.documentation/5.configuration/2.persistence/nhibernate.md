@@ -1,10 +1,11 @@
 # NHibernate
 
-> Package: [MassTransit.NHibernate](https://www.nuget.org/packages/MassTransit.NHibernate)
+[![alt NuGet](https://img.shields.io/nuget/v/MassTransit.NHibernate.svg "NuGet")](https://nuget.org/packages/MassTransit.NHibernate/)
+
 
 NHibernate is a widely used ORM and it is supported by MassTransit for saga storage. The example below shows the code-first approach to using NHibernate for saga persistence.
 
-```cs
+```csharp
 public class OrderState :
     SagaStateMachineInstance
 {
@@ -20,11 +21,11 @@ public class OrderState :
 
 The instance properties are configured using a _SagaClassMapping_. 
 
-::: warning Important
+::alert{type="warning"}
 The `SagaClassMapping` has a default mapping for the `CorrelationId` as the primary key. If you create your own mapping, you must follow the same convention, or at least make it a Clustered Index + Unique, otherwise you will likely experience deadlock exceptions and/or performance issues in high throughput scenarios.
-:::
+::
 
-```cs
+```csharp
 public class OrderStateMap : 
     SagaClassMapping<OrderState>
 {
@@ -38,11 +39,11 @@ public class OrderStateMap :
 }
 ```
 
-## Container Integration
+## Configuration
 
 To configure NHibernate as the saga repository for a saga, use the code shown below using the _AddMassTransit_ container extension. This will configure NHibernate to connect to the local NHibernate instance on the default port using Optimistic concurrency.
 
-```cs {2,7}
+```csharp
 // the session factory should be registered as a single instance
 container.RegisterSingleInstance<ISessionFactory>(...);
 

@@ -1,14 +1,16 @@
 # Azure Table Storage
 
+[![alt NuGet](https://img.shields.io/nuget/v/MassTransit.Azure.Cosmos.Table.svg "NuGet")](https://nuget.org/packages/MassTransit.Azure.Cosmos.Table/)
+
 Azure Tables are exposed in two ways in Azure - via Storage accounts & via the premium offering within Cosmos DB APIs. This persistence supports both implementations and behind the curtains uses the Microsoft.Azure.Cosmos.Table library for communication.
 
-::: tip NOTE
+::alert{type="success"}
 Azure Tables currently only supports Optimistic Concurrency. Mass Transit manages the ETag property in Payload Context and uses this property for state machine updates. Concurrency errors can be spotted in logs via standard "Precondition Failed" errors from Table Storage.
-:::
+::
 
-::: warning
+::alert{type="warning"}
 Be sure to set DateTime properties as nullable when updated later in the saga. Failure to do this can result in 400 bad requests from Table Storage.
-:::
+::
 
 ```cs {10}
 public class OrderState :

@@ -1,6 +1,6 @@
 # Dapper
 
-[MassTransit.Dapper](https://www.nuget.org/packages/MassTransit.Dapper)
+[![alt NuGet](https://img.shields.io/nuget/v/MassTransit.DapperIntegration.svg "NuGet")](https://nuget.org/packages/MassTransit.DapperIntegration/)
 
 [Dapper][1] is a [super lightweight Micro-ORM][2] usable for saga persistence with Microsoft SQL Server. Dapper.Contrib is used for inserts and updates. The methods are virtual, so if you'd rather write the SQL yourself it is supported.
 
@@ -18,11 +18,11 @@ public class OrderState :
 }
 ```
 
-## Container Integration
+## Configuration
 
 To configure Dapper as the saga repository for a saga, use the code shown below using the _AddMassTransit_ container extension.
 
-```cs {4}
+```csharp
 container.AddMassTransit(cfg =>
 {
     cfg.AddSagaStateMachine<OrderStateMachine, OrderState>()
@@ -30,22 +30,20 @@ container.AddMassTransit(cfg =>
 });
 ```
 
-The container extension will register the saga repository in the container. For more details on container configuration, review the [container configuration](/usage/containers/) section of the documentation.
-
 ## Limitations
 
 ### Table Names
 
-The tablename can only be the pluralized form of the class name. So `OrderState` would translate to table OrderState**s**. This applies even if you write your own SQL for updates and inserts.
+The table name can only be the pluralized form of the class name. So `OrderState` would translate to table OrderState**s**. This applies even if you write your own SQL for updates and inserts.
 
 ### Correlation Expressions
 
 The expressions you can use for correlation is somewhat limited. These types of expressions are handled:
 
-```cs
-    x => x.CorrelationId == someGuid;
-    x => x.IsDone;
-    x => x.CorrelationId == someGuid && x.IsDone;
+```csharp
+x => x.CorrelationId == someGuid;
+x => x.IsDone;
+x => x.CorrelationId == someGuid && x.IsDone;
 ```
 
 You can use multiple `&&` in the expression. What you can not use is `||` and negations. So a bool used like this `x.IsDone` can only be handled as true and nothing else.
