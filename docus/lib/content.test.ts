@@ -44,9 +44,9 @@ const items : Omit<ParsedContent,'body'>[] = [
         "description": "Configure ALL THE THINGS",
         "toc": true,
         "_type": "markdown",
-        "_id": "content:2.documentation:5.configuration:0.index.md",
+        "_id": "content:2.documentation:5.configuration:4.scheduling.md",
         "_source": "content",
-        "_file": "2.documentation/5.configuration/0.index.md",
+        "_file": "2.documentation/5.configuration/4.scheduling.md",
         "_extension": "md"
     },
     {
@@ -192,10 +192,10 @@ const items : Omit<ParsedContent,'body'>[] = [
         "_partial": true,
         "_locale": "en",
         "title": "Persistence",
-        "_id": "content:2.documentation:5.configuration:2.persistence:_dir.yaml",
+        "_id": "content:2.documentation:5.configuration:2.persistence:_dir.yml",
         "_type": "yaml",
         "_source": "content",
-        "_file": "2.documentation/5.configuration/2.persistence/_dir.yaml",
+        "_file": "2.documentation/5.configuration/2.persistence/_dir.yml",
         "_extension": "yaml"
     },
     {
@@ -371,9 +371,9 @@ const items : Omit<ParsedContent,'body'>[] = [
         "title": "Overview",
         "description": "MassTransit is built using a network of pipes and filters to dispatch messages. A pipe is composed of a series of filters, each of which is a key atom and are described below.",
         "_type": "markdown",
-        "_id": "content:2.documentation:5.configuration:3.middleware:0.index.md",
+        "_id": "content:2.documentation:5.configuration:3.middleware:4.scheduling.md",
         "_source": "content",
-        "_file": "2.documentation/5.configuration/3.middleware/0.index.md",
+        "_file": "2.documentation/5.configuration/3.middleware/4.scheduling.md",
         "_extension": "md"
     },
     {
@@ -459,9 +459,9 @@ const items : Omit<ParsedContent,'body'>[] = [
         "title": "Overview",
         "description": "",
         "_type": "markdown",
-        "_id": "content:2.documentation:5.configuration:4.scheduling:0.index.md",
+        "_id": "content:2.documentation:5.configuration:4.scheduling:4.scheduling.md",
         "_source": "content",
-        "_file": "2.documentation/5.configuration/4.scheduling/0.index.md",
+        "_file": "2.documentation/5.configuration/4.scheduling/4.scheduling.md",
         "_extension": "md"
     },
     {
@@ -561,10 +561,10 @@ const items : Omit<ParsedContent,'body'>[] = [
         "_partial": true,
         "_locale": "en",
         "title": "Integrations",
-        "_id": "content:2.documentation:5.configuration:5.integrations:_dir.yaml",
+        "_id": "content:2.documentation:5.configuration:5.integrations:_dir.yml",
         "_type": "yaml",
         "_source": "content",
-        "_file": "2.documentation/5.configuration/5.integrations/_dir.yaml",
+        "_file": "2.documentation/5.configuration/5.integrations/_dir.yml",
         "_extension": "yaml"
     },
     {
