@@ -27,7 +27,7 @@ public class OrderState :
 
 To configure a Table as the saga repository for a saga, use the code shown below using the _AddMassTransit_ container extension.
 
-```cs
+```csharp
 CloudTable cloudTable;
 container.AddMassTransit(cfg =>
 {
@@ -43,7 +43,7 @@ The container extension will register the saga repository in the container.
 
 To configure the saga repository with a specific key formatter, use the code shown below with _KeyFormatter_ configuration extension.
 
-```cs
+```csharp
 CloudTable cloudTable;
 container.AddMassTransit(cfg =>
 {

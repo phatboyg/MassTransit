@@ -14,7 +14,7 @@ There are certainly others, but anytime multiple events correlate to the same in
 
 To configure the receive endpoint directly:
 
-```cs
+```csharp
 services.AddMassTransit(x =>
 {
     x.AddStateMachineSaga<OrderStateMachine, OrderState>()
@@ -50,7 +50,7 @@ services.AddMassTransit(x =>
 
 Alternatively if using a [saga definition](/usage/containers/definitions):
 
-```cs
+```csharp
 public sealed class OrderStateSagaDefinition : SagaDefinition<OrderState>
 {
     private const int ConcurrencyLimit = 20; // this can go up, depending upon the database capacity

@@ -2,6 +2,12 @@
 
 NewId generates sequential unique identifiers that are 128-bit (16-bytes) and fit nicely into a `Guid`. It was inspired from [Snowflake][1] and [flake][2].
 
+NewId is included in the [MassTransit.Abstractions](https://nuget.org/packages/MassTransit.Abstractions) NuGet package. 
+
+::alert{type="warning"}
+It is also available separately in the [NewId]((https://nuget.org/packages/NewId) package, however, that package is incompatible with MassTransit v8 and later due to namespace conflicts.
+::
+
 ## The Problem
 
 Many applications use unique identifiers to identify data. Common approaches applications use to generate unique identifiers in a relational database delegate identifier generation to the database, using an identity column or another similar auto-incrementing value.

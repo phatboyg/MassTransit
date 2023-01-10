@@ -113,7 +113,7 @@ The job service saga state machines are configured on their own endpoints, using
 
 To configure a service instance without the job service endpoints, replace _ConfigureJobServiceEndpoints_ with _ConfigureJobService_.
 
-```cs
+```csharp
 x.UsingRabbitMq((context, cfg) =>
 {
     cfg.ServiceInstance(instance =>
