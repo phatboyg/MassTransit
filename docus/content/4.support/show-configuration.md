@@ -7,7 +7,7 @@ graph of the bus.
 
 To probe bus configuration, use the `GetProbeResult` method as shown below.
 
-```cs
+```csharp
 var busControl = Bus.Factory.CreateUsingRabbitMq(cfg =>
 {
     cfg.Host("rabbitmq://localhost/test");

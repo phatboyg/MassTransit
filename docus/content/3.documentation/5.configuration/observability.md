@@ -223,11 +223,11 @@ Observers should not be used to modify or intercept messages. To intercept messa
 
 To observe bus life cycle events, create a class which implements `IBusObserver`. To configure a bus observer, add it to the container using one of the methods shown below. The factory method version allows customization of the observer creation.
 
-```cs
+```csharp
 services.AddBusObserver<BusObserver>();
 ```
 
-```cs
+```csharp
 services.AddBusObserver(provider => new BusObserver());
 ```
 
@@ -237,11 +237,11 @@ services.AddBusObserver(provider => new BusObserver());
 
 To configure a receive endpoint observer, add it to the container using one of the methods shown below. The factory method version allows customization of the observer creation.
 
-```cs
+```csharp
 services.AddReceiveEndpointObserver<ReceiveEndpointObserver>();
 ```
 
-```cs
+```csharp
 services.AddReceiveEndpointObserver(provider => new ReceiveEndpointObserver());
 ```
 
@@ -255,11 +255,11 @@ To observe messages as they are received by the transport, create a class that i
 
 To configure a receive observer, add it to the container using one of the methods shown below. The factory method version allows customization of the observer creation. When a container is not being used, the `ConnectReceiveObserver` bus method can be used instead.
 
-```cs
+```csharp
 services.AddReceiveObserver<ReceiveObserver>();
 ```
 
-```cs
+```csharp
 services.AddReceiveObserver(provider => new ReceiveObserver());
 ```
 
@@ -271,11 +271,11 @@ If the `ReceiveContext` isn't fascinating enough for you, perhaps the actual con
 
 To configure a consume observer, add it to the container using one of the methods shown below. The factory method version allows customization of the observer creation. When a container is not being used, the `ConnectConsumeObserver` bus method can be used instead.
 
-```cs
+```csharp
 services.AddConsumeObserver<ConsumeObserver>();
 ```
 
-```cs
+```csharp
 services.AddConsumeObserver(provider => new ConsumeObserver());
 ```
 
@@ -298,11 +298,11 @@ Okay, so, incoming messages are not your thing. We get it, you're all about what
 To configure a send observer, add it to the container using one of the methods shown below. The factory method version allows customization of the observer
 creation. When a container is not being used, the `ConnectSendObserver` bus method can be used instead.
 
-```cs
+```csharp
 services.AddSendObserver<SendObserver>();
 ```
 
-```cs
+```csharp
 services.AddSendObserver(provider => new SendObserver());
 ```
 
@@ -315,11 +315,11 @@ In addition to send, publish is also observable. Because the semantics matter, a
 To configure a public observer, add it to the container using one of the methods shown below. The factory method version allows customization of the observer
 creation. When a container is not being used, the `ConnectPublishObserver` bus method can be used instead.
 
-```cs
+```csharp
 services.AddPublishObserver<PublishObserver>();
 ```
 
-```cs
+```csharp
 services.AddPublishObserver(provider => new PublishObserver());
 ```
 
@@ -334,11 +334,11 @@ To observe events consumed by a saga state machine, use an `IEventObserver<T>` w
 To configure an event observer, add it to the container using one of the methods shown below. The factory method version allows customization of the
 observer creation.
 
-```cs
+```csharp
 services.AddEventObserver<T, EventObserver<T>>();
 ```
 
-```cs
+```csharp
 services.AddEventObserver<T>(provider => new EventObserver<T>());
 ```
 
@@ -351,11 +351,11 @@ To observe state changes that happen in a saga state machine, use an `IStateObse
 To configure a state observer, add it to the container using one of the methods shown below. The factory method version allows customization of the
 observer creation.
 
-```cs
+```csharp
 services.AddStateObserver<T, StateObserver<T>>();
 ```
 
-```cs
+```csharp
 services.AddStateObserver<T>(provider => new StateObserver<T>());
 ```
 

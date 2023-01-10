@@ -12,7 +12,7 @@ The code exploring the concepts is [available on GitHub](https://github.com/Mass
 
 One of the most understood concepts in software development is request/response. In the simplest form, call/return, this conversation pattern between a client and a service, is the most commonly used idiom in software development.
 
-```cs
+```csharp
 var response = service.Method(request);
 ```
 
@@ -20,13 +20,13 @@ As programming languages have evolved, along with the common use of asynchronous
 
 #### HTTP Client
 
-```cs
+```csharp
 var responseMessage = await httpClient.GetAsync();
 ```
 
 #### MassTransit Request Client
 
-```cs
+```csharp
 var response = await client.GetResponse<TResponse>(new Request());
 ```
 

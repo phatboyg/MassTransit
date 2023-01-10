@@ -46,7 +46,7 @@ NServiceBus follows the same broker topology conventions established by MassTran
 
 RabbitMQ was tested using the following NServiceBus configuration:
 
-```cs
+```csharp
 var endpointConfiguration = new EndpointConfiguration("Gateway.Producer");
 endpointConfiguration.UseSerialization<NewtonsoftSerializer>();
 endpointConfiguration.EnableInstallers();
@@ -58,7 +58,7 @@ transport.ConnectionString("host=localhost");
 
 Two message contracts were created:
 
-```cs
+```csharp
  public class ClockUpdated :
     IEvent
 {
@@ -74,14 +74,14 @@ public class ClockSynchronized :
 
 From the NServiceBus endpoint, the `ClockUpdated` message was published:
 
-```cs
+```csharp
 var session = _provider.GetRequiredService<IMessageSession>();
 await session.Publish(new ClockUpdated {CurrentTime = DateTime.UtcNow}, new PublishOptions());
 ```
 
 And the handler in NServiceBus for the `ClockSynchronized` message:
 
-```cs
+```csharp
 public class ClockSynchronizedHandler :
     IHandleMessages<ClockSynchronized>
 {
@@ -103,7 +103,7 @@ public class ClockSynchronizedHandler :
 
 On the MassTransit side, the bus was configured to use the consumer with the same message contract assembly.
 
-```cs
+```csharp
 services.AddMassTransit(x =>
 {
     x.AddConsumer<TimeConsumer>();
@@ -119,7 +119,7 @@ services.AddMassTransit(x =>
 
 With the consumer:
 
-```cs
+```csharp
 class TimeConsumer :
     IConsumer<ClockUpdated>
 {
