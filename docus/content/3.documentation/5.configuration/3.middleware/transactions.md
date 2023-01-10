@@ -8,7 +8,7 @@ The message pipeline in MassTransit is asynchronous, leveraging the Task Paralle
 
 The .NET `System.Transactions` namespace is a static hound, with many applications following the model of using a transaction scope to wrap a transactional operation.
 
-```cs
+```csharp
 public class Repository
 {
     public void Save(Entity entity)
@@ -33,7 +33,7 @@ It is also often requested that a set of operations be managed as a *unit of wor
 
 MassTransit includes transaction middleware to share a single committable transaction across any number consumers and any dependencies used by the those consumers. To use the middleware, it must be added to the bus or receive endpoint.
 
-```cs
+```csharp
 Bus.Factory.CreateUsingRabbitMq(cfg =>
 {
     cfg.ReceiveEndpoint("event_queue", e =>
@@ -102,7 +102,7 @@ MassTransit has an in-memory outbox to deal with this problem, which can be used
 However, sometimes you are coming from the database first and can't get around it. For those situations, MassTransit has a _very simple_ transactional bus which enlists in the current transaction and defers outgoing messages until the transaction is being committed. There is still no rollback, once the messages are delivered to the broker, there is no pulling them back.
 
 
-```cs
+```csharp
 services.AddMassTransit(x =>
 {
     x.UsingRabbitMq((context, cfg) =>
@@ -115,7 +115,7 @@ services.AddMassTransit(x =>
 
 That is all that's needed. Now here's an example usage within an MVC Action.  It's also important to use `TransactionScopeAsyncFlowOption.Enabled` as shown below.
 
-```cs
+```csharp
 public class MyController : ControllerBase
 {
     private readonly IPublishEndpoint _publishEndpoint;
@@ -147,7 +147,7 @@ public class MyController : ControllerBase
 
 Here's an example from within a Console App, with no Container:
 
-```cs
+```csharp
 public class Program
 {
     public static async Task Main()
@@ -196,7 +196,7 @@ The examples will show it's usage in an ASP.NET MVC application, which is where 
 
 First Register the outbox bus.
 
-```cs
+```csharp
 services.AddMassTransit(x =>
 {
     x.UsingRabbitMq((context, cfg) =>
@@ -209,7 +209,7 @@ services.AddMassTransit(x =>
 
 Then use within your controller.
 
-```cs
+```csharp
 public class MyController : ControllerBase
 {
     private readonly ITransactionalBus _transactionalBus;
@@ -250,7 +250,7 @@ public class MyController : ControllerBase
 
 One option to remove some of the boilerplate of opening a transaction each Action that writes to the DB is to make a Filter. You can then include all of the boilerplate code to begin the transaction, and release the outbox.
 
-```cs
+```csharp
 public class DbContextTransactionFilter : TypeFilterAttribute
 {
     public DbContextTransactionFilter()
@@ -313,7 +313,7 @@ public class DbContextTransactionFilter : TypeFilterAttribute
 
 Now your Controller Action will look like:
 
-```cs
+```csharp
 public class MyController : ControllerBase
 {
     private readonly ITransactionalBus _transactionalBus;

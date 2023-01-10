@@ -12,8 +12,8 @@ To produce messages, the rider-specific producer interfaces should be used (if a
 
 ## Kafka
 
-Kafka topics can be consumed using MassTransit consumers and sagas, including saga state machines, and messages can be produced to Kafka topics. For details, refer to the [Kafka Rider documentation](/usage/riders/kafka).
+Kafka topics can be consumed using MassTransit consumers and sagas, including saga state machines, and messages can be produced to Kafka topics. For details, refer to the [Kafka Rider documentation](/documentation/configuration/transports/kafka).
 
 ## Azure Event Hub
 
-Event hubs can be consumed using MassTransit consumers and sagas, including saga state machines, and messages can be produced to event hubs. For details, refer to the [Event Hub Rider documentation](/usage/riders/eventhub).
+Event hubs can be consumed using MassTransit consumers and sagas, including saga state machines, and messages can be produced to event hubs. For details, refer to the [Event Hub Rider documentation](/documentation/configuration/transports/azure-event-hub).
