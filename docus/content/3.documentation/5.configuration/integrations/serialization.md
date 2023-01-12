@@ -133,10 +133,10 @@ MassTransit include support for several commonly used serialization packages.
 
 MassTransit uses _System.Text.Json_ by default to serialize and deserialize JSON messages.
 
-| Content Type                     | Format            | Configuration Method          |
-|:---------------------------------|:------------------|:------------------------------|
-| application/vnd.masstransit+json | JSON (w/envelope) | `UseJsonSerializer` (default) |
-| application/json                 | JSON              | `UseRawJsonSerializer`        |
+| Content Type                         | Format                | Configuration Method              |
+|:-------------------------------------|:----------------------|:----------------------------------|
+| **application/vnd.masstransit+json** | **JSON (w/envelope)** | `UseJsonSerializer` **(default)** |
+| application/json                     | JSON                  | `UseRawJsonSerializer`            |
 
 ### Newtonsoft
 
