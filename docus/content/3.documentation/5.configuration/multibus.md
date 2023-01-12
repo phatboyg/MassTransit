@@ -12,7 +12,18 @@ However, with broader use of cloud-based platforms comes a greater variety of me
 
 To review, the configuration for a single bus is shown below.
 
-<<< @/docs/code/containers/MultiBusContainer.cs
+```csharp
+services.AddMassTransit(x =>
+{
+    x.AddConsumer<SubmitOrderConsumer>();
+    x.AddRequestClient<SubmitOrder>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.ConfigureEndpoints(context);
+    });
+});
+```
 
 This configures the container so that there is a bus, using RabbitMQ, with a single consumer _SubmitOrderConsumer_, using automatic endpoint configuration. The MassTransit hosted service, which configures the bus health checks and starts/stop the bus via `IHostedService`, is also added to the container.
 
@@ -20,7 +31,7 @@ There are several interfaces added to the container using this configuration:
 
 | Interface                     | Lifestyle | Notes                                                                  |
 |:------------------------------|:----------|:-----------------------------------------------------------------------|
-| `IBusControl`                 | Singleton | Used to start/stop the bus                                             |
+| `IBusControl`                 | Singleton | Used to start/stop the bus (not typically used)                        |
 | `IBus`                        | Singleton | Publish/Send on this bus, starting a new conversation                  |
 | `ISendEndpointProvider`       | Scoped    | Send messages from consumer dependencies, ASP.NET Controllers          |
 | `IPublishEndpoint`            | Scoped    | Publish messages from consumer dependencies, ASP.NET Controllers       |
@@ -28,7 +39,7 @@ There are several interfaces added to the container using this configuration:
 | `IRequestClient<SubmitOrder>` | Scoped    | Used to send requests                                                  |
 | `ConsumeContext`              | Scoped    | Available in any message scope, such as a consumer, saga, or activity  |
 
-When a consumer, a saga, or an activity is consuming a message the _ConsumeContext_ is available in the container scope. When the consumer is created using the container, the consumer and any dependencies are created within that scope. If a dependency includes _ISendEndpontProvider_, _IPublishEndpoint_, or even _ConsumeContext_ (should not be the first choice, but totally okay) on the constructor, all three of those interfaces result in the same reference – which is great because it ensures that messages sent and/or published by the consumer or its dependencies includes the proper correlation identifiers and monitoring activity headers.
+When a consumer, a saga, or an activity is consuming a message the _ConsumeContext_ is available in the container scope. When the consumer is created using the container, the consumer and any dependencies are created within that scope. If a dependency includes _ISendEndpointProvider_, _IPublishEndpoint_, or even _ConsumeContext_ (should not be the first choice, but totally okay) on the constructor, all three of those interfaces result in the same reference which is great because it ensures that messages sent and/or published by the consumer or its dependencies includes the proper correlation identifiers and monitoring activity headers.
 
 ## MultiBus Configuration
 
@@ -36,7 +47,38 @@ To support multiple bus instances in a single container, the interface behaviors
 
 To configure additional bus instances, create a new interface that includes _IBus_. Then, using that interface, configure the additional bus using the `AddMassTransit<T>` method, which is included in the **_MassTransit.MultiBus_** namespace.
 
-<<< @/docs/code/containers/MultiBusTwoContainer.cs{31-42}
+```csharp
+public interface ISecondBus :
+    IBus
+{
+}
+```
+
+```csharp
+services.AddMassTransit(x =>
+{
+    x.AddConsumer<SubmitOrderConsumer>();
+    x.AddRequestClient<SubmitOrder>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.ConfigureEndpoints(context);
+    });
+});
+
+services.AddMassTransit<ISecondBus>(x =>
+{
+    x.AddConsumer<AllocateInventoryConsumer>();
+    x.AddRequestClient<AllocateInventory>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("remote-host");
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
+```
 
 This configures the container so that there is an additional bus, using RabbitMQ, with a single consumer _AllocateInventoryConsumer_, using automatic endpoint configuration. Only a single hosted service is required that will start all bus instances so there is no need to add it twice.
 
@@ -69,7 +111,39 @@ In the example above, which should be the most common of this hopefully uncommon
 
 To specify a class, as well as take advantage of the container to bring additional properties along with it, take a look at the following types and configuration.
 
-<<< @/docs/code/containers/MultiBusThreeContainer.cs
+```csharp
+public interface IThirdBus :
+    IBus
+{
+}
+
+class ThirdBus :
+    BusInstance<IThirdBus>,
+    IThirdBus
+{
+    public ThirdBus(IBusControl busControl, ISomeService someService)
+        : base(busControl)
+    {
+        SomeService = someService;
+    }
+
+    public ISomeService SomeService { get; }
+}
+
+public interface ISomeService
+{
+}
+```
+
+```csharp
+services.AddMassTransit<IThirdBus>(x =>
+{
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("third-host");
+    });
+});
+```
 
 This would add a third bus instance, the same as the second, but using the instance class specified. The class is resolved from the container and given `IBusControl`, which must be passed to the base class ensuring that it is properly configured.
 
