@@ -159,14 +159,13 @@ MessageDataDefaults.AlwaysWriteToRepository = false;
 
 MassTransit includes several message data repositories.
 
-| Name       | Description |
-|:-----------|:------------|
-| InMemoryMessageDataRepository | Entirely in memory, meant for unit testing
-| FileSystemMessageDataRepository | Writes message data to the file system, which may be a network drive or other shared storage
-| MongoDbMessageDataRepository | Stores message data using MongoDB's GridFS
-| AzureStorageMessageDataRepository | Stores message data using Azure Blob Storage
-| EncryptedMessageDataRepository | Adds encryption to any other message data repository
-
+| Name                              | Description                                                                                  |
+|:----------------------------------|:---------------------------------------------------------------------------------------------|
+| InMemoryMessageDataRepository     | Entirely in memory, meant for unit testing                                                   |
+| FileSystemMessageDataRepository   | Writes message data to the file system, which may be a network drive or other shared storage |
+| MongoDbMessageDataRepository      | Stores message data using MongoDB's GridFS                                                   |
+| AzureStorageMessageDataRepository | Stores message data using Azure Blob Storage                                                 |
+| EncryptedMessageDataRepository    | Adds encryption to any other message data repository                                         |
 
 ### File System
 
