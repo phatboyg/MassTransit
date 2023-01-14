@@ -8,6 +8,8 @@ When a message is delivered from the message broker to a consumer instance, the 
 
 However, there are plenty of use cases where consumers may run for a longer duration, from minutes to even hours. In these situations, a job consumer _may_ be used to decouple the consumer from the broker. A job consumer is a specialized consumer designed to execute _jobs_, defined by implementing the `IJobConsumer<T>` interface where `T` is the job message type. Job consumers may be used for long-running tasks, such as converting a video file, but can really be used for any task. Job consumers have additional requirements, such as a database to store the job messages, manage concurrency and retry, and report job completion or failure. 
 
+:sample{sample="job-consumer"}
+
 ::alert{type="info"}
 MassTransit includes a job service that keeps track of each job, assigns jobs to service instances, and schedules job retries when necessary. The job service uses three saga state machines and the default configuration uses an in-memory saga repository, which is **not durable**. When using job consumers for production use cases, configuring durable saga repositories is _highly recommended_ to avoid possible message loss.
 
