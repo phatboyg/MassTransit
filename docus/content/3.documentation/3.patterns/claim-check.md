@@ -41,9 +41,9 @@ var busControl = Bus.Factory.CreateUsingRabbitMq(cfg =>
 
 ```
 
-::: tip
+::alert{type="info"}
 Previous versions of MassTransit required a generic type to be specified on the `UseMessageData` method. Individual receive endpoints could also be configured separately. The previous methods are deprecated and now a single bus configuration applies to all receive endpoints.
-:::
+::
 
 Configuring the message data middleware (via `UseMessageData`) adds a transform to replace any deserialized message data reference with an object that loads the message data asynchronously. By using middleware, the consumer doesn't need to use the message data repository. The consumer can simply use the property value to access the message data (asynchronously, of course). If the message data was not loaded, an exception will be thrown. The `HasValue` property is `true` if message data is present.
 
@@ -92,7 +92,7 @@ await endpoint.Send<IndexDocumentContent>(new IndexDocumentContentMessage
 
 The message data is stored, and the reference added to the outbound message.
 
-::: tip NOTE
+::alert{type="info"}
 In the event of message retries in consumer memory a reference to the stream is held.
 On the first attempt the message stream is read then you may need to rewind the stream to make it available to read from again on retries
 
@@ -115,8 +115,7 @@ On the first attempt the message stream is read then you may need to rewind the 
 
 Note that in this example the StreamReader argument `leaveOpen` is set to true to avoid disposing of the stream.
 This means that you may need to manually disponse of the stream to avoid memory leaks when the message has been successful or faulted
-
-:::
+::
 
 ## Configuration
 

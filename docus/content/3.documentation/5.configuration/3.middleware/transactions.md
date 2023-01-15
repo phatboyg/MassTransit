@@ -1,8 +1,8 @@
 # Transaction
 
-::: warning
+::alert{type="warning"}
 Transactions, and using a shared transaction, is an advanced concept. Every scenario is different, so this is more of a guideline than a rule.
-:::
+::
 
 The message pipeline in MassTransit is asynchronous, leveraging the Task Parallel Library (TPL) extensively to maximum thread utilization. This means that receiving an individual message may involve several threads over the life cycle of the consumer. To prevent strange things from happening, developers should avoid using any *static* or *thread static* variables as these are one of the main causes of errors in asynchronous programming.
 
@@ -95,9 +95,9 @@ There are two options to provide this buffer:
 
 Transports don't typically support transactions, so sending messages during a transaction only to encounter an exception resulting in a transaction rollback may lead to messages that were sent without the transaction being committed.
 
-::: tip In Memory Outbox
+::alert{type="info"}
 MassTransit has an in-memory outbox to deal with this problem, which can be used within a message consumer. It leverages the durable nature of a message transport to ensure that messages are ultimately sent. There is an extensive article and [video](https://youtu.be/P41IsVAc1nI) explaining the outbox behavior. This approach is preferred to performing transactional database writes outside of a consumer.
-:::
+::
 
 However, sometimes you are coming from the database first and can't get around it. For those situations, MassTransit has a _very simple_ transactional bus which enlists in the current transaction and defers outgoing messages until the transaction is being committed. There is still no rollback, once the messages are delivered to the broker, there is no pulling them back.
 
@@ -188,9 +188,9 @@ public class Program
 
 Here we are again, another option for holding onto the messages and releasing them as close to the database transaction Commit as possible. We made this alternative because using TransactionScope from the previous section, could [in certain cases](https://github.com/MassTransit/MassTransit/issues/2075) still cause a 2 phase commit escalation (not to mention that TransactionScope doesn't truely have async support, so we make [concessions by calling TaskUtil.Await](https://github.com/MassTransit/MassTransit/blob/develop/src/MassTransit/Transactions/TransactionalBusEnlistment.cs#L83)). So to offer an alternative to these drawbacks, MassTransit provides an Outbox Bus.
 
-::: warning  
+::alert{type="danger"}
 Never use the TransactionalBus or TransactionalEnlistmentBus when writing consumers. These tools are very specific and should be used only in the scenarios described.
-:::
+::
 
 The examples will show it's usage in an ASP.NET MVC application, which is where we most commonly use Scoped lifetime for our DbContext and therefore we want the same for our TransactionalBus. You could possibly use it in some console applications, but ones WITHOUT a MT Consumer. Once you have consumers you will ALWAYS use `ConsumeContext` to interact with the bus, and never the `IBus`.
 

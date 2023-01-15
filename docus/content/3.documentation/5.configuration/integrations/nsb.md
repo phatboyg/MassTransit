@@ -11,9 +11,9 @@
 
 - [MassTransit.Interop.NServiceBus](https://nuget.org/packages/MassTransit.Interop.NServiceBus/)
 
-::: danger
+::alert{type="danger"}
 This package was built using a black box, clean room approach based on observed message formats within the message broker. As such, there may be edge cases and situations which are not handled by this package. Extensive testing is recommended to ensure all message properties are being properly interpreted.
-:::
+::
 
 MassTransit has limited message exchange support with NServiceBus, tested with the formats and configurations listed below.
 

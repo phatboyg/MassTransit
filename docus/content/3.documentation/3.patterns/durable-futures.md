@@ -46,6 +46,6 @@ The return type, `Task<T>`, is a C# language feature that represents a _future_.
 
 _I'm intentionally ignoring `ValueTask<T>` for now. It behaves similarly but has a few restrictions, one of which being that it should only be evaluated once._
 
-::: tip C#
+::alert{type="info"}
 Prior to the addition of `async` and `await`, writing asynchronous code was significantly more complex. _Continuation passing_ was commonly used, resulting in deeply nested code that was difficult to understand and even more difficult to debug. Without a doubt, `async` and `await` are two of the best keywords in C#.
-:::
+::
