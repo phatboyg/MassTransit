@@ -10,6 +10,7 @@
         PipeContext,
         MessageContext,
         IPublishEndpoint,
+        IPublishEndpointProvider,
         ISendEndpointProvider
     {
         /// <summary>

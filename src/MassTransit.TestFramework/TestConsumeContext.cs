@@ -269,6 +269,12 @@
             return new Connectable<IPublishObserver>().Connect(observer);
         }
 
+        public Task<ISendEndpoint> GetPublishSendEndpoint<T>()
+            where T : class
+        {
+            throw new NotImplementedException();
+        }
+
         public ConnectHandle ConnectSendObserver(ISendObserver observer)
         {
             return new Connectable<ISendObserver>().Connect(observer);

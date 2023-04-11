@@ -101,6 +101,12 @@ namespace MassTransit.Context
             return _context.ConnectPublishObserver(observer);
         }
 
+        public Task<ISendEndpoint> GetPublishSendEndpoint<T>()
+            where T : class
+        {
+            return _context.GetPublishSendEndpoint<T>();
+        }
+
         public Task Publish<T>(T message, CancellationToken cancellationToken)
             where T : class
         {

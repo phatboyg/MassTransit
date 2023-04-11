@@ -27,8 +27,8 @@ namespace MassTransit.MongoDbIntegration
         readonly MongoDbCollectionContext<OutboxMessage> _outboxMessages;
         readonly MongoDbCollectionContext<OutboxState> _outboxStates;
         readonly IServiceProvider _provider;
-
         IPublishEndpoint? _publishEndpoint;
+        IPublishEndpointProvider? _publishEndpointProvider;
         IScopedClientFactory? _scopedClientFactory;
         ISendEndpointProvider? _sendEndpointProvider;
         Guid? _transactionId;
@@ -93,9 +93,14 @@ namespace MassTransit.MongoDbIntegration
             get { return _sendEndpointProvider ??= new OutboxSendEndpointProvider(this, _bus); }
         }
 
+        public IPublishEndpointProvider PublishEndpointProvider
+        {
+            get { return _publishEndpointProvider ??= new OutboxPublishEndpointProvider(this, _bus); }
+        }
+
         public IPublishEndpoint PublishEndpoint
         {
-            get { return _publishEndpoint ??= new PublishEndpoint(new OutboxPublishEndpointProvider(this, _bus)); }
+            get { return _publishEndpoint ??= new PublishEndpoint(PublishEndpointProvider); }
         }
 
         public IScopedClientFactory ClientFactory

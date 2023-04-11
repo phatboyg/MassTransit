@@ -43,6 +43,7 @@ namespace MassTransit.Configuration
             collection.AddScoped<IScopedMediator, ScopedMediator>();
 
             collection.TryAddScoped<ScopedConsumeContextProvider>();
+            collection.TryAddScoped<IScopedConsumeContextProvider<IMediator>, ScopedConsumeContextProvider<IMediator>>();
             collection.TryAddScoped(provider => provider.GetRequiredService<ScopedConsumeContextProvider>().GetContext() ?? MissingConsumeContext.Instance);
 
             collection.TryAddSingleton<IConsumeScopeProvider>(provider => new ConsumeScopeProvider(provider));

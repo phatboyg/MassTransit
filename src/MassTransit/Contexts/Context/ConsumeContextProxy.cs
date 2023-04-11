@@ -21,6 +21,12 @@
             _context = context;
         }
 
+        protected ConsumeContextProxy(ReceiveContext receiveContext, ConsumeContext context)
+            : base(receiveContext, context.SerializerContext)
+        {
+            _context = context;
+        }
+
         /// <summary>
         /// Returns the CancellationToken for the context (implicit interface)
         /// </summary>
@@ -146,8 +152,14 @@
     {
         readonly ConsumeContext<TMessage> _context;
 
-        public ConsumeContextProxy(ConsumeContext<TMessage> context)
+        protected ConsumeContextProxy(ConsumeContext<TMessage> context)
             : base(context)
+        {
+            _context = context;
+        }
+
+        protected ConsumeContextProxy(ReceiveContext receiveContext, ConsumeContext<TMessage> context)
+            : base(receiveContext, context)
         {
             _context = context;
         }

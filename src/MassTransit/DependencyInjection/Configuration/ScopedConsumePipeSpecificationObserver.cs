@@ -1,6 +1,7 @@
 namespace MassTransit.Configuration
 {
     using System;
+    using System.Linq;
     using DependencyInjection;
     using Internals;
     using Middleware;
@@ -13,13 +14,17 @@ namespace MassTransit.Configuration
     {
         readonly Type _filterType;
         readonly CompositeFilter<Type> _messageTypeFilter;
+        readonly Type[] _filterTypeArguments;
         readonly IServiceProvider _provider;
 
-        public ScopedConsumePipeSpecificationObserver(Type filterType, IServiceProvider provider, CompositeFilter<Type> messageTypeFilter)
+        public ScopedConsumePipeSpecificationObserver(Type filterType, IServiceProvider provider, CompositeFilter<Type> messageTypeFilter,
+            params Type[] filterTypeArguments)
         {
             _filterType = filterType;
             _provider = provider;
             _messageTypeFilter = messageTypeFilter;
+            _filterTypeArguments = filterTypeArguments;
+
             // do not create filters for scheduled/outbox messages
             _messageTypeFilter.Excludes += type => type == typeof(SerializedMessageBody);
         }
@@ -65,7 +70,9 @@ namespace MassTransit.Configuration
             if (!_messageTypeFilter.Matches(typeof(TMessage)))
                 return;
 
-            var filterType = _filterType.MakeGenericType(typeof(TMessage));
+            var filterType = _filterTypeArguments.Length > 0
+                ? _filterType.MakeGenericType(_filterTypeArguments.Concat(new[] { typeof(TMessage) }).ToArray())
+                : _filterType.MakeGenericType(typeof(TMessage));
 
             if (!filterType.HasInterface(typeof(IFilter<ConsumeContext<TMessage>>)))
                 throw new ConfigurationException($"The scoped filter must implement {TypeCache<IFilter<ConsumeContext<TMessage>>>.ShortName} ");

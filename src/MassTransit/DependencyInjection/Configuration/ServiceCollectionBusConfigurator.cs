@@ -39,6 +39,7 @@ namespace MassTransit.Configuration
             collection.TryAddSingleton(provider => provider.GetRequiredService<Bind<IBus, IClientFactory>>().Value);
 
             collection.TryAddScoped<IScopedBusContextProvider<IBus>, ScopedBusContextProvider>();
+            collection.TryAddScoped<IScopedConsumeContextProvider<IBus>, ScopedConsumeContextProvider<IBus>>();
             collection.TryAddScoped(provider => provider.GetRequiredService<IScopedBusContextProvider<IBus>>().Context.SendEndpointProvider);
             collection.TryAddScoped(provider => provider.GetRequiredService<IScopedBusContextProvider<IBus>>().Context.PublishEndpoint);
         }
@@ -118,6 +119,7 @@ namespace MassTransit.Configuration
 
             collection.TryAddSingleton(provider => Bind<TBus>.Create(provider.GetRequiredService<TBus>().CreateClientFactory()));
             collection.TryAddScoped<IScopedBusContextProvider<TBus>, ScopedBusContextProvider<TBus>>();
+            collection.TryAddScoped<IScopedConsumeContextProvider<TBus>, ScopedConsumeContextProvider<TBus>>();
             collection.TryAddScoped(provider => Bind<TBus>.Create(provider.GetRequiredService<IScopedBusContextProvider<TBus>>().Context.SendEndpointProvider));
             collection.TryAddScoped(provider => Bind<TBus>.Create(provider.GetRequiredService<IScopedBusContextProvider<TBus>>().Context.PublishEndpoint));
 

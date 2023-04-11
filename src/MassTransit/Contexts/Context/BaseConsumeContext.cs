@@ -283,7 +283,7 @@ namespace MassTransit.Context
             return task;
         }
 
-        protected override async Task<ISendEndpoint> GetPublishSendEndpoint<T>()
+        public override async Task<ISendEndpoint> GetPublishSendEndpoint<T>()
         {
             var publishSendEndpoint = await base.GetPublishSendEndpoint<T>().ConfigureAwait(false);
 

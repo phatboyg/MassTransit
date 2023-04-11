@@ -20,6 +20,8 @@ namespace MassTransit.DependencyInjection
 
         public ISendEndpointProvider SendEndpointProvider => _context;
 
+        public IPublishEndpointProvider PublishEndpointProvider => _context;
+
         public IPublishEndpoint PublishEndpoint => _context;
 
         public IScopedClientFactory ClientFactory => _clientFactory;
@@ -35,6 +37,7 @@ namespace MassTransit.DependencyInjection
         readonly ConsumeContext _context;
         readonly IServiceProvider _provider;
         IPublishEndpoint? _publishEndpoint;
+        IPublishEndpointProvider? _publishEndpointProvider;
         ISendEndpointProvider? _sendEndpointProvider;
 
         public ConsumeContextScopedBusContext(TBus bus, ConsumeContext context, IClientFactory clientFactory, IServiceProvider provider)
@@ -50,9 +53,14 @@ namespace MassTransit.DependencyInjection
             get { return _sendEndpointProvider ??= new ScopedConsumeSendEndpointProvider(_bus, _context, _provider); }
         }
 
+        public IPublishEndpointProvider PublishEndpointProvider
+        {
+            get { return _publishEndpointProvider ??= new ScopedConsumePublishEndpointProvider(_bus, _context, _provider); }
+        }
+
         public IPublishEndpoint PublishEndpoint
         {
-            get { return _publishEndpoint ??= new PublishEndpoint(new ScopedConsumePublishEndpointProvider(_bus, _context, _provider)); }
+            get { return _publishEndpoint ??= new PublishEndpoint(PublishEndpointProvider); }
         }
 
         public IScopedClientFactory ClientFactory => _clientFactory;

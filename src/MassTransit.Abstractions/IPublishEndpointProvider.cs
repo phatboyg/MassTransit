@@ -11,7 +11,7 @@ namespace MassTransit
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        Task<ISendEndpoint> GetPublishSendEndpoint<T>()
+        public Task<ISendEndpoint> GetPublishSendEndpoint<T>()
             where T : class;
     }
 }

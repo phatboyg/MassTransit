@@ -68,6 +68,12 @@ namespace MassTransit.Context
             throw new ConsumeContextNotAvailableException();
         }
 
+        public Task<ISendEndpoint> GetPublishSendEndpoint<T>()
+            where T : class
+        {
+            throw new ConsumeContextNotAvailableException();
+        }
+
         public Task Publish<T>(T message, CancellationToken cancellationToken)
             where T : class
         {

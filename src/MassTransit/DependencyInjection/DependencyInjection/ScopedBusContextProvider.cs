@@ -10,11 +10,11 @@ namespace MassTransit.DependencyInjection
     public class ScopedBusContextProvider :
         IScopedBusContextProvider<IBus>
     {
-        public ScopedBusContextProvider(IBus bus, Bind<IBus, IClientFactory> clientFactory, ScopedConsumeContextProvider consumeContextProvider,
+        public ScopedBusContextProvider(IBus bus, Bind<IBus, IClientFactory> clientFactory, IScopedConsumeContextProvider<IBus> consumeContextProvider,
             IServiceProvider provider)
         {
             if (consumeContextProvider.HasContext)
-                Context = new ConsumeContextScopedBusContext(consumeContextProvider.GetContext(), clientFactory.Value);
+                Context = new ConsumeContextScopedBusContext(consumeContextProvider.Context, clientFactory.Value);
             else
                 Context = new BusScopedBusContext<IBus>(bus, clientFactory.Value, provider);
         }
@@ -31,11 +31,11 @@ namespace MassTransit.DependencyInjection
         IScopedBusContextProvider<TBus>
         where TBus : class, IBus
     {
-        public ScopedBusContextProvider(TBus bus, Bind<TBus, IClientFactory> clientFactory, ScopedConsumeContextProvider consumeContextProvider,
+        public ScopedBusContextProvider(TBus bus, Bind<TBus, IClientFactory> clientFactory, IScopedConsumeContextProvider<TBus> consumeContextProvider,
             IServiceProvider provider)
         {
             if (consumeContextProvider.HasContext)
-                Context = new ConsumeContextScopedBusContext<TBus>(bus, consumeContextProvider.GetContext(), clientFactory.Value, provider);
+                Context = new ConsumeContextScopedBusContext<TBus>(bus, consumeContextProvider.Context, clientFactory.Value, provider);
             else
                 Context = new BusScopedBusContext<TBus>(bus, clientFactory.Value, provider);
         }

@@ -61,4 +61,57 @@ namespace MassTransit.DependencyInjection
             }
         }
     }
+
+
+    public class ScopedConsumeContextProvider<T> :
+        IScopedConsumeContextProvider<T>
+        where T : class
+    {
+        ConsumeContext _context;
+
+        public bool HasContext => _context != null && !(_context is MissingConsumeContext);
+
+        public IDisposable PushContext(ConsumeContext context)
+        {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
+            lock (this)
+            {
+                var originalContext = _context;
+
+                _context = context;
+
+                return new PushedContext(this, context, originalContext);
+            }
+        }
+
+        public ConsumeContext Context => _context;
+
+        public void PopContext(ConsumeContext context, ConsumeContext originalContext)
+        {
+            Interlocked.CompareExchange(ref _context, originalContext, context);
+        }
+
+
+        class PushedContext :
+            IDisposable
+        {
+            readonly ConsumeContext _context;
+            readonly ConsumeContext _originalContext;
+            readonly ScopedConsumeContextProvider<T> _provider;
+
+            public PushedContext(ScopedConsumeContextProvider<T> provider, ConsumeContext context, ConsumeContext originalContext)
+            {
+                _provider = provider;
+                _context = context;
+                _originalContext = originalContext;
+            }
+
+            public void Dispose()
+            {
+                _provider.PopContext(_context, _originalContext);
+            }
+        }
+    }
 }

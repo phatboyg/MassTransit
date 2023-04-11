@@ -10,7 +10,8 @@ namespace MassTransit.Transports
     /// The publish endpoint delivers messages to the topic/exchange/whatever based upon the publish topology of the broker, by message type.
     /// </summary>
     public class PublishEndpoint :
-        IPublishEndpoint
+        IPublishEndpoint,
+        IPublishEndpointProvider
     {
         public PublishEndpoint(IPublishEndpointProvider provider)
         {
@@ -99,7 +100,7 @@ namespace MassTransit.Transports
             return PublishEndpointProvider.ConnectPublishObserver(observer);
         }
 
-        protected virtual Task<ISendEndpoint> GetPublishSendEndpoint<T>()
+        public virtual Task<ISendEndpoint> GetPublishSendEndpoint<T>()
             where T : class
         {
             return PublishEndpointProvider.GetPublishSendEndpoint<T>();

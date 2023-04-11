@@ -29,6 +29,7 @@ namespace MassTransit.EntityFrameworkCoreIntegration
         Guid _outboxId;
         EntityEntry<OutboxState>? _outboxState;
         IPublishEndpoint? _publishEndpoint;
+        IPublishEndpointProvider? _publishEndpointProvider;
         IScopedClientFactory? _scopedClientFactory;
         ISendEndpointProvider? _sendEndpointProvider;
 
@@ -90,9 +91,14 @@ namespace MassTransit.EntityFrameworkCoreIntegration
             get { return _sendEndpointProvider ??= new OutboxSendEndpointProvider(this, _bus); }
         }
 
+        public IPublishEndpointProvider PublishEndpointProvider
+        {
+            get { return _publishEndpointProvider ??= new OutboxPublishEndpointProvider(this, _bus); }
+        }
+
         public IPublishEndpoint PublishEndpoint
         {
-            get { return _publishEndpoint ??= new PublishEndpoint(new OutboxPublishEndpointProvider(this, _bus)); }
+            get { return _publishEndpoint ??= new PublishEndpoint(PublishEndpointProvider); }
         }
 
         public IScopedClientFactory ClientFactory
