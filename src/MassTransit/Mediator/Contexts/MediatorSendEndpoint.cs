@@ -25,16 +25,18 @@ namespace MassTransit.Mediator.Contexts
         readonly IPublishTopologyConfigurator _publishTopology;
         readonly ReceiveObservable _receiveObservers;
         readonly SendObservable _sendObservers;
+        readonly BusTransferOptions _options;
         readonly ISendPipe _sendPipe;
         readonly Uri _sourceAddress;
         readonly MediatorSendEndpoint _sourceEndpoint;
 
         MediatorSendEndpoint(IReceiveEndpointConfiguration configuration, IReceivePipeDispatcher dispatcher, ILogContext logContext,
-            SendObservable sendObservers)
+            SendObservable sendObservers, BusTransferOptions options)
         {
             _dispatcher = dispatcher;
             _logContext = logContext;
             _sendObservers = sendObservers;
+            _options = options;
 
             _destinationAddress = configuration.InputAddress;
             _publishTopology = configuration.Topology.Publish;
@@ -47,11 +49,12 @@ namespace MassTransit.Mediator.Contexts
         }
 
         public MediatorSendEndpoint(IReceiveEndpointConfiguration configuration, IReceivePipeDispatcher dispatcher, ILogContext logContext,
-            SendObservable sendObservers, IReceiveEndpointConfiguration sourceConfiguration, IReceivePipeDispatcher sourceDispatcher)
-            : this(configuration, dispatcher, logContext, sendObservers)
+            SendObservable sendObservers, IReceiveEndpointConfiguration sourceConfiguration, IReceivePipeDispatcher sourceDispatcher,
+            BusTransferOptions options)
+            : this(configuration, dispatcher, logContext, sendObservers, options)
         {
             _sourceAddress = sourceConfiguration.InputAddress;
-            _sourceEndpoint = new MediatorSendEndpoint(sourceConfiguration, sourceDispatcher, logContext, sendObservers);
+            _sourceEndpoint = new MediatorSendEndpoint(sourceConfiguration, sourceDispatcher, logContext, sendObservers, options);
         }
 
         public ConnectHandle ConnectPublishObserver(IPublishObserver observer)
@@ -209,7 +212,7 @@ namespace MassTransit.Mediator.Contexts
 
             await pipe.Send(context).ConfigureAwait(false);
 
-            var receiveContext = new MediatorReceiveContext<T>(context, this, this, _publishTopology, _receiveObservers, _objectDeserializer)
+            var receiveContext = new MediatorReceiveContext<T>(context, this, this, _publishTopology, _receiveObservers, _objectDeserializer, _options)
             {
                 IsDelivered = context.IsPublish && !context.Mandatory
             };

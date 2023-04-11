@@ -26,13 +26,13 @@ namespace MassTransit.Mediator
         readonly IReceivePipeDispatcher _responseDispatcher;
 
         public MassTransitMediator(ILogContext logContext, IReceiveEndpointConfiguration configuration, IReceivePipeDispatcher dispatcher,
-            IReceiveEndpointConfiguration responseConfiguration, IReceivePipeDispatcher responseDispatcher)
+            IReceiveEndpointConfiguration responseConfiguration, IReceivePipeDispatcher responseDispatcher, BusTransferOptions options)
         {
             _responseDispatcher = responseDispatcher;
             _dispatcher = dispatcher;
             var sendObservable = new SendObservable();
 
-            _endpoint = new MediatorSendEndpoint(configuration, dispatcher, logContext, sendObservable, responseConfiguration, responseDispatcher);
+            _endpoint = new MediatorSendEndpoint(configuration, dispatcher, logContext, sendObservable, responseConfiguration, responseDispatcher, options);
 
             var clientFactoryContext = new MediatorClientFactoryContext(_endpoint, responseConfiguration.ConsumePipe, responseConfiguration.InputAddress);
             _clientFactory = new ClientFactory(clientFactoryContext);

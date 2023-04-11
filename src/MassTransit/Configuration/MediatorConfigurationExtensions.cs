@@ -44,7 +44,8 @@ namespace MassTransit
 
             var responseDispatcher = responseConfigurator.Build();
 
-            return new MassTransitMediator(LogContext.Current, endpointConfiguration, mediatorDispatcher, responseEndpointConfiguration, responseDispatcher);
+            return new MassTransitMediator(LogContext.Current, endpointConfiguration, mediatorDispatcher, responseEndpointConfiguration, responseDispatcher,
+                configurator.Options);
         }
     }
 }

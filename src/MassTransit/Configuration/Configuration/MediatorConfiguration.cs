@@ -19,6 +19,8 @@ namespace MassTransit.Configuration
             }
         }
 
+        public BusTransferOptions Options { get; private set; } = BusTransferOptions.None;
+
         public ConnectHandle ConnectConsumeObserver(IConsumeObserver observer)
         {
             return _hostConfiguration.ConnectConsumeObserver(observer);
@@ -32,6 +34,11 @@ namespace MassTransit.Configuration
         public ConnectHandle ConnectPublishObserver(IPublishObserver observer)
         {
             return _hostConfiguration.ConnectPublishObserver(observer);
+        }
+
+        public void UseBusTransfer(BusTransferOptions options = BusTransferOptions.Default)
+        {
+            Options = options;
         }
     }
 }

@@ -6,5 +6,6 @@ namespace MassTransit
         ISendObserverConnector,
         IPublishObserverConnector
     {
+        void UseBusTransfer(BusTransferOptions options = BusTransferOptions.Default);
     }
 }

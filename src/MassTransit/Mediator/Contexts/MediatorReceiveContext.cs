@@ -5,6 +5,8 @@ namespace MassTransit.Mediator.Contexts
     using System.Net.Mime;
     using System.Threading.Tasks;
     using Context;
+    using DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection;
     using Middleware;
     using Serialization;
     using Transports;
@@ -26,18 +28,22 @@ namespace MassTransit.Mediator.Contexts
         readonly MediatorConsumeContext<TMessage> _consumeContext;
         readonly MessageIdMessageHeader _headers;
         readonly IReceiveObserver _observers;
+        readonly BusTransferOptions _options;
         readonly PendingTaskCollection _receiveTasks;
         readonly Stopwatch _receiveTimer;
+        readonly ISendEndpointProvider _sendEndpointProvider;
+        readonly IPublishEndpointProvider _publishEndpointProvider;
 
         public MediatorReceiveContext(SendContext<TMessage> sendContext, ISendEndpointProvider sendEndpointProvider,
             IPublishEndpointProvider publishEndpointProvider, IPublishTopology publishTopology, IReceiveObserver observers,
-            IObjectDeserializer objectDeserializer)
+            IObjectDeserializer objectDeserializer, BusTransferOptions options)
             : base(sendContext)
         {
             _observers = observers;
+            _options = options;
 
-            SendEndpointProvider = sendEndpointProvider;
-            PublishEndpointProvider = publishEndpointProvider;
+            _sendEndpointProvider = sendEndpointProvider;
+            _publishEndpointProvider = publishEndpointProvider;
             PublishTopology = publishTopology;
 
             _receiveTimer = Stopwatch.StartNew();
@@ -73,8 +79,59 @@ namespace MassTransit.Mediator.Contexts
             _receiveTasks.Add(task);
         }
 
-        public ISendEndpointProvider SendEndpointProvider { get; }
-        public IPublishEndpointProvider PublishEndpointProvider { get; }
+        public ISendEndpointProvider SendEndpointProvider
+        {
+            get
+            {
+                if (_options.HasFlag(BusTransferOptions.Send))
+                {
+                    if (_consumeContext?.TryGetPayload<IServiceScope>(out var scope) ?? false)
+                    {
+                        var bus = scope.ServiceProvider.GetService<IBus>();
+                        var provider = scope.ServiceProvider.GetService<ScopedConsumeContextProvider>();
+
+                        if (bus != null && provider != null)
+                        {
+                            if (provider.HasContext)
+                            {
+                                return new ScopedConsumeSendEndpointProvider(bus, provider.GetContext(), scope.ServiceProvider);
+                            }
+
+                            return new ScopedSendEndpointProvider(bus, scope.ServiceProvider);
+                        }
+                    }
+                }
+
+                return _sendEndpointProvider;
+            }
+        }
+
+        public IPublishEndpointProvider PublishEndpointProvider
+        {
+            get
+            {
+                if (_options.HasFlag(BusTransferOptions.Publish))
+                {
+                    if (_consumeContext?.TryGetPayload<IServiceScope>(out var scope) ?? false)
+                    {
+                        var bus = scope.ServiceProvider.GetService<IBus>();
+                        var provider = scope.ServiceProvider.GetService<ScopedConsumeContextProvider>();
+
+                        if (bus != null && provider != null)
+                        {
+                            if (provider.HasContext)
+                            {
+                                return new ScopedConsumePublishEndpointProvider(bus, provider.GetContext(), scope.ServiceProvider);
+                            }
+
+                            return new ScopedPublishEndpointProvider(bus, scope.ServiceProvider);
+                        }
+                    }
+                }
+
+                return _publishEndpointProvider;
+            }
+        }
 
         public bool Redelivered => false;
         public Headers TransportHeaders => _headers;
